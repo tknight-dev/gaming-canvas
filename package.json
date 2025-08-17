@@ -7,7 +7,7 @@
         "rimraf": "^6.0.0",
         "typescript": "^5.0.0"
     },
-    "description": "A gaming canvas with useful integrations",
+    "description": "A gaming canvas with useful tools",
     "exports": {
         "import": {
             "import": "./dist/index.mjs",
@@ -24,7 +24,7 @@
     "license": "MIT",
     "main": "./dist/index.cjs",
     "module": "./dist/index.mjs",
-    "name": "gaming-canvas",
+    "name": "@tknight-dev/gaming-canvas",
     "scripts": {
         "lint": "prettier esbuild.cjs esbuild.mjs src/. --write",
         "build": "yarn build:cjs && yarn build:mjs && tsc",
