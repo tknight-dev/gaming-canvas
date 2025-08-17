@@ -19,6 +19,10 @@ See it in action with my game [Life](https://app.tknight.dev/game/life/index.htm
     - Dimensions are always rounded down to the nearest pixel to improve performance
     - Scaling uses the css `transform` function which your browser (CPU) offloads to your GPU (best performance)
 - **Visibility**: Quickly known if your game needs to be paused (browser minimized or switched to new tab)
+
+### Installation
+
+- NPM: `npm i @tknight-dev/gaming-canvas`
 - Yarn: `yarn add @tknight-dev/gaming-canvas`
 
 ### Getting Started
