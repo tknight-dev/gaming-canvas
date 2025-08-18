@@ -53,7 +53,6 @@ const canvas: HTMLCanvasElement = canvases[0]; // There will always be atleast 1
 const canvasContext: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRenderingContext2D;
 
 // You have to set the dimensions of the canvas as modifying the height/width also clears the canvas
-// Reports contain all the necessary information to adjust the dimensions of a canvas
 GamingCanvasSetSize(canvas);
 
 // Draw
@@ -174,6 +173,7 @@ const draw = () => {
 
 // Updates on display changes (orientation, resize, and rotation)
 GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
+    // Report contains all the necessary information to adjust the dimensions of a canvas
     // If multithreading, you'll need to pass the report to the WebWorker, using the OffscreenCanvas, to set the canvas dimensions and draw from there
     GamingCanvasSetSize(canvas, report);
     draw(); // Remember, changing the canvas size clears it as well
