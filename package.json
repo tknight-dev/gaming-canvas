@@ -7,7 +7,7 @@
         "rimraf": "^6.0.0",
         "typescript": "^5.0.0"
     },
-    "description": "A gaming canvas with useful tools",
+    "description": "A better/faster way to start writing games in JS",
     "exports": {
         "import": {
             "import": "./dist/index.mjs",
@@ -33,5 +33,5 @@
     },
     "type": "module",
     "types": "./dist/index.d.ts",
-    "version": "0.0.0"
+    "version": "0.1.0"
 }

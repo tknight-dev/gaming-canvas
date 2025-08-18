@@ -1,19 +1,21 @@
-# Gaming Canvas
+# Gaming Canvas &middot; ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)
 
 Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`). Less than 20kb.
 
-### Why This Library?
+#
+
+## Why This Library?
 
 See it in action with my game: [Life](https://app.tknight.dev/game/life/index.html?perf=true). Its a multithreaded Conway's Game of Life for Desktop and Mobile devices (supports Keyboard, Mouse, and Touch based inputs) [[GitHub](https://github.com/tknight-dev/life)]!
 
 **GamingCanvas** provides the following:
 
-- **DPI**: Support high/low DPI screens ([devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio))
+- **DPI**: Supports high/low DPI screens ([devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio))
 - **Fullscreen**: Quickly fullscreen your game
 - **Inputs**: Quickly gives you access to Keyboard, Mouse, and Touch serialized (FIFO) inputs.
     - Enable or disable any input type you want
-    - Mouse supports: left, right, and wheel based inputs
-    - Touch supports: as many individual inputs as your screen can support
+    - Mouse: supports left, right, and wheel based inputs
+    - Touch: supports as many individual inputs as your screen can support
 - **Layers**: Specify how many layers you want to optimize your code for. It can generate multiple canvases for background, foreground, overlay-1, etc, etc
     - Send each layer to a different [WebWorkers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to dedicate a thread to each canvas element (massive performance gains)
 - **Mobile**: Mobile devices are fully supported
@@ -24,12 +26,16 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
     - Scaling uses the css `transform` function which your browser (CPU) offloads to your GPU (best performance)
 - **Visibility**: Quickly know if your game needs to be paused (browser minimized or switched to new tab)
 
-### Installation
+#
+
+## Installation
 
 - NPM: `npm i @tknight-dev/gaming-canvas`
 - Yarn: `yarn add @tknight-dev/gaming-canvas`
 
-### Getting Started
+#
+
+## Getting Started
 
 ```html
 <div class="title"><h1>My Game Title</h1></div>
@@ -64,14 +70,18 @@ canvasContext.font = '48px serif';
 canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
 ```
 
-### Models: GamingCanvasDirection (enum)
+#
+
+## Models: GamingCanvasDirection (enum)
 
 | Key      | Description                   |
 | -------- | ----------------------------- |
 | NORMAL   | Left-To-Right & Top-To-Bottom |
 | INVERTED | Right-To-Left & Bottom-To-Top |
 
-### Models: GamingCanvasInputKeyboardAction (interface)
+#
+
+## Models: GamingCanvasInputKeyboardAction (interface)
 
 See: [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)
 Note: Keyboard repeat events are filtered out
@@ -84,7 +94,9 @@ Note: Keyboard repeat events are filtered out
 | keyShift | Based on `KeyboardEvent.shiftKey`                                                            |
 | location | Uses `GamingCanvasInputKeyboardActionLocation` enum and is based on `KeyboardEvent.location` |
 
-### Models: GamingCanvasInputMouseAction (enum)
+#
+
+## Models: GamingCanvasInputMouseAction (enum)
 
 | Key         | Description                   |
 | ----------- | ----------------------------- |
@@ -97,7 +109,9 @@ Note: Keyboard repeat events are filtered out
 | WHEEL       | Based `mousedown` & `mouseup` |
 | WHEEL_CLICK | Based on `click`              |
 
-### Models: GamingCanvasInputPosition (interface)
+#
+
+## Models: GamingCanvasInputPosition (interface)
 
 | Key       | Type    | Description                                                                                                     |
 | --------- | ------- | --------------------------------------------------------------------------------------------------------------- |
@@ -107,14 +121,18 @@ Note: Keyboard repeat events are filtered out
 | y         | number  | y coordinate                                                                                                    |
 | yRelative | number  | y coordinate relative to the height                                                                             |
 
-### Models: GamingCanvasInputTouchAction (enum)
+#
+
+## Models: GamingCanvasInputTouchAction (enum)
 
 | Key    | Description                                     |
 | ------ | ----------------------------------------------- |
 | ACTIVE | Based `touchcancel` & `touchend` & `touchstart` |
 | MOVE   | Based on `touchmove`                            |
 
-### Models: GamingCanvasOptions (interface)
+#
+
+## Models: GamingCanvasOptions (interface)
 
 | Key                          | Type                    | Default     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | ---------------------------- | ----------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -134,7 +152,9 @@ Note: Keyboard repeat events are filtered out
 | resolutionByHeightPx         | number or `null`        | `null`      | `null` sets the canvas dimensions, and not `null` scales the canvas dimensions to fit                                                                                                                                                                                                                                                                                                                                                                                                   |
 | resolutionScaleToFit         | boolean                 | true        | Enables the scalling feature of `resolutionByHeightPx` when using a non-null value                                                                                                                                                                                                                                                                                                                                                                                                      |
 
-### Models: GamingCanvasOrientation (enum)
+#
+
+## Models: GamingCanvasOrientation (enum)
 
 | Key       | Description         |
 | --------- | ------------------- |
@@ -142,7 +162,9 @@ Note: Keyboard repeat events are filtered out
 | LANDSCAPE | Wide                |
 | PORTRAIT  | Tall                |
 
-### Models: GamingCanvasReport (interface)
+#
+
+## Models: GamingCanvasReport (interface)
 
 | Key                | type                    | Description                                      |
 | ------------------ | ----------------------- | ------------------------------------------------ |
@@ -154,7 +176,9 @@ Note: Keyboard repeat events are filtered out
 | orientation        | GamingCanvasOrientation | Current orientation                              |
 | scaler             | number                  | Value used to scale height/width to scaled value |
 
-### How To: Canvas with Dynamic Resolution (no set resolution)
+#
+
+## How To: Canvas with Dynamic Resolution (no set resolution)
 
 ```typescript
 import { GamingCanvas, GamingCanvasOptions, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
@@ -191,7 +215,9 @@ canvas.width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 
 draw();
 ```
 
-### How To: Fullscreen
+#
+
+## How To: Fullscreen
 
 Here is some example code to use in your main thread (not a [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers))
 
@@ -214,7 +240,9 @@ setTimeout(() => {
 }, 1000);
 ```
 
-### How To: Inputs
+#
+
+## How To: Inputs
 
 Here is some example code to use in your main thread (not a [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers))
 
@@ -308,11 +336,15 @@ setTimeout(() => {
 }, 1000);
 ```
 
-### How To: Screen Dimming (Power Saving Mode)
+#
+
+## How To: Screen Dimming (Power Saving Mode)
 
 A 3rd party library (like [NoSleep.js](https://github.com/richtr/NoSleep.js)) is required to prevent dimming (even in fullscreen mode). I may include this feature in a future release.
 
-### How To: Screenshot
+#
+
+## How To: Screenshot
 
 The screenshot function returns a `PNG` of every canvas layer in one image. Below is some example code on how to download it.
 
@@ -347,7 +379,9 @@ if (blob) {
 }
 ```
 
-### How To: Visibility
+#
+
+## How To: Visibility
 
 Here is some example code to use in your main thread (not a [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers))
 
@@ -363,12 +397,16 @@ GamingCanvas.setCallbackVisibility((state: boolean) => {
 });
 ```
 
-### Troubleshoot
+#
+
+## Troubleshooting
 
 - `GamingCanvas > GamingCanvasFIFOQueue: input overflow [limit=*]`
     - Make sure you are processing the inputs by removing them from the queue, or disable the inputs. See section `How To: Inputs`
 
-### Future Releases
+#
+
+## Future Releases
 
 - Add [Gamepad](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API) support
 - Add `GamingCanvasFIFOQueue` binary encoder/decorder for sending input chunks between [WebWorkers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) via [TransferableObjects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects)
