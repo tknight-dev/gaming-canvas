@@ -222,38 +222,32 @@ import {
     GamingCanvasInputPositionDistance,
     GamingCanvasInputTouch,
     GamingCanvasInputType,
-    GamingCanvasReport,
 } from '@tknight-dev/gaming-canvas';
 
 let inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
     queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvas.getInputQueue(),
     queueInput: GamingCanvasInput | undefined,
     queueQuit: boolean,
-    queueRequest: number,
-    queueTimestamp: number = 0;
+    queueRequest: number;
 
 const processor = (timestampNow: number) => {
     // Start the request for the next frame before processing the data (faster)
     queueRequest = requestAnimationFrame(processor);
 
-    if (timestampNow - queueTimestamp > inputLimitPerMs) {
-        queueTimestamp = timestampNow;
+    while (!queueQuit && (queueInput = queue.pop())) {
+        // This function automatically adjusts the (x,y) coordinates based on the current rotational state of the canvas
+        GamingCanvas.relativizeInput(queueInput);
 
-        while (!queueQuit && (queueInput = queue.pop())) {
-            // This function automatically adjusts the (x,y) coordinates based on the current rotational state of the canvas
-            GamingCanvas.relativizeInput(queueInput);
-
-            switch (queueInput.type) {
-                case GamingCanvasInputType.KEYBOARD:
-                    processorKeyboard(queueInput, timestampNow);
-                    break;
-                case GamingCanvasInputType.MOUSE:
-                    processorMouse(queueInput, timestampNow);
-                    break;
-                case GamingCanvasInputType.TOUCH:
-                    processorTouch(queueInput, timestampNow);
-                    break;
-            }
+        switch (queueInput.type) {
+            case GamingCanvasInputType.KEYBOARD:
+                processorKeyboard(queueInput, timestampNow);
+                break;
+            case GamingCanvasInputType.MOUSE:
+                processorMouse(queueInput, timestampNow);
+                break;
+            case GamingCanvasInputType.TOUCH:
+                processorTouch(queueInput, timestampNow);
+                break;
         }
     }
 };
