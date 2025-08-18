@@ -1,14 +1,11 @@
 {
     "compilerOptions": {
         "declaration": true,
+        "declarationMap": true,
         "emitDeclarationOnly": true,
-        "esModuleInterop": true,
-        "moduleResolution": "node",
-        "outFile": "./dist/index.d.ts",
-        "strict": true,
-        "strictPropertyInitialization": false,
-        "target": "ESNext"
+        "lib": ["dom", "ESNext"],
+        "outDir": "./dist"
     },
-    "include": ["src/index.ts"],
+    "include": ["src/**/*.ts"],
     "exclude": ["node_modules"]
 }

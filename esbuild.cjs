@@ -19,5 +19,5 @@ esbuild.build({
 	},
 	platform: 'node',
 	plugins: [], // Don't set plugins here
-	sourcemap: false,
+	sourcemap: true,
 });

@@ -21,10 +21,29 @@
     "files": [
         "dist"
     ],
+    "keywords": [
+        "canvas",
+        "dpi",
+        "fullscreen",
+        "gaming",
+        "inputs",
+        "keyboard",
+        "mobile",
+        "mouse",
+        "orientation",
+        "resolution",
+        "responsive",
+        "touch",
+        "visibility"
+    ],
     "license": "MIT",
     "main": "./dist/index.cjs",
     "module": "./dist/index.mjs",
     "name": "@tknight-dev/gaming-canvas",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/tknight-dev/gaming-canvas.git"
+    },
     "scripts": {
         "lint": "prettier esbuild.cjs esbuild.mjs src/. --write",
         "build": "yarn build:cjs && yarn build:mjs && tsc",
@@ -33,5 +52,5 @@
     },
     "type": "module",
     "types": "./dist/index.d.ts",
-    "version": "0.1.0"
+    "version": "0.0.1"
 }
