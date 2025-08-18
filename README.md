@@ -2,8 +2,6 @@
 
 Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`). Less than 20kb.
 
-#
-
 ## Why This Library?
 
 See it in action with my game: [Life](https://app.tknight.dev/game/life/index.html?perf=true). Its a multithreaded Conway's Game of Life for Desktop and Mobile devices (supports Keyboard, Mouse, and Touch based inputs) [[GitHub](https://github.com/tknight-dev/life)]!
@@ -26,14 +24,10 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
     - Scaling uses the css `transform` function which your browser (CPU) offloads to your GPU (best performance)
 - **Visibility**: Quickly know if your game needs to be paused (browser minimized or switched to new tab)
 
-#
-
 ## Installation
 
 - NPM: `npm i @tknight-dev/gaming-canvas`
 - Yarn: `yarn add @tknight-dev/gaming-canvas`
-
-#
 
 ## Getting Started
 
@@ -70,16 +64,12 @@ canvasContext.font = '48px serif';
 canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
 ```
 
-#
-
 ## Models: GamingCanvasDirection (enum)
 
 | Key      | Description                   |
 | -------- | ----------------------------- |
 | NORMAL   | Left-To-Right & Top-To-Bottom |
 | INVERTED | Right-To-Left & Bottom-To-Top |
-
-#
 
 ## Models: GamingCanvasInputKeyboardAction (interface)
 
@@ -94,8 +84,6 @@ Note: Keyboard repeat events are filtered out
 | keyShift | Based on `KeyboardEvent.shiftKey`                                                            |
 | location | Uses `GamingCanvasInputKeyboardActionLocation` enum and is based on `KeyboardEvent.location` |
 
-#
-
 ## Models: GamingCanvasInputMouseAction (enum)
 
 | Key         | Description                   |
@@ -109,8 +97,6 @@ Note: Keyboard repeat events are filtered out
 | WHEEL       | Based `mousedown` & `mouseup` |
 | WHEEL_CLICK | Based on `click`              |
 
-#
-
 ## Models: GamingCanvasInputPosition (interface)
 
 | Key       | Type    | Description                                                                                                     |
@@ -121,16 +107,12 @@ Note: Keyboard repeat events are filtered out
 | y         | number  | y coordinate                                                                                                    |
 | yRelative | number  | y coordinate relative to the height                                                                             |
 
-#
-
 ## Models: GamingCanvasInputTouchAction (enum)
 
 | Key    | Description                                     |
 | ------ | ----------------------------------------------- |
 | ACTIVE | Based `touchcancel` & `touchend` & `touchstart` |
 | MOVE   | Based on `touchmove`                            |
-
-#
 
 ## Models: GamingCanvasOptions (interface)
 
@@ -152,8 +134,6 @@ Note: Keyboard repeat events are filtered out
 | resolutionByHeightPx         | number or `null`        | `null`      | `null` sets the canvas dimensions, and not `null` scales the canvas dimensions to fit                                                                                                                                                                                                                                                                                                                                                                                                   |
 | resolutionScaleToFit         | boolean                 | true        | Enables the scalling feature of `resolutionByHeightPx` when using a non-null value                                                                                                                                                                                                                                                                                                                                                                                                      |
 
-#
-
 ## Models: GamingCanvasOrientation (enum)
 
 | Key       | Description         |
@@ -161,8 +141,6 @@ Note: Keyboard repeat events are filtered out
 | AUTO      | Rotate for best fit |
 | LANDSCAPE | Wide                |
 | PORTRAIT  | Tall                |
-
-#
 
 ## Models: GamingCanvasReport (interface)
 
@@ -175,8 +153,6 @@ Note: Keyboard repeat events are filtered out
 | devicePixelRatio   | number                  | DPI ratio of the screen                          |
 | orientation        | GamingCanvasOrientation | Current orientation                              |
 | scaler             | number                  | Value used to scale height/width to scaled value |
-
-#
 
 ## How To: Canvas with Dynamic Resolution (no set resolution)
 
@@ -215,8 +191,6 @@ canvas.width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 
 draw();
 ```
 
-#
-
 ## How To: Fullscreen
 
 Here is some example code to use in your main thread (not a [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers))
@@ -239,8 +213,6 @@ setTimeout(() => {
     GamingCanvas.setFullscreen(false);
 }, 1000);
 ```
-
-#
 
 ## How To: Inputs
 
@@ -336,13 +308,9 @@ setTimeout(() => {
 }, 1000);
 ```
 
-#
-
 ## How To: Screen Dimming (Power Saving Mode)
 
 A 3rd party library (like [NoSleep.js](https://github.com/richtr/NoSleep.js)) is required to prevent dimming (even in fullscreen mode). I may include this feature in a future release.
-
-#
 
 ## How To: Screenshot
 
@@ -379,8 +347,6 @@ if (blob) {
 }
 ```
 
-#
-
 ## How To: Visibility
 
 Here is some example code to use in your main thread (not a [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers))
@@ -397,14 +363,10 @@ GamingCanvas.setCallbackVisibility((state: boolean) => {
 });
 ```
 
-#
-
 ## Troubleshooting
 
 - `GamingCanvas > GamingCanvasFIFOQueue: input overflow [limit=*]`
     - Make sure you are processing the inputs by removing them from the queue, or disable the inputs. See section `How To: Inputs`
-
-#
 
 ## Future Releases
 
