@@ -40,25 +40,23 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 ```
 
 ```typescript
-import { GamingCanvas, GamingCanvasApplyReport, GamingCanvasOptions, GamingCanvasOrientation } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasSetSize } from '@tknight-dev/gaming-canvas';
 
+// The HTML element containing your game
 const container: HTMLElement = document.getElementById('hook-for-gaming-canvas') as HTMLElement;
-const options: GamingCanvasOptions = {
-    resolutionByWidthPx: 640, // Fixed resolution 640x320
-};
 
 // The GamingCanvas returns the newly generated canvas element(s)
 const canvases: HTMLCanvasElement[] = GamingCanvas.initialize(container);
 
 // Select the canvas you want to draw on
-const canvas: HTMLCanvasElement = canvases[0];
+const canvas: HTMLCanvasElement = canvases[0]; // There will always be atleast 1 canvas generated
 const canvasContext: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRenderingContext2D;
 
 // You have to set the dimensions of the canvas as modifying the height/width also clears the canvas
 // Reports contain all the necessary information to adjust the dimensions of a canvas
-GamingCanvasApplyReport(canvas);
+GamingCanvasSetSize(canvas);
 
-// Use the canvas here or pass it to a WebWorker via the OffscreenCanvas method for multi-threading
+// Draw
 canvasContext.font = '48px serif';
 canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
 ```
@@ -156,16 +154,13 @@ Note: Keyboard repeat events are filtered out
 ## How To: Canvas with Dynamic Resolution (no set resolution)
 
 ```typescript
-import { GamingCanvas, GamingCanvasOptions, GamingCanvasReport } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasReport, GamingCanvasSetSize } from '@tknight-dev/gaming-canvas';
 
+// The HTML element containing your game
 const container: HTMLElement = document.getElementById('hook-for-gaming-canvas') as HTMLElement;
-const options: GamingCanvasOptions = {
-    aspectRatio: 16 / 9,
-    resolutionByWidthPx: 640,
-};
 
 // The GamingCanvas returns the newly generated canvas element(s)
-const canvases: HTMLCanvasElement[] = GamingCanvas.initialize(container, options);
+const canvases: HTMLCanvasElement[] = GamingCanvas.initialize(container);
 
 // Select the canvas you want to draw on
 const canvas: HTMLCanvasElement = canvases[0];
@@ -177,14 +172,14 @@ const draw = () => {
     canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
 };
 
-// Updates on display changes
+// Updates on display changes (orientation, resize, and rotation)
 GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
     // If multithreading, you'll need to pass the report to the WebWorker, using the OffscreenCanvas, to set the canvas dimensions and draw from there
-    GamingCanvasApplyReport(canvas, report);
-    draw();
+    GamingCanvasSetSize(canvas, report);
+    draw(); // Remember, changing the canvas size clears it as well
 });
 
-// Set the initial canvas size
+// Set the initial canvas size and draw
 GamingCanvasSetSize(canvas);
 draw();
 ```

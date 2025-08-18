@@ -14,14 +14,6 @@ import { GamingCanvasTouchEngine } from './engines/touch.engine';
  * @author tknight-dev
  */
 
-/**
- * Update the dimensions of the canvas element via the report. This will clear the canvas.
- */
-export const GamingCanvasApplyReport = (canvas: HTMLCanvasElement, report: GamingCanvasReport = GamingCanvas.getReport()) => {
-	canvas.height = (report.canvasHeight * report.devicePixelRatio) | 0;
-	canvas.width = (report.canvasWidth * report.devicePixelRatio) | 0;
-};
-
 export class GamingCanvasOptions {
 	aspectRatio?: number;
 	callbackReportLimitPerMs?: number;
@@ -60,6 +52,14 @@ export interface GamingCanvasReport {
 	orientation: GamingCanvasOrientation;
 	scaler: number;
 }
+
+/**
+ * Update the dimensions of the canvas element via the report. This will clear the canvas.
+ */
+export const GamingCanvasSetSize = (canvas: HTMLCanvasElement, report: GamingCanvasReport = GamingCanvas.getReport()) => {
+	canvas.height = (report.canvasHeight * report.devicePixelRatio) | 0;
+	canvas.width = (report.canvasWidth * report.devicePixelRatio) | 0;
+};
 
 export class GamingCanvas {
 	private static callbackFullscreen: (state: boolean) => void;
