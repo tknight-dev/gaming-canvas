@@ -107,7 +107,6 @@ export class GamingCanvas {
 		 * Scale
 		 */
 		let aspectRatio: number = 1 / <number>options.aspectRatio,
-			devicePixelRatioEff: number = 1 / window.devicePixelRatio,
 			height: number = GamingCanvas.elementRotator2.offsetWidth * aspectRatio,
 			report: GamingCanvasReport = <GamingCanvasReport>{
 				orientation: GamingCanvas.stateOrientation,
@@ -146,12 +145,12 @@ export class GamingCanvas {
 		// Use CSS tranform to scale fixed dimensions canvas to native size
 		if (options.resolutionScaleToFit === true && options.resolutionByWidthPx !== null) {
 			if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
-				scaler = Math.round(((devicePixelRatioEff * width) / <number>options.resolutionByWidthPx) * 1000) / 1000;
+				scaler = Math.round((width / <number>options.resolutionByWidthPx) * 1000) / 1000;
 			} else {
-				scaler = Math.round(((devicePixelRatioEff * GamingCanvas.elementRotator2.offsetHeight) / <number>options.resolutionByWidthPx) * 1000) / 1000;
+				scaler = Math.round((GamingCanvas.elementRotator2.offsetHeight / <number>options.resolutionByWidthPx) * 1000) / 1000;
 			}
 		} else {
-			scaler = devicePixelRatioEff;
+			scaler = 1;
 		}
 		GamingCanvas.stateScaler = scaler;
 		report.canvasHeightScaled = report.canvasHeight * scaler;
@@ -483,22 +482,24 @@ export class GamingCanvas {
 	}
 
 	public static setDebug(state: boolean): void {
-		if (GamingCanvas.elementCanvas) {
-			if (state) {
-				GamingCanvas.elementRotator1.style.background = 'repeating-linear-gradient(45deg, #404040, #000 10px';
+		if (!GamingCanvas.elementCanvas) {
+			console.error('GamingCanvas > setDebug: not initialized yet');
+			return;
+		}
+		if (state) {
+			GamingCanvas.elementRotator1.style.background = 'repeating-linear-gradient(45deg, #404040, #000 10px';
 
-				GamingCanvas.elementRotator2.style.backgroundColor = 'rgba(192,192,192,0.5)';
+			GamingCanvas.elementRotator2.style.backgroundColor = 'rgba(192,192,192,0.5)';
 
-				GamingCanvas.elementCanvas.style.backgroundColor = 'rgba(255,0,255,0.5)';
-				GamingCanvas.elementCanvas.style.boxShadow = 'inset -8px 8px 4px 4px rgb(0,255,0)';
-			} else {
-				GamingCanvas.elementRotator1.style.background = 'unset';
+			GamingCanvas.elementCanvas.style.backgroundColor = 'rgba(255,0,255,0.5)';
+			GamingCanvas.elementCanvas.style.boxShadow = 'inset -8px 8px 4px 4px rgb(0,255,0)';
+		} else {
+			GamingCanvas.elementRotator1.style.background = 'unset';
 
-				GamingCanvas.elementRotator2.style.backgroundColor = 'transparent';
+			GamingCanvas.elementRotator2.style.backgroundColor = 'transparent';
 
-				GamingCanvas.elementCanvas.style.backgroundColor = 'transparent';
-				GamingCanvas.elementCanvas.style.boxShadow = 'none';
-			}
+			GamingCanvas.elementCanvas.style.backgroundColor = 'transparent';
+			GamingCanvas.elementCanvas.style.boxShadow = 'none';
 		}
 	}
 
@@ -544,7 +545,11 @@ export class GamingCanvas {
 		GamingCanvas.stateFullscreen = state;
 	}
 
-	private static setOptions(options: GamingCanvasOptions): void {
+	public static setOptions(options: GamingCanvasOptions): void {
+		if (!GamingCanvas.elementCanvas) {
+			console.error('GamingCanvas > setOptions: not initialized yet');
+			return;
+		}
 		GamingCanvas.options = options;
 
 		// Defaults

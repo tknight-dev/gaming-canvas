@@ -6,7 +6,7 @@ import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } f
  */
 
 export enum GamingCanvasInputTouchAction {
-	ACTIVE, // A finger is GamingCanvasTouching the screen
+	ACTIVE, // A finger is touching the screen
 	MOVE,
 }
 
@@ -24,9 +24,6 @@ export class GamingCanvasTouchEngine {
 	private static timeout: ReturnType<typeof setTimeout>;
 	private static timestamp: number = -2025;
 
-	/**
-	 * Maximum 2 GamingCanvasTouch positions
-	 */
 	private static calc(event: TouchEvent): GamingCanvasInputPosition[] {
 		let domRect: DOMRect = GamingCanvasTouchEngine.el.getBoundingClientRect(),
 			touch: Touch,

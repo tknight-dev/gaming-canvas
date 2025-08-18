@@ -27,13 +27,7 @@ export const GamingCanvasInputPositionDistanceRelative = (a: GamingCanvasInputPo
 	return Math.sqrt(x * x + y * y);
 };
 
-export const GamingCanvasInputPositionCorrector = (
-	height: number,
-	inverted: boolean,
-	position: GamingCanvasInputPosition,
-	rotated: boolean,
-	width: number,
-) => {
+export const GamingCanvasInputPositionCorrector = (height: number, inverted: boolean, position: GamingCanvasInputPosition, rotated: boolean, width: number) => {
 	if (inverted) {
 		if (rotated) {
 			const a: number = position.x,
