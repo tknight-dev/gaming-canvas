@@ -230,7 +230,7 @@ import {
     GamingCanvasInputTouch,
     GamingCanvasInputType,
     GamingCanvasReport,
-} from '../gaming-canvas/index';
+} from '@tknight-dev/gaming-canvas';
 
 let inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
     queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvas.getInputQueue(),
