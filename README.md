@@ -50,16 +50,16 @@ const options: GamingCanvasOptions = {
 };
 
 // Initializing the GamingCanvas returns the newly generated Canvas element
-const canvas: HTMLCanvasElement = GamingCanvas.initialize(container, options);
+const canvases: HTMLCanvasElement[] = GamingCanvas.initialize(container, options);
 
 // You have to set the dimensions of the canvas as modifying the dimensions also clears the canvas
 // Note: dimensions only change when options.resolutionByWidthPx is null (see section `How To: Canvas with Dynamic Resolution (no set resolution)`)
 const report: GamingCanvasReport = GamingCanvas.getReport();
-canvas.height = (report.canvasHeight * report.devicePixelRatio) | 0; // Always round to the nearest pixel for your canvas size (best performance)
-canvas.width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 0` is faster than `Math.floor(number)`
+canvases[0].height = (report.canvasHeight * report.devicePixelRatio) | 0; // Always round to the nearest pixel for your canvas size (best performance)
+canvases[0].width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 0` is faster than `Math.floor(number)`
 
 // Use the canvas here or pass it to a WebWorker via the OffscreenCanvas method for multi-threading
-const canvasContext: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRenderingContext2D;
+const canvasContext: CanvasRenderingContext2D = canvases.getContext('2d') as CanvasRenderingContext2D;
 canvasContext.font = '48px serif';
 canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
 ```
@@ -165,8 +165,8 @@ const options: GamingCanvasOptions = {
     resolutionByWidthPx: 640,
 };
 
-const canvas: HTMLCanvasElement = GamingCanvas.initialize(container, options);
-const canvasContext: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRenderingContext2D;
+const canvases: HTMLCanvasElement[] = GamingCanvas.initialize(container, options);
+const canvasContext: CanvasRenderingContext2D = canvases[0].getContext('2d') as CanvasRenderingContext2D;
 
 // Draw
 const draw = () => {
@@ -177,8 +177,8 @@ const draw = () => {
 // Updates on display changes
 GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
     // Setting the height or width will clear the canvas
-    canvas.height = (report.canvasHeight * report.devicePixelRatio) | 0; // Always round to the nearest pixel for your canvas size (best performance)
-    canvas.width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 0` is faster than `Math.floor(number)`
+    canvases.height = (report.canvasHeight * report.devicePixelRatio) | 0; // Always round to the nearest pixel for your canvas size (best performance)
+    canvases.width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 0` is faster than `Math.floor(number)`
     draw();
 
     // If multithreading, you'll need to pass the report to the WebWorker using the OffscreenCanvas to set the canvas dimensions there
@@ -186,8 +186,8 @@ GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
 
 // Set the initial canvas size
 const report: GamingCanvasReport = GamingCanvas.getReport();
-canvas.height = (report.canvasHeight * report.devicePixelRatio) | 0; // Always round to the nearest pixel for your canvas size (best performance)
-canvas.width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 0` is faster than `Math.floor(number)`
+canvases.height = (report.canvasHeight * report.devicePixelRatio) | 0; // Always round to the nearest pixel for your canvas size (best performance)
+canvases.width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 0` is faster than `Math.floor(number)`
 draw();
 ```
 
