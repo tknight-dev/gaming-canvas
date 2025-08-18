@@ -20,7 +20,7 @@ import { GamingCanvasTouchEngine } from './engines/touch.engine';
 export class GamingCanvasOptions {
 	aspectRatio?: number;
 	callbackReportLimitPerMs?: number;
-	canvasOpacity?: number;
+	canvasCount?: number;
 	debug?: boolean;
 	direction?: GamingCanvasDirection;
 	elementInteractive?: HTMLElement;
@@ -62,7 +62,7 @@ export class GamingCanvas {
 	private static callbackReportLastInMs: number = -2025;
 	private static callbackReportTimeout: ReturnType<typeof setTimeout>;
 	private static callbackVisibility: (state: boolean) => void;
-	private static elementCanvas: HTMLCanvasElement;
+	private static elementCanvases: HTMLCanvasElement[];
 	private static elementCanvasContainerDomRect: DOMRect;
 	private static elementCanvasContainer: HTMLDivElement;
 	private static elementContainer: HTMLElement;
@@ -224,7 +224,7 @@ export class GamingCanvas {
 		return report;
 	}
 
-	public static initialize(elementParent: HTMLElement, options: GamingCanvasOptions): HTMLCanvasElement {
+	public static initialize(elementParent: HTMLElement, options: GamingCanvasOptions): HTMLCanvasElement[] {
 		if (!GamingCanvas.elementContainer) {
 			// First time being initialized
 
@@ -250,17 +250,14 @@ export class GamingCanvas {
 				}
 			});
 		} else {
-			// Exit fullscreen, if required
-			GamingCanvas.stateFullscreen && GamingCanvas.setFullscreen(false);
-
 			// Clear old elements and listeners
 			GamingCanvas.elementContainer.innerText = '';
 			GamingCanvas.elementParent.removeChild(GamingCanvas.elementContainer);
 		}
 		GamingCanvas.elementParent = elementParent;
-		GamingCanvas.options = options;
+		GamingCanvas.options = GamingCanvas.formatOptions(options);
 
-		// go rotation
+		// Go() event listeners
 		screen.orientation.addEventListener('change', GamingCanvas.go);
 		addEventListener('resize', GamingCanvas.go);
 
@@ -304,12 +301,24 @@ export class GamingCanvas {
 		GamingCanvas.elementRotator2.appendChild(GamingCanvas.elementCanvasContainer);
 
 		// Element: Canvas
-		GamingCanvas.elementCanvas = document.createElement('canvas');
-		GamingCanvas.elementCanvas.height = 0;
-		GamingCanvas.elementCanvas.id = 'gaming-canvas-canvas';
-		GamingCanvas.elementCanvas.width = 0;
-		GamingCanvas.elementCanvas.style.zIndex = '1';
-		GamingCanvas.elementCanvasContainer.appendChild(GamingCanvas.elementCanvas);
+		let canvas: HTMLCanvasElement,
+			count: number = <number>options.canvasCount;
+
+		GamingCanvas.elementCanvases = new Array();
+		while (count--) {
+			canvas = document.createElement('canvas');
+			canvas.height = 0;
+			canvas.id = `gaming-canvas-canvas${count}`;
+			canvas.width = 0;
+			canvas.style.left = '0';
+			canvas.style.position = 'absolute';
+			canvas.style.top = '0';
+			canvas.style.zIndex = String(count);
+
+			GamingCanvas.elementCanvases.push(canvas);
+			GamingCanvas.elementCanvasContainer.appendChild(canvas);
+		}
+		options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvases[0] : options.elementInteractive;
 
 		// Element: Injectables
 		if (options.elementInject && Array.isArray(options.elementInject)) {
@@ -325,21 +334,21 @@ export class GamingCanvas {
 		options.inputKeyboardEnable && GamingCanvasKeyboardEngine.initialize(GamingCanvas.inputQueue);
 		options.inputMouseEnable &&
 			GamingCanvasMouseEngine.initialize(
-				GamingCanvas.elementCanvas,
+				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1],
 				<HTMLElement>options.elementInteractive,
 				GamingCanvas.inputQueue,
 				<boolean>options.inputMousePreventContextMenu,
 			);
 		options.inputTouchEnable &&
 			GamingCanvasTouchEngine.initialize(
-				GamingCanvas.elementCanvas,
+				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1],
 				<HTMLElement>options.elementInteractive,
 				<number>options.inputLimitPerMs,
 				GamingCanvas.inputQueue,
 			);
 
 		// Done
-		return GamingCanvas.elementCanvas;
+		return GamingCanvas.elementCanvases;
 	}
 
 	private static oLandscape(): boolean {
@@ -475,10 +484,51 @@ export class GamingCanvas {
 	}
 
 	/**
+	 * Take screenshot of all canvas layers stacked as they are displayed
+	 *
+	 * @return null on failure
+	 */
+	public static async screenshot(): Promise<Blob | null> {
+		if (!GamingCanvas.elementParent) {
+			console.error('GamingCanvas > screenshot: not initialized yet');
+			return null;
+		}
+
+		return new Promise<Blob | null>((resolve: any) => {
+			let canvasScreenshot: HTMLCanvasElement = document.createElement('canvas'),
+				canvasScreenshotContext: CanvasRenderingContext2D = <CanvasRenderingContext2D>canvasScreenshot.getContext('2d', {
+					alpha: true,
+					antialias: false,
+				}),
+				canvases: HTMLCanvasElement[] = GamingCanvas.elementCanvases;
+
+			// Match dimensions
+			canvasScreenshot.height = canvases[0].height;
+			canvasScreenshot.width = canvases[0].width;
+
+			// Draw every layer into the screenshot canvas starting with the lowest layer canvases[0]
+			for (let canvas of canvases) {
+				canvasScreenshotContext.drawImage(canvas, 0, 0);
+			}
+
+			// Convert screnshot canvas into PNG blob
+			canvasScreenshot.toBlob(
+				(blob: Blob | null) => {
+					resolve(blob);
+
+					document.removeChild(canvasScreenshot);
+				},
+				'image/png',
+				1,
+			);
+		});
+	}
+
+	/**
 	 * @return is undefined if not initialized yet
 	 */
-	public static getCanvas(): HTMLCanvasElement {
-		return GamingCanvas.elementCanvas;
+	public static getCanvases(): HTMLCanvasElement[] {
+		return GamingCanvas.elementCanvases;
 	}
 
 	/**
@@ -503,7 +553,7 @@ export class GamingCanvas {
 	}
 
 	public static getCurrentDirection(): GamingCanvasDirection {
-		if (!GamingCanvas.elementCanvas) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > getCurrentDirection: not initialized yet');
 			return GamingCanvasDirection.NORMAL;
 		}
@@ -511,7 +561,7 @@ export class GamingCanvas {
 	}
 
 	public static getCurrentOrientation(): GamingCanvasOrientation {
-		if (!GamingCanvas.elementCanvas) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > getCurrentOrientation: not initialized yet');
 			return GamingCanvasOrientation.LANDSCAPE;
 		}
@@ -519,7 +569,7 @@ export class GamingCanvas {
 	}
 
 	public static setDebug(state: boolean): void {
-		if (!GamingCanvas.elementCanvas) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setDebug: not initialized yet');
 			return;
 		}
@@ -528,20 +578,20 @@ export class GamingCanvas {
 
 			GamingCanvas.elementRotator2.style.backgroundColor = 'rgba(192,192,192,0.5)';
 
-			GamingCanvas.elementCanvas.style.backgroundColor = 'rgba(255,0,255,0.5)';
-			GamingCanvas.elementCanvas.style.boxShadow = 'inset -8px 8px 4px 4px rgb(0,255,0)';
+			GamingCanvas.elementCanvases[0].style.backgroundColor = 'rgba(255,0,255,0.5)';
+			GamingCanvas.elementCanvases[0].style.boxShadow = 'inset -8px 8px 4px 4px rgb(0,255,0)';
 		} else {
 			GamingCanvas.elementRotator1.style.background = 'unset';
 
 			GamingCanvas.elementRotator2.style.backgroundColor = 'transparent';
 
-			GamingCanvas.elementCanvas.style.backgroundColor = 'transparent';
-			GamingCanvas.elementCanvas.style.boxShadow = 'none';
+			GamingCanvas.elementCanvases[0].style.backgroundColor = 'transparent';
+			GamingCanvas.elementCanvases[0].style.boxShadow = 'none';
 		}
 	}
 
 	public static setDirection(direction: GamingCanvasDirection) {
-		if (!GamingCanvas.elementCanvas) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setDirection: not initialized yet');
 			return;
 		}
@@ -553,7 +603,7 @@ export class GamingCanvas {
 	}
 
 	public static getInputLimitPerMs(): number {
-		if (!GamingCanvas.elementCanvas) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > getInputLimitPerMs: not initialized yet');
 			return 8;
 		}
@@ -571,7 +621,7 @@ export class GamingCanvas {
 	}
 
 	public static isFullscreen(): boolean {
-		if (!GamingCanvas.elementCanvas) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > isFullscreen: not initialized yet');
 			return false;
 		}
@@ -582,7 +632,7 @@ export class GamingCanvas {
 	 * @param element use this to fullscreen something other than the canvas element. Not needed when exiting fullscreen.
 	 */
 	public static async setFullscreen(state: boolean, element?: HTMLElement): Promise<void> {
-		if (!GamingCanvas.elementCanvas) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setFullscreen: not initialized yet');
 			return;
 		}
@@ -599,20 +649,17 @@ export class GamingCanvas {
 		GamingCanvas.stateFullscreen = state;
 	}
 
-	public static setOptions(options: GamingCanvasOptions): void {
-		if (!GamingCanvas.elementCanvas) {
-			console.error('GamingCanvas > setOptions: not initialized yet');
-			return;
-		}
-		GamingCanvas.options = options;
-
-		// Defaults
+	private static formatOptions(options: GamingCanvasOptions): GamingCanvasOptions {
 		options.aspectRatio = options.aspectRatio === undefined ? 16 / 9 : Number(options.aspectRatio) || 16 / 9;
 		options.callbackReportLimitPerMs = Math.max(0, Number(options.callbackReportLimitPerMs) || 8);
-		options.canvasOpacity = options.canvasOpacity === undefined ? 85 : Math.max(0, Math.min(100, Number(options.canvasOpacity) || 0));
+		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
 		options.debug = options.debug === undefined ? false : options.debug === true;
 		options.direction = options.direction === undefined ? GamingCanvasDirection.NORMAL : options.direction;
-		options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvas : options.elementInteractive;
+
+		if (GamingCanvas.elementCanvases) {
+			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvases[0] : options.elementInteractive;
+		}
+
 		options.inputKeyboardEnable = options.inputKeyboardEnable === undefined ? true : options.inputKeyboardEnable === true;
 		options.inputMouseEnable = options.inputMouseEnable === undefined ? true : options.inputMouseEnable === true;
 		options.inputMousePreventContextMenu = options.inputMousePreventContextMenu === undefined ? false : options.inputMousePreventContextMenu === true;
@@ -622,9 +669,18 @@ export class GamingCanvas {
 		options.resolutionByWidthPx = options.resolutionByWidthPx === undefined ? null : Number(options.resolutionByWidthPx) | 0 || null;
 		options.resolutionScaleToFit = options.resolutionScaleToFit === undefined ? true : options.resolutionScaleToFit === true;
 
+		return options;
+	}
+
+	public static setOptions(options: GamingCanvasOptions): void {
+		if (!GamingCanvas.elementParent) {
+			console.error('GamingCanvas > setOptions: not initialized yet');
+			return;
+		}
+		GamingCanvas.options = GamingCanvas.formatOptions(options);
+
 		// Apply
-		GamingCanvas.elementCanvas.style.opacity = `${options.canvasOpacity}%`;
-		GamingCanvas.setDebug(options.debug);
+		GamingCanvas.setDebug(<boolean>GamingCanvas.options.debug);
 
 		// Done
 		GamingCanvas.stateDirection = <any>undefined;
@@ -633,7 +689,7 @@ export class GamingCanvas {
 	}
 
 	public static setOrientation(orientation: GamingCanvasOrientation) {
-		if (!GamingCanvas.elementCanvas) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setOrientation: not initialized yet');
 			return;
 		}
@@ -645,7 +701,7 @@ export class GamingCanvas {
 	}
 
 	public static getReport(): GamingCanvasReport {
-		if (!GamingCanvas.elementCanvas) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > getReport: not initialized yet');
 			return <any>{};
 		}
@@ -653,7 +709,7 @@ export class GamingCanvas {
 	}
 
 	public static isVisible(): boolean {
-		if (!GamingCanvas.elementCanvas) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > isVisible: not initialized yet');
 			return true;
 		}
