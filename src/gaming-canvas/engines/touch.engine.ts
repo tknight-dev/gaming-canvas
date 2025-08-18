@@ -14,7 +14,7 @@ export interface GamingCanvasInputTouch extends GamingCanvasInput {
 	propriatary: {
 		action: GamingCanvasInputTouchAction;
 		down?: boolean;
-		positions: GamingCanvasInputPosition[]; // min length 1
+		positions?: GamingCanvasInputPosition[];
 	};
 }
 
@@ -69,7 +69,6 @@ export class GamingCanvasTouchEngine {
 				propriatary: {
 					action: GamingCanvasInputTouchAction.ACTIVE,
 					down: false,
-					positions: GamingCanvasTouchEngine.calc(event),
 				},
 				type: GamingCanvasInputType.TOUCH,
 			});
@@ -86,7 +85,6 @@ export class GamingCanvasTouchEngine {
 				propriatary: {
 					action: GamingCanvasInputTouchAction.ACTIVE,
 					down: false,
-					positions: GamingCanvasTouchEngine.calc(event),
 				},
 				type: GamingCanvasInputType.TOUCH,
 			});

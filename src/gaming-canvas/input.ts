@@ -8,7 +8,7 @@ export interface GamingCanvasInput {
 }
 
 export interface GamingCanvasInputPosition {
-	out?: boolean; // true if position on the very edge or outside of the canvas
+	out: boolean;
 	x: number;
 	xRelative: number;
 	y: number;
