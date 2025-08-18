@@ -15,8 +15,13 @@ import { GamingCanvasTouchEngine } from './engines/touch.engine';
  */
 
 /**
- * Values shown here are defaults set in the setOptions() function
+ * Update the dimensions of the canvas element via the report. This will clear the canvas.
  */
+export const GamingCanvasApplyReport = (canvas: HTMLCanvasElement, report: GamingCanvasReport = GamingCanvas.getReport()) => {
+	canvas.height = (report.canvasHeight * report.devicePixelRatio) | 0;
+	canvas.width = (report.canvasWidth * report.devicePixelRatio) | 0;
+};
+
 export class GamingCanvasOptions {
 	aspectRatio?: number;
 	callbackReportLimitPerMs?: number;
@@ -224,7 +229,7 @@ export class GamingCanvas {
 		return report;
 	}
 
-	public static initialize(elementParent: HTMLElement, options: GamingCanvasOptions): HTMLCanvasElement[] {
+	public static initialize(elementParent: HTMLElement, options: GamingCanvasOptions = {}): HTMLCanvasElement[] {
 		if (!GamingCanvas.elementContainer) {
 			// First time being initialized
 
@@ -255,7 +260,7 @@ export class GamingCanvas {
 			GamingCanvas.elementParent.removeChild(GamingCanvas.elementContainer);
 		}
 		GamingCanvas.elementParent = elementParent;
-		GamingCanvas.options = GamingCanvas.formatOptions(options);
+		GamingCanvas.options = GamingCanvas.formatOptions(options || {});
 
 		// Go() event listeners
 		screen.orientation.addEventListener('change', GamingCanvas.go);
@@ -665,7 +670,7 @@ export class GamingCanvas {
 		options.inputMousePreventContextMenu = options.inputMousePreventContextMenu === undefined ? false : options.inputMousePreventContextMenu === true;
 		options.inputTouchEnable = options.inputTouchEnable === undefined ? true : options.inputTouchEnable === true;
 		options.inputLimitPerMs = options.inputLimitPerMs === undefined ? 8 : Math.max(0, Number(options.inputLimitPerMs) || 8);
-		options.orientation = options.orientation === undefined ? GamingCanvasOrientation.LANDSCAPE : options.orientation;
+		options.orientation = options.orientation === undefined ? GamingCanvasOrientation.AUTO : options.orientation;
 		options.resolutionByWidthPx = options.resolutionByWidthPx === undefined ? null : Number(options.resolutionByWidthPx) | 0 || null;
 		options.resolutionScaleToFit = options.resolutionScaleToFit === undefined ? true : options.resolutionScaleToFit === true;
 

@@ -40,26 +40,25 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 ```
 
 ```typescript
-import { GamingCanvas, GamingCanvasOptions, GamingCanvasOrientation } from '@tknight-dev/gaming-canvas';
+import { GamingCanvas, GamingCanvasApplyReport, GamingCanvasOptions, GamingCanvasOrientation } from '@tknight-dev/gaming-canvas';
 
 const container: HTMLElement = document.getElementById('hook-for-gaming-canvas') as HTMLElement;
 const options: GamingCanvasOptions = {
-    aspectRatio: 16 / 9, // Very common screen aspect ratio
-    orientation: GamingCanvasOrientation.AUTO, // Automatically rotate for best fit
     resolutionByWidthPx: 640, // Fixed resolution 640x320
 };
 
-// Initializing the GamingCanvas returns the newly generated Canvas element
-const canvases: HTMLCanvasElement[] = GamingCanvas.initialize(container, options);
+// The GamingCanvas returns the newly generated canvas element(s)
+const canvases: HTMLCanvasElement[] = GamingCanvas.initialize(container);
 
-// You have to set the dimensions of the canvas as modifying the dimensions also clears the canvas
-// Note: dimensions only change when options.resolutionByWidthPx is null (see section `How To: Canvas with Dynamic Resolution (no set resolution)`)
-const report: GamingCanvasReport = GamingCanvas.getReport();
-canvases[0].height = (report.canvasHeight * report.devicePixelRatio) | 0; // Always round to the nearest pixel for your canvas size (best performance)
-canvases[0].width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 0` is faster than `Math.floor(number)`
+// Select the canvas you want to draw on
+const canvas: HTMLCanvasElement = canvases[0];
+const canvasContext: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRenderingContext2D;
+
+// You have to set the dimensions of the canvas as modifying the height/width also clears the canvas
+// Reports contain all the necessary information to adjust the dimensions of a canvas
+GamingCanvasApplyReport(canvas);
 
 // Use the canvas here or pass it to a WebWorker via the OffscreenCanvas method for multi-threading
-const canvasContext: CanvasRenderingContext2D = canvases.getContext('2d') as CanvasRenderingContext2D;
 canvasContext.font = '48px serif';
 canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
 ```
@@ -116,23 +115,23 @@ Note: Keyboard repeat events are filtered out
 
 ## Models: GamingCanvasOptions (interface)
 
-| Key                          | Type                    | Default     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ---------------------------- | ----------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| aspectRatio                  | number                  | 16 / 9      | 1920x1080 (1080p) is a 16/9 aspect ratio                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| callbackDisplayLimitPerMs    | number                  | 8ms         | Limits how often the callbackDisplay() can be called in milliseconds (0 is unlimited)                                                                                                                                                                                                                                                                                                                                                                                                   |
-| canvasCount                  | number                  | 1           | How many canvas elements (layers) to be generated (canvas1: id=`gaming-canvas-canvas1`, zIndex=1; canvas2: id=`gaming-canvas-canvas2`, zIndex=2, ... )                                                                                                                                                                                                                                                                                                                                  |
-| debug                        | boolean                 | false       | Enables colors for HTML elements involved in the rotation process (see it in action [Life](https://app.tknight.dev/game/life/index.html?debug=true&drawDead=false&seedRandom=false)                                                                                                                                                                                                                                                                                                     |
-| direction                    | GamingCanvasDirection   | `NORMAL`    | `INVERTED` rotates the canvas to left instead of the right in `PORTRAIT` mode                                                                                                                                                                                                                                                                                                                                                                                                           |
-| elementInject                | HTMLElement[]           | []          | Elements are injected into the canvas container element (id=`gaming-canvas-container`). Use CSS position `absolute` to fit your overlay relative to the canvas's dynamic position and size                                                                                                                                                                                                                                                                                              |
-| elementInteractive           | HTMLElement             | canvas      | The input listeners are bound to this element, but `GamingCanvasInputPosition` is always relative to the canvas. This element should be equal to or larger then the canvas in all dimensions. EG the canvas is zIndex=1, an overlay(s) is zIndex=2, so the interactive elment should be a super overlay at zIndex=3 as the overlay(s) at zIndex=2 would intercept input liseners at zIndex=1 unless `pointer-events` and `touch-events` are set to `none` on the CSS for the overlay(s) |
-| inputKeyboardEnable          | boolean                 | true        | Enables the serialization of Keyboard based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| inputMouseEnable             | boolean                 | true        | Enables the serialization of Mouse based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| inputMousePreventContextMenu | boolean                 | false       | Prevents the right-click context menu from appearing inputs                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| inputTouchEnable             | boolean                 | true        | Enables the serialization of Touch based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| inputLimitPerMs              | number                  | 8ms         | Limits how often anolog controls (gamepad-joystick and touch) are accepted (0 is unlimited)                                                                                                                                                                                                                                                                                                                                                                                             |
-| orientation                  | GamingCanvasOrientation | `LANDSCAPE` | `AUTO` will dynamically rotate the canvas to optimize screen usage                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| resolutionByHeightPx         | number or `null`        | `null`      | `null` sets the canvas dimensions, and not `null` scales the canvas dimensions to fit                                                                                                                                                                                                                                                                                                                                                                                                   |
-| resolutionScaleToFit         | boolean                 | true        | Enables the scalling feature of `resolutionByHeightPx` when using a non-null value                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Key                          | Type                    | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------------------- | ----------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| aspectRatio                  | number                  | 16 / 9   | 1920x1080 (1080p) is a 16/9 aspect ratio                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| callbackDisplayLimitPerMs    | number                  | 8ms      | Limits how often the callbackDisplay() can be called in milliseconds (0 is unlimited)                                                                                                                                                                                                                                                                                                                                                                                                   |
+| canvasCount                  | number                  | 1        | How many canvas elements (layers) to be generated (canvas1: id=`gaming-canvas-canvas1`, zIndex=1; canvas2: id=`gaming-canvas-canvas2`, zIndex=2, ... )                                                                                                                                                                                                                                                                                                                                  |
+| debug                        | boolean                 | false    | Enables colors for HTML elements involved in the rotation process (see it in action [Life](https://app.tknight.dev/game/life/index.html?debug=true&drawDead=false&seedRandom=false)                                                                                                                                                                                                                                                                                                     |
+| direction                    | GamingCanvasDirection   | `NORMAL` | `INVERTED` rotates the canvas to left instead of the right in `PORTRAIT` mode                                                                                                                                                                                                                                                                                                                                                                                                           |
+| elementInject                | HTMLElement[]           | []       | Elements are injected into the canvas container element (id=`gaming-canvas-container`). Use CSS position `absolute` to fit your overlay relative to the canvas's dynamic position and size                                                                                                                                                                                                                                                                                              |
+| elementInteractive           | HTMLElement             | canvas   | The input listeners are bound to this element, but `GamingCanvasInputPosition` is always relative to the canvas. This element should be equal to or larger then the canvas in all dimensions. EG the canvas is zIndex=1, an overlay(s) is zIndex=2, so the interactive elment should be a super overlay at zIndex=3 as the overlay(s) at zIndex=2 would intercept input liseners at zIndex=1 unless `pointer-events` and `touch-events` are set to `none` on the CSS for the overlay(s) |
+| inputKeyboardEnable          | boolean                 | true     | Enables the serialization of Keyboard based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| inputMouseEnable             | boolean                 | true     | Enables the serialization of Mouse based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| inputMousePreventContextMenu | boolean                 | false    | Prevents the right-click context menu from appearing inputs                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| inputTouchEnable             | boolean                 | true     | Enables the serialization of Touch based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| inputLimitPerMs              | number                  | 8ms      | Limits how often anolog controls (gamepad-joystick and touch) are accepted (0 is unlimited)                                                                                                                                                                                                                                                                                                                                                                                             |
+| orientation                  | GamingCanvasOrientation | `AUTO`   | `AUTO` will dynamically rotate the canvas to optimize screen usage                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| resolutionByHeightPx         | number or `null`        | `null`   | `null` sets the canvas dimensions, and not `null` scales the canvas dimensions to fit                                                                                                                                                                                                                                                                                                                                                                                                   |
+| resolutionScaleToFit         | boolean                 | true     | Enables the scalling feature of `resolutionByHeightPx` when using a non-null value                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 ## Models: GamingCanvasOrientation (enum)
 
@@ -165,10 +164,14 @@ const options: GamingCanvasOptions = {
     resolutionByWidthPx: 640,
 };
 
+// The GamingCanvas returns the newly generated canvas element(s)
 const canvases: HTMLCanvasElement[] = GamingCanvas.initialize(container, options);
-const canvasContext: CanvasRenderingContext2D = canvases[0].getContext('2d') as CanvasRenderingContext2D;
 
-// Draw
+// Select the canvas you want to draw on
+const canvas: HTMLCanvasElement = canvases[0];
+const canvasContext: CanvasRenderingContext2D = canvas.getContext('2d') as CanvasRenderingContext2D;
+
+// Define what you want to draw
 const draw = () => {
     canvasContext.font = '48px serif';
     canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
@@ -176,18 +179,13 @@ const draw = () => {
 
 // Updates on display changes
 GamingCanvas.setCallbackReport((report: GamingCanvasReport) => {
-    // Setting the height or width will clear the canvas
-    canvases.height = (report.canvasHeight * report.devicePixelRatio) | 0; // Always round to the nearest pixel for your canvas size (best performance)
-    canvases.width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 0` is faster than `Math.floor(number)`
+    // If multithreading, you'll need to pass the report to the WebWorker, using the OffscreenCanvas, to set the canvas dimensions and draw from there
+    GamingCanvasApplyReport(canvas, report);
     draw();
-
-    // If multithreading, you'll need to pass the report to the WebWorker using the OffscreenCanvas to set the canvas dimensions there
 });
 
 // Set the initial canvas size
-const report: GamingCanvasReport = GamingCanvas.getReport();
-canvases.height = (report.canvasHeight * report.devicePixelRatio) | 0; // Always round to the nearest pixel for your canvas size (best performance)
-canvases.width = (report.canvasWidth * report.devicePixelRatio) | 0; // `number | 0` is faster than `Math.floor(number)`
+GamingCanvasSetSize(canvas);
 draw();
 ```
 
