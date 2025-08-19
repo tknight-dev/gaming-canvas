@@ -442,7 +442,7 @@ export class GamingCanvas {
 	 * If the canvas is rotated then x is y and vice versa. This corrects that.
 	 */
 	public static relativizeInput(input: GamingCanvasInput): GamingCanvasInput {
-		if (input.type === GamingCanvasInputType.KEYBOARD) {
+		if (input.type === GamingCanvasInputType.GAMEPAD || input.type === GamingCanvasInputType.KEYBOARD) {
 			// Nothing to do
 			return input;
 		}
@@ -462,8 +462,6 @@ export class GamingCanvas {
 			}
 
 			switch (input.type) {
-				case GamingCanvasInputType.GAMEPAD:
-					break;
 				case GamingCanvasInputType.MOUSE:
 					GamingCanvasInputPositionCorrector(height, inverted, input.propriatary.position, rotated, width);
 					break;
@@ -482,8 +480,6 @@ export class GamingCanvas {
 		// Fix X & Y scaling
 		if (GamingCanvas.stateScaler !== 1) {
 			switch (input.type) {
-				case GamingCanvasInputType.GAMEPAD:
-					break;
 				case GamingCanvasInputType.MOUSE:
 					input.propriatary.position.x /= GamingCanvas.stateScaler;
 					input.propriatary.position.y /= GamingCanvas.stateScaler;

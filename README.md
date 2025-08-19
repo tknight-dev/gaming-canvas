@@ -73,14 +73,14 @@ canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
 
 Describes `.propriatary` object
 
-| Key            | type                                   | Description                                                                                                           |
-| -------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| axes?          | number[]                               | Array following the following pattern: [x1, y1, x2, y2, ... ]. Only populated if changes detected to reduce bloat.    |
-| buttons?       | { [key: number]: boolean }             | Array following the following pattern: { buttonNumber: pressed }. Only populated if changes detected to reduce bloat. |
-| connected      | boolean                                | Is the gamepad connected?                                                                                             |
-| controllerType | GamingCanvasInputGamepadControllerType | Can detect: XBox                                                                                                      |
-| id             | string                                 | Id provided by the gamepad hardware. EG: '0000-0000-Xbox Wireless Controller'                                         |
-| idCustom       | number                                 | Simple number for id instead of string. As strings are just arrays of ASCII numbers which is slower to compare.       |
+| Key       | type                                   | Description                                                                                                           |
+| --------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| axes?     | number[]                               | Array following the following pattern: [x1, y1, x2, y2, ... ]. Only populated if changes detected to reduce bloat.    |
+| buttons?  | { [key: number]: boolean }             | Array following the following pattern: { buttonNumber: pressed }. Only populated if changes detected to reduce bloat. |
+| connected | boolean                                | Is the gamepad connected?                                                                                             |
+| id        | string                                 | Id provided by the gamepad hardware. EG: '0000-0000-Xbox Wireless Controller'                                         |
+| idCustom  | number                                 | Simple number for id instead of string. As strings are just arrays of ASCII numbers which is slower to compare.       |
+| type      | GamingCanvasInputGamepadControllerType | Can detect: Xbox                                                                                                      |
 
 ## Models: GamingCanvasInputKeyboard (interface)
 
@@ -262,6 +262,11 @@ import {
     GamingCanvas,
     GamingCanvasFIFOQueue,
     GamingCanvasInput,
+    GamingCanvasInputGamepad,
+    GamingCanvasInputGamepadControllerType,
+    GamingCanvasInputGamepadControllerTypeXBoxAxes,
+    GamingCanvasInputGamepadControllerTypeXBoxButtons,
+    GamingCanvasInputGamepadControllerTypeXBoxToAxes,
     GamingCanvasInputKeyboard,
     GamingCanvasInputMouse,
     GamingCanvasInputPosition,
@@ -298,25 +303,59 @@ const processor = (timestampNow: number) => {
     }
 };
 
+const processorGamepad = (input: GamingCanvasInputGamepad, timestampNow: number) => {
+    console.log('Input-Gamepad', input, timestampNow);
+
+    // Check the connection state
+    if (input.propriatary.connected) {
+        if (input.propriatary.axes || input.propriatary.buttons) {
+            // New inputs
+            if (input.propriatary.type === GamingCanvasInputGamepadControllerType.XBOX) {
+                if (input.propriatary.axes) {
+                    let axes: GamingCanvasInputGamepadControllerTypeXBoxAxes = GamingCanvasInputGamepadControllerTypeXBoxToAxes();
+                    // axes.stickRightY controllers player up or down motion
+                }
+
+                if (input.propriatary.buttons) {
+                    for (let [buttonNumber, pressed] of input.propriatary.buttons) {
+                        switch (buttonNumber) {
+                            case GamingCanvasInputGamepadControllerTypeXBoxButtons.DPAD_UP:
+                                // Move player up
+                                break;
+                        }
+                    }
+                }
+            } else {
+                // Parse axes and buttons yourself
+            }
+        } else {
+            // Controller connected
+        }
+    } else {
+        // Controller disconnected
+    }
+};
+
 const processorKeyboard = (input: GamingCanvasInputKeyboard, timestampNow: number) => {
     console.log('Input-Keyboard', input, timestampNow);
 
-    // if(input.propriatary.down) {
-    //  switch(input.propriatary.action.code) {
-    //      case "KeyF":
-    //          // Pay respect
-    //          break;
-    //  }
-    // }
+    if (input.propriatary.down) {
+        switch (input.propriatary.action.code) {
+            case 'KeyF':
+                // Pay respect
+                break;
+        }
+    }
 
     // or track the state
-    // state[input.propriatary.action.code] = input.propriatary.down;
+    state[input.propriatary.action.code] = input.propriatary.down;
 };
 
 const processorMouse = (input: GamingCanvasInputMouse, timestampNow: number) => {
     console.log('Input-Mouse', input, timestampNow);
 
-    // if (input.propriatary.action === GamingCanvasInputMouseAction.LEFT_CLICK) {}
+    if (input.propriatary.action === GamingCanvasInputMouseAction.LEFT_CLICK) {
+    }
 };
 
 const processorTouch = (input: GamingCanvasInputTouch, timestampNow: number) => {
@@ -410,7 +449,6 @@ GamingCanvas.setCallbackVisibility((state: boolean) => {
 ## Future Releases
 
 - Add feature to replace need for `NoSleep.js` (see `How To: Screen Dimming (Power Saving Mode)`)
-- Add [Gamepad](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API) support
 - Add `GamingCanvasFIFOQueue` binary encoder/decorder for sending input chunks between [WebWorkers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) via [TransferableObjects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects)
 
 [![forthebadge](https://img.shields.io/badge/made%20with-%20typescript-C1282D.svg?logo=typescript&style=for-the-badge)](https://www.typescriptlang.org/) [![forthebadge](https://img.shields.io/badge/powered%20by-%20github-7116FB.svg?logo=github&style=for-the-badge)](https://www.github.com/)
