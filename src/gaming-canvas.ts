@@ -230,7 +230,13 @@ export class GamingCanvas {
 		return report;
 	}
 
-	public static initialize(elementParent: HTMLElement, options: GamingCanvasOptions = {}): HTMLCanvasElement[] {
+	/**
+	 * Hold onto your butts
+	 *
+	 * @param elementParent is document.body on undefined | null
+	 * @param options are default on undefined | null
+	 */
+	public static initialize(elementParent: HTMLElement = document.body, options: GamingCanvasOptions = {}): HTMLCanvasElement[] {
 		if (!GamingCanvas.elementContainer) {
 			// First time being initialized
 
@@ -319,7 +325,7 @@ export class GamingCanvas {
 			canvas.style.left = '0';
 			canvas.style.position = 'absolute';
 			canvas.style.top = '0';
-			canvas.style.zIndex = String(count);
+			canvas.style.zIndex = String(count + 1);
 
 			GamingCanvas.elementCanvases.push(canvas);
 			GamingCanvas.elementCanvasContainer.appendChild(canvas);
@@ -340,14 +346,14 @@ export class GamingCanvas {
 		options.inputKeyboardEnable && GamingCanvasKeyboardEngine.initialize(GamingCanvas.inputQueue);
 		options.inputMouseEnable &&
 			GamingCanvasMouseEngine.initialize(
-				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1],
+				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1], // Use the top most canvas
 				<HTMLElement>options.elementInteractive,
 				GamingCanvas.inputQueue,
 				<boolean>options.inputMousePreventContextMenu,
 			);
 		options.inputTouchEnable &&
 			GamingCanvasTouchEngine.initialize(
-				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1],
+				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1], // Use the top most canvas
 				<HTMLElement>options.elementInteractive,
 				<number>options.inputLimitPerMs,
 				GamingCanvas.inputQueue,
