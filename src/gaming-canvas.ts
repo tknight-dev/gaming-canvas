@@ -761,12 +761,12 @@ export class GamingCanvas {
 			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvases[0] : options.elementInteractive;
 		}
 
-		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? true : options.inputGamepadEnable === true;
+		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? false : options.inputGamepadEnable === true;
 		options.inputGamepadDeadband = options.inputGamepadDeadband === undefined ? 0.03 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadband) || 0));
-		options.inputKeyboardEnable = options.inputKeyboardEnable === undefined ? true : options.inputKeyboardEnable === true;
-		options.inputMouseEnable = options.inputMouseEnable === undefined ? true : options.inputMouseEnable === true;
+		options.inputKeyboardEnable = options.inputKeyboardEnable === undefined ? false : options.inputKeyboardEnable === true;
+		options.inputMouseEnable = options.inputMouseEnable === undefined ? false : options.inputMouseEnable === true;
 		options.inputMousePreventContextMenu = options.inputMousePreventContextMenu === undefined ? false : options.inputMousePreventContextMenu === true;
-		options.inputTouchEnable = options.inputTouchEnable === undefined ? true : options.inputTouchEnable === true;
+		options.inputTouchEnable = options.inputTouchEnable === undefined ? false : options.inputTouchEnable === true;
 		options.inputLimitPerMs = options.inputLimitPerMs === undefined ? 8 : Math.max(0, Number(options.inputLimitPerMs) || 8);
 		options.orientation = options.orientation === undefined ? GamingCanvasOrientation.AUTO : options.orientation;
 		options.resolutionByWidthPx = options.resolutionByWidthPx === undefined ? null : Number(options.resolutionByWidthPx) | 0 || null;
