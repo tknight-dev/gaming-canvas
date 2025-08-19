@@ -69,8 +69,7 @@ canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
 
 ## Models: GamingCanvasInputKeyboardAction (interface)
 
-See: [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)
-Note: Keyboard repeat events are filtered out
+See: [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent), Note: Keyboard repeat events are filtered out
 
 | Key      | Description                                                                                  |
 | -------- | -------------------------------------------------------------------------------------------- |
@@ -288,8 +287,14 @@ const processorTouch = (input: GamingCanvasInputTouch, timestampNow: number) => 
 queueQuit = false;
 queueRequest = requestAnimationFrame(processor);
 
+// Stop processing inputs
 setTimeout(() => {
-    // Stop processing inputs
+    /*
+     *  Warning: not processing the inputs will eventually lead to a queue size soft limit, and give a buffer overflow console error. Make sure to suspend further inputs.
+     */
+    setInputActive(false); // Stop accepting inputs
+    clearInputQueue(true); // Clear any inputs still in the queue to be processed. Watch out for keyboard/mouse/touch inputs that never registered a keyUp event.
+
     cancelAnimationFrame(queueRequest);
     queueQuit = true;
 }, 1000);

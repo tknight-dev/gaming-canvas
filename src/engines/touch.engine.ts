@@ -19,6 +19,7 @@ export interface GamingCanvasInputTouch extends GamingCanvasInput {
 }
 
 export class GamingCanvasTouchEngine {
+	public static active: boolean = true;
 	private static el: HTMLCanvasElement;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 	private static timeout: ReturnType<typeof setTimeout>;
@@ -64,14 +65,16 @@ export class GamingCanvasTouchEngine {
 			event.preventDefault();
 			event.stopPropagation();
 
-			clearTimeout(GamingCanvasTouchEngine.timeout);
-			GamingCanvasTouchEngine.queue.push({
-				propriatary: {
-					action: GamingCanvasInputTouchAction.ACTIVE,
-					down: false,
-				},
-				type: GamingCanvasInputType.TOUCH,
-			});
+			if (GamingCanvasTouchEngine.active) {
+				clearTimeout(GamingCanvasTouchEngine.timeout);
+				GamingCanvasTouchEngine.queue.push({
+					propriatary: {
+						action: GamingCanvasInputTouchAction.ACTIVE,
+						down: false,
+					},
+					type: GamingCanvasInputType.TOUCH,
+				});
+			}
 
 			return false;
 		});
@@ -80,14 +83,16 @@ export class GamingCanvasTouchEngine {
 			event.preventDefault();
 			event.stopPropagation();
 
-			clearTimeout(GamingCanvasTouchEngine.timeout);
-			GamingCanvasTouchEngine.queue.push({
-				propriatary: {
-					action: GamingCanvasInputTouchAction.ACTIVE,
-					down: false,
-				},
-				type: GamingCanvasInputType.TOUCH,
-			});
+			if (GamingCanvasTouchEngine.active) {
+				clearTimeout(GamingCanvasTouchEngine.timeout);
+				GamingCanvasTouchEngine.queue.push({
+					propriatary: {
+						action: GamingCanvasInputTouchAction.ACTIVE,
+						down: false,
+					},
+					type: GamingCanvasInputType.TOUCH,
+				});
+			}
 
 			return false;
 		});
@@ -96,23 +101,12 @@ export class GamingCanvasTouchEngine {
 			event.preventDefault();
 			event.stopPropagation();
 
-			const now: number = performance.now(),
-				diff: number = now - GamingCanvasTouchEngine.timestamp;
+			if (GamingCanvasTouchEngine.active) {
+				const now: number = performance.now(),
+					diff: number = now - GamingCanvasTouchEngine.timestamp;
 
-			if (diff > inputLimitPerMs) {
-				clearTimeout(GamingCanvasTouchEngine.timeout);
-				GamingCanvasTouchEngine.queue.push({
-					propriatary: {
-						action: GamingCanvasInputTouchAction.MOVE,
-						positions: GamingCanvasTouchEngine.calc(event),
-					},
-					type: GamingCanvasInputType.TOUCH,
-				});
-
-				GamingCanvasTouchEngine.timestamp = now;
-			} else {
-				clearTimeout(GamingCanvasTouchEngine.timeout);
-				GamingCanvasTouchEngine.timeout = setTimeout(() => {
+				if (diff > inputLimitPerMs) {
+					clearTimeout(GamingCanvasTouchEngine.timeout);
 					GamingCanvasTouchEngine.queue.push({
 						propriatary: {
 							action: GamingCanvasInputTouchAction.MOVE,
@@ -120,7 +114,20 @@ export class GamingCanvasTouchEngine {
 						},
 						type: GamingCanvasInputType.TOUCH,
 					});
-				}, diff - inputLimitPerMs);
+
+					GamingCanvasTouchEngine.timestamp = now;
+				} else {
+					clearTimeout(GamingCanvasTouchEngine.timeout);
+					GamingCanvasTouchEngine.timeout = setTimeout(() => {
+						GamingCanvasTouchEngine.queue.push({
+							propriatary: {
+								action: GamingCanvasInputTouchAction.MOVE,
+								positions: GamingCanvasTouchEngine.calc(event),
+							},
+							type: GamingCanvasInputType.TOUCH,
+						});
+					}, diff - inputLimitPerMs);
+				}
 			}
 
 			return false;
@@ -130,15 +137,17 @@ export class GamingCanvasTouchEngine {
 			event.preventDefault();
 			event.stopPropagation();
 
-			clearTimeout(GamingCanvasTouchEngine.timeout);
-			GamingCanvasTouchEngine.queue.push({
-				propriatary: {
-					action: GamingCanvasInputTouchAction.ACTIVE,
-					down: true,
-					positions: GamingCanvasTouchEngine.calc(event),
-				},
-				type: GamingCanvasInputType.TOUCH,
-			});
+			if (GamingCanvasTouchEngine.active) {
+				clearTimeout(GamingCanvasTouchEngine.timeout);
+				GamingCanvasTouchEngine.queue.push({
+					propriatary: {
+						action: GamingCanvasInputTouchAction.ACTIVE,
+						down: true,
+						positions: GamingCanvasTouchEngine.calc(event),
+					},
+					type: GamingCanvasInputType.TOUCH,
+				});
+			}
 
 			return false;
 		});

@@ -617,12 +617,33 @@ export class GamingCanvas {
 	}
 
 	/**
+	 * Remove all the inputs from the queue
+	 */
+	public static clearInputQueue(): void {
+		GamingCanvas.inputQueue.clear();
+	}
+
+	/**
 	 * Gamepad and Keyboard events are global inputs and are not limited to the canvas element
 	 *
 	 * @return FIFO queue of input events as they occurred (serialized)
 	 */
 	public static getInputQueue(): GamingCanvasFIFOQueue<GamingCanvasInput> {
 		return GamingCanvas.inputQueue;
+	}
+
+	/**
+	 * @param active means inputs will be put in the queue for processing
+	 */
+	public static setInputActive(active: boolean, clear?: boolean): void {
+		active = active === true;
+		clear && GamingCanvas.inputQueue.clear();
+
+		GamingCanvasKeyboardEngine.active = active;
+		GamingCanvasMouseEngine.active = active;
+		GamingCanvasTouchEngine.active = active;
+
+		clear && GamingCanvas.inputQueue.clear();
 	}
 
 	public static isFullscreen(): boolean {

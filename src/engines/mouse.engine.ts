@@ -25,6 +25,7 @@ export interface GamingCanvasInputMouse extends GamingCanvasInput {
 }
 
 export class GamingCanvasMouseEngine {
+	public static active: boolean = true;
 	private static el: HTMLCanvasElement;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 
@@ -59,7 +60,7 @@ export class GamingCanvasMouseEngine {
 			});
 		}
 		elInteractive.addEventListener('click', (event: MouseEvent) => {
-			if (event.button < 3) {
+			if (GamingCanvasMouseEngine.active && event.button < 3) {
 				let action: GamingCanvasInputMouseAction;
 
 				if (event.button === 0) {
@@ -80,7 +81,7 @@ export class GamingCanvasMouseEngine {
 			}
 		});
 		elInteractive.addEventListener('mousedown', (event: MouseEvent) => {
-			if (event.button < 3) {
+			if (GamingCanvasMouseEngine.active && event.button < 3) {
 				let action: GamingCanvasInputMouseAction;
 
 				if (event.button === 0) {
@@ -102,16 +103,18 @@ export class GamingCanvasMouseEngine {
 			}
 		});
 		elInteractive.addEventListener('mousemove', (event: MouseEvent) => {
-			GamingCanvasMouseEngine.queue.push({
-				propriatary: {
-					action: GamingCanvasInputMouseAction.MOVE,
-					position: GamingCanvasMouseEngine.calc(event),
-				},
-				type: GamingCanvasInputType.MOUSE,
-			});
+			if (GamingCanvasMouseEngine.active) {
+				GamingCanvasMouseEngine.queue.push({
+					propriatary: {
+						action: GamingCanvasInputMouseAction.MOVE,
+						position: GamingCanvasMouseEngine.calc(event),
+					},
+					type: GamingCanvasInputType.MOUSE,
+				});
+			}
 		});
 		elInteractive.addEventListener('mouseup', (event: MouseEvent) => {
-			if (event.button < 3) {
+			if (GamingCanvasMouseEngine.active && event.button < 3) {
 				let action: GamingCanvasInputMouseAction;
 
 				if (event.button === 0) {
@@ -133,14 +136,16 @@ export class GamingCanvasMouseEngine {
 			}
 		});
 		elInteractive.addEventListener('wheel', (event: any) => {
-			GamingCanvasMouseEngine.queue.push({
-				propriatary: {
-					action: GamingCanvasInputMouseAction.SCROLL,
-					down: event.deltaY > 0,
-					position: GamingCanvasMouseEngine.calc(event),
-				},
-				type: GamingCanvasInputType.MOUSE,
-			});
+			if (GamingCanvasMouseEngine.active) {
+				GamingCanvasMouseEngine.queue.push({
+					propriatary: {
+						action: GamingCanvasInputMouseAction.SCROLL,
+						down: event.deltaY > 0,
+						position: GamingCanvasMouseEngine.calc(event),
+					},
+					type: GamingCanvasInputType.MOUSE,
+				});
+			}
 		});
 	}
 }

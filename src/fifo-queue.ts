@@ -12,6 +12,7 @@ export class GamingCanvasFIFOQueue<T> {
 	private start?: GamingCanvasFIFOQueueNode<T>;
 	private _length: number = 0;
 	private limit: number = -1;
+	private overflow: boolean;
 
 	/**
 	 * Remove all nodes
@@ -56,7 +57,11 @@ export class GamingCanvasFIFOQueue<T> {
 	 */
 	public push(data: T): void {
 		if (this.limit !== -1 && this._length >= this.limit) {
-			console.error(`GamingCanvas > GamingCanvasFIFOQueue: input overflow [limit=${this.limit}]`);
+			if (!this.overflow) {
+				// Only use a one-time alarm
+				console.error(`GamingCanvas > GamingCanvasFIFOQueue: input overflow [limit=${this.limit}]`);
+				this.overflow = true;
+			}
 		} else {
 			let node: GamingCanvasFIFOQueueNode<T> = {
 				data: data,
@@ -69,6 +74,11 @@ export class GamingCanvasFIFOQueue<T> {
 			} else {
 				this.end = node;
 				this.start = node;
+			}
+
+			// Reset overflow one-time alarm
+			if (this.overflow) {
+				this.overflow = false;
 			}
 
 			this._length++;
@@ -105,5 +115,8 @@ export class GamingCanvasFIFOQueue<T> {
 	 */
 	public setLimit(limit: number | null) {
 		this.limit = limit || -1;
+	}
+	public isOverflow(): boolean {
+		return this.overflow;
 	}
 }
