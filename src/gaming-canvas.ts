@@ -1,5 +1,6 @@
 import { GamingCanvasFIFOQueue } from './fifo-queue';
 import { GamingCanvasInput, GamingCanvasInputPositionCorrector, GamingCanvasInputPosition, GamingCanvasInputType } from './input';
+import { GamingCanvasGamepadEngine, GamingCanvasInputGamepadState } from './engines/gamepad.engine';
 import { GamingCanvasKeyboardEngine } from './engines/keyboard.engine';
 import { GamingCanvasMouseEngine } from './engines/mouse.engine';
 import { GamingCanvasTouchEngine } from './engines/touch.engine';
@@ -23,6 +24,8 @@ export class GamingCanvasOptions {
 	directionPreventLandscapeInversion?: boolean;
 	elementInteractive?: HTMLElement;
 	elementInject?: HTMLElement[];
+	inputGamepadEnable?: boolean;
+	inputGamepadDeadband?: number;
 	inputKeyboardEnable?: boolean;
 	inputMouseEnable?: boolean;
 	inputMousePreventContextMenu?: boolean;
@@ -262,6 +265,9 @@ export class GamingCanvas {
 				}
 			});
 		} else {
+			// Stop active processes
+			GamingCanvasGamepadEngine.shutdown();
+
 			// Clear old elements and listeners
 			GamingCanvas.elementContainer.innerText = '';
 			GamingCanvas.elementParent.removeChild(GamingCanvas.elementContainer);
@@ -343,6 +349,7 @@ export class GamingCanvas {
 		GamingCanvas.setOptions(options);
 
 		// Engines
+		options.inputGamepadEnable && GamingCanvasGamepadEngine.initialize(GamingCanvas.inputQueue, <number>options.inputGamepadDeadband);
 		options.inputKeyboardEnable && GamingCanvasKeyboardEngine.initialize(GamingCanvas.inputQueue);
 		options.inputMouseEnable &&
 			GamingCanvasMouseEngine.initialize(
@@ -648,11 +655,19 @@ export class GamingCanvas {
 		active = active === true;
 		clearInputQueue && GamingCanvas.inputQueue.clear();
 
+		GamingCanvasMouseEngine.active = active;
 		GamingCanvasKeyboardEngine.active = active;
 		GamingCanvasMouseEngine.active = active;
 		GamingCanvasTouchEngine.active = active;
 
 		clearInputQueue && GamingCanvas.inputQueue.clear();
+	}
+
+	/**
+	 * @return key is gamepadId
+	 */
+	public static getGamepads(): { [key: string]: GamingCanvasInputGamepadState } {
+		return GamingCanvasGamepadEngine.getGamepads();
 	}
 
 	public static isFullscreen(): boolean {
@@ -697,6 +712,8 @@ export class GamingCanvas {
 			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvases[0] : options.elementInteractive;
 		}
 
+		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? true : options.inputGamepadEnable === true;
+		options.inputGamepadDeadband = options.inputGamepadDeadband === undefined ? 0.03 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadband) || 0));
 		options.inputKeyboardEnable = options.inputKeyboardEnable === undefined ? true : options.inputKeyboardEnable === true;
 		options.inputMouseEnable = options.inputMouseEnable === undefined ? true : options.inputMouseEnable === true;
 		options.inputMousePreventContextMenu = options.inputMousePreventContextMenu === undefined ? false : options.inputMousePreventContextMenu === true;

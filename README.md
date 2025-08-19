@@ -1,27 +1,29 @@
 # Gaming Canvas &middot; ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)
 
-Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`). Less than 20kb.
+Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
 
 ## Why This Library?
 
 See it in action with my game: [Life](https://app.tknight.dev/game/life/index.html?perf=true). Its a multithreaded Conway's Game of Life for Desktop and Mobile devices (supports Keyboard, Mouse, and Touch based inputs) [[GitHub](https://github.com/tknight-dev/life)]!
 
-**GamingCanvas** provides the following:
+**GamingCanvas** takes care of all the low level stuff that gets in the way of you just coding a game! It provides the following:
 
 - **DPI**: Supports high/low DPI screens ([devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio))
 - **Fullscreen**: Quickly fullscreen your game
-- **Inputs**: Quickly gives you access to Keyboard, Mouse, and Touch serialized (FIFO) inputs.
+- **Inputs**: Quickly gives you access to **Gamepad**, **Keyboard**, **Mouse**, and **Touch** via a serialized (FIFO) input queue
     - Enable or disable any input type you want
+    - Gamepad: supports any controller type. This library includes XBox compatible controller detection providing mapping for axes and buttons
     - Mouse: supports left, right, and wheel based inputs
     - Touch: supports as many individual inputs as your screen can support
-- **Layers**: Specify how many layers you want to optimize your code for. It can generate multiple canvases for background, foreground, overlay-1, etc, etc
-    - Send each layer to a different [WebWorkers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to dedicate a thread to each canvas element (massive performance gains)
+- **Layers**: Specify how many layers you want to optimize your game for. It can generate multiple canvases for background, foreground, overlay-1, etc, etc
+    - Send each layer to a different [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to dedicate a thread to each canvas element (massive performance gains)
+- **Lightweight**: Compiled/minified library is less than **20kb**
 - **Mobile**: Mobile devices are fully supported
 - **Orientation**: Auto rotate for maximum screen usage or lock it to a specific orientation (Portrait/Landscape)
     - Device level orientation locking isn't supported by all browsers
-- **Resolution**: Use a fixed resolution to optimize your FPS (it still scales to fill screen like a regular game would)
+- **Resolution**: Use a fixed resolution to optimize your FPS (it still scales to fill the screen like a regular video game would)
     - Dimensions are always rounded down to the nearest pixel to improve performance
-    - Scaling uses the css `transform` function which your browser (CPU) offloads to your GPU (best performance)
+    - Scaling uses the css `transform: scale(x)` function which your browser (CPU) offloads to your GPU (best performance)
 - **Visibility**: Quickly know if your game needs to be paused (browser minimized or switched to new tab)
 
 ## Installation
@@ -67,6 +69,28 @@ canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
 | NORMAL   | Left-To-Right & Top-To-Bottom |
 | INVERTED | Right-To-Left & Bottom-To-Top |
 
+## Models: GamingCanvasInputGamepad (interface)
+
+Describes `.propriatary` object
+
+| Key            | type                                   | Description                                                                                                           |
+| -------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| axes?          | number[]                               | Array following the following pattern: [x1, y1, x2, y2, ... ]. Only populated if changes detected to reduce bloat.    |
+| buttons?       | { [key: number]: boolean }             | Array following the following pattern: { buttonNumber: pressed }. Only populated if changes detected to reduce bloat. |
+| connected      | boolean                                | Is the gamepad connected?                                                                                             |
+| controllerType | GamingCanvasInputGamepadControllerType | Can detect: XBox                                                                                                      |
+| id             | string                                 | Id provided by the gamepad hardware. EG: '0000-0000-Xbox Wireless Controller'                                         |
+| idCustom       | number                                 | Simple number for id instead of string. As strings are just arrays of ASCII numbers which is slower to compare.       |
+
+## Models: GamingCanvasInputKeyboard (interface)
+
+Describes `.propriatary` object
+
+| Key    | type                            | Description                                               |
+| ------ | ------------------------------- | --------------------------------------------------------- |
+| action | GamingCanvasInputKeyboardAction | See `Models: GamingCanvasInputKeyboardAction (interface)` |
+| down   | boolean                         | Is the key pressed down?                                  |
+
 ## Models: GamingCanvasInputKeyboardAction (interface)
 
 See: [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent), Note: Keyboard repeat events are filtered out
@@ -78,6 +102,16 @@ See: [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEv
 | keyCtrl  | Based `KeyboardEvent.ctrlKey`                                                                |
 | keyShift | Based on `KeyboardEvent.shiftKey`                                                            |
 | location | Uses `GamingCanvasInputKeyboardActionLocation` enum and is based on `KeyboardEvent.location` |
+
+## Models: GamingCanvasInputMouse (interface)
+
+Describes `.propriatary` object
+
+| Key      | type                         | Description                                            |
+| -------- | ---------------------------- | ------------------------------------------------------ |
+| action   | GamingCanvasInputMouseAction | See `Models: GamingCanvasInputMouseAction (interface)` |
+| down?    | boolean                      | Is the key pressed down?                               |
+| position | GamingCanvasInputPosition    | Describes where the mouse was relative to the canvas   |
 
 ## Models: GamingCanvasInputMouseAction (enum)
 
@@ -94,41 +128,53 @@ See: [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEv
 
 ## Models: GamingCanvasInputPosition (interface)
 
-| Key       | Type    | Description                                                                                                     |
-| --------- | ------- | --------------------------------------------------------------------------------------------------------------- |
-| out       | boolean | true if the position is on the absolute edge or outside of the canvas (`elementInteractive` larger than canvas) |
-| x         | number  | x coordinate                                                                                                    |
-| xRelative | number  | x coordinate relative to the width                                                                              |
-| y         | number  | y coordinate                                                                                                    |
-| yRelative | number  | y coordinate relative to the height                                                                             |
+| Key       | Type    | Description                                                                                                               |
+| --------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| out       | boolean | true if the position is on the absolute edge or outside of the canvas (`elementInteractive` should be larger than canvas) |
+| x         | number  | x coordinate                                                                                                              |
+| xRelative | number  | x coordinate relative to the width                                                                                        |
+| y         | number  | y coordinate                                                                                                              |
+| yRelative | number  | y coordinate relative to the height                                                                                       |
+
+## Models: GamingCanvasInputTouch (interface)
+
+Describes `.propriatary` object
+
+| Key      | type                         | Description                                             |
+| -------- | ---------------------------- | ------------------------------------------------------- |
+| action   | GamingCanvasInputTouchAction | See `Models: GamingCanvasInputTouchAction (interface)`  |
+| down?    | boolean                      | Is the key pressed down?                                |
+| position | GamingCanvasInputPosition[]  | Describes where the touches were relative to the canvas |
 
 ## Models: GamingCanvasInputTouchAction (enum)
 
-| Key    | Description                                     |
-| ------ | ----------------------------------------------- |
-| ACTIVE | Based `touchcancel` & `touchend` & `touchstart` |
-| MOVE   | Based on `touchmove`                            |
+| Key    | Description                                        |
+| ------ | -------------------------------------------------- |
+| ACTIVE | Based on `touchcancel` & `touchend` & `touchstart` |
+| MOVE   | Based on `touchmove`                               |
 
 ## Models: GamingCanvasOptions (interface)
 
-| Key                                | Type                    | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ---------------------------------- | ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| aspectRatio                        | number                  | 16 / 9   | 1920x1080 (1080p) is a 16/9 aspect ratio                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| callbackDisplayLimitPerMs          | number                  | 8ms      | Limits how often the callbackDisplay() can be called in milliseconds (0 is unlimited)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| canvasCount                        | number                  | 1        | How many canvas elements (layers) to be generated (canvas1: id=`gaming-canvas-canvas1`, zIndex=2; canvas2: id=`gaming-canvas-canvas2`, zIndex=3, ... )                                                                                                                                                                                                                                                                                                                                                                                                               |
-| debug                              | boolean                 | false    | Enables colors for HTML elements involved in the rotation process (see it in action [Life](https://app.tknight.dev/game/life/index.html?debug=true&drawDead=false&seedRandom=false)                                                                                                                                                                                                                                                                                                                                                                                  |
-| direction                          | GamingCanvasDirection   | `NORMAL` | `INVERTED` rotates the canvas to left instead of the right in `PORTRAIT` mode                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| directionPreventLandscapeInversion | boolean                 | true     | Prevent `LANDSCAPE` from becoming upside-down, but allow `PORTRAIT` to invert-rotate                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| elementInject                      | HTMLElement[]           | []       | Elements are injected into the canvas container element (id=`gaming-canvas-container`). Use CSS position `absolute` to fit your overlay relative to the canvas's dynamic position and size                                                                                                                                                                                                                                                                                                                                                                           |
-| elementInteractive                 | HTMLElement             | canvas   | The input listeners are bound to this element, but `GamingCanvasInputPosition` is always relative to the canvas. This element should be equal to or larger then the canvas in all dimensions. EG the canvas is zIndex=2, an overlay(s) is zIndex=3, so the interactive elment should be a super overlay at zIndex=4 as the overlay(s) at zIndex=3 would intercept input liseners at zIndex=2 unless `pointer-events` and `touch-events` are set to `none` on the CSS for the overlay(s). Note: the canvas with the highest zIndex is the default elementInteractive. |
-| inputKeyboardEnable                | boolean                 | true     | Enables the serialization of Keyboard based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| inputMouseEnable                   | boolean                 | true     | Enables the serialization of Mouse based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| inputMousePreventContextMenu       | boolean                 | false    | Prevents the right-click context menu from appearing inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| inputTouchEnable                   | boolean                 | true     | Enables the serialization of Touch based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| inputLimitPerMs                    | number                  | 8ms      | Limits how often anolog controls (gamepad-joystick and touch) are accepted (0 is unlimited)                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| orientation                        | GamingCanvasOrientation | `AUTO`   | `AUTO` will dynamically rotate the canvas to optimize screen usage                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| resolutionByHeightPx               | number or `null`        | `null`   | `null` sets the canvas dimensions, and not `null` scales the canvas dimensions to fit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| resolutionScaleToFit               | boolean                 | true     | Enables the scalling feature of `resolutionByHeightPx` when using a non-null value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Key                                 | Type                    | Default  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------------------------------- | ----------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| aspectRatio?                        | number                  | 16 / 9   | 1920x1080 (1080p) is a 16/9 aspect ratio                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| callbackDisplayLimitPerMs?          | number                  | 8ms      | Limits how often the callbackDisplay() can be called in milliseconds (0 is unlimited)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| canvasCount?                        | number                  | 1        | How many canvas elements (layers) to be generated (canvas1: id=`gaming-canvas-canvas1`, zIndex=2; canvas2: id=`gaming-canvas-canvas2`, zIndex=3, ... )                                                                                                                                                                                                                                                                                                                                                                                                               |
+| debug?                              | boolean                 | false    | Enables colors for HTML elements involved in the rotation process (see it in action [Life](https://app.tknight.dev/game/life/index.html?debug=true&drawDead=false&seedRandom=false)                                                                                                                                                                                                                                                                                                                                                                                  |
+| direction?                          | GamingCanvasDirection   | `NORMAL` | `INVERTED` rotates the canvas to left instead of the right in `PORTRAIT` mode                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| directionPreventLandscapeInversion? | boolean                 | true     | Prevent `LANDSCAPE` from becoming upside-down, but allow `PORTRAIT` to invert-rotate                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| elementInject?                      | HTMLElement[]           | []       | Elements are injected into the canvas container element (id=`gaming-canvas-container`). Use CSS position `absolute` to fit your overlay relative to the canvas's dynamic position and size                                                                                                                                                                                                                                                                                                                                                                           |
+| elementInteractive?                 | HTMLElement             | canvas   | The input listeners are bound to this element, but `GamingCanvasInputPosition` is always relative to the canvas. This element should be equal to or larger then the canvas in all dimensions. EG the canvas is zIndex=2, an overlay(s) is zIndex=3, so the interactive elment should be a super overlay at zIndex=4 as the overlay(s) at zIndex=3 would intercept input liseners at zIndex=2 unless `pointer-events` and `touch-events` are set to `none` on the CSS for the overlay(s). Note: the canvas with the highest zIndex is the default elementInteractive. |
+| inputGamepadEnable                  | boolean                 | true     | Enables the serialization of Gamepad based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| inputGamepadDeadband?               | number                  | 0.03     | Any input in the deadband is set to 0. IE if x > -deadband and x < deadband then x is 0 where x is any number between -1 and 1.                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| inputKeyboardEnable?                | boolean                 | true     | Enables the serialization of Keyboard based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| inputMouseEnable?                   | boolean                 | true     | Enables the serialization of Mouse based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| inputMousePreventContextMenu?       | boolean                 | false    | Prevents the right-click context menu from appearing inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| inputTouchEnable?                   | boolean                 | true     | Enables the serialization of Touch based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| inputLimitPerMs?                    | number                  | 8ms      | Limits how often anolog controls (gamepad-joystick and touch) are accepted (0 is unlimited)                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| orientation?                        | GamingCanvasOrientation | `AUTO`   | `AUTO` will dynamically rotate the canvas to optimize screen usage                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| resolutionByHeightPx?               | number or `null`        | `null`   | `null` sets the canvas dimensions, and not `null` scales the canvas dimensions to fit                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| resolutionScaleToFit?               | boolean                 | true     | Enables the scalling feature of `resolutionByHeightPx` when using a non-null value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
 ## Models: GamingCanvasOrientation (enum)
 
@@ -140,15 +186,15 @@ See: [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEv
 
 ## Models: GamingCanvasReport (interface)
 
-| Key                | type                    | Description                                      |
-| ------------------ | ----------------------- | ------------------------------------------------ |
-| canvasHeight       | number                  | Dimension of the canvas                          |
-| canvasHeightScaled | number                  | Dimension of the canvas after scaling            |
-| canvasWidth        | number                  | Dimension of the canvas                          |
-| canvasWidthScaled  | number                  | Dimension of the canvas after scaling            |
-| devicePixelRatio   | number                  | DPI ratio of the screen                          |
-| orientation        | GamingCanvasOrientation | Current orientation                              |
-| scaler             | number                  | Value used to scale height/width to scaled value |
+| Key                | type                    | Description                                             |
+| ------------------ | ----------------------- | ------------------------------------------------------- |
+| canvasHeight       | number                  | Dimension of the canvas                                 |
+| canvasHeightScaled | number                  | Dimension of the canvas after scaling                   |
+| canvasWidth        | number                  | Dimension of the canvas                                 |
+| canvasWidthScaled  | number                  | Dimension of the canvas after scaling                   |
+| devicePixelRatio   | number                  | DPI ratio of the screen                                 |
+| orientation        | GamingCanvasOrientation | Current orientation                                     |
+| scaler             | number                  | Factor used to grow/shrink height/width to scaled value |
 
 ## How To: Canvas with Dynamic Resolution (no set resolution)
 
@@ -297,7 +343,7 @@ setTimeout(() => {
     queueQuit = true;
 
     setInputActive(false); // Stop accepting inputs
-    clearInputQueue(); // Clear any inputs still in the queue to be processed. Watch out for keyboard/mouse/touch inputs that never registered a keyUp event.
+    clearInputQueue(); // Clear any inputs still in the queue to be processed. Watch out for keyboard/mouse/touch inputs that never registered a buttonUp event.
 }, 1000);
 ```
 
@@ -366,3 +412,5 @@ GamingCanvas.setCallbackVisibility((state: boolean) => {
 - Add feature to replace need for `NoSleep.js` (see `How To: Screen Dimming (Power Saving Mode)`)
 - Add [Gamepad](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API) support
 - Add `GamingCanvasFIFOQueue` binary encoder/decorder for sending input chunks between [WebWorkers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) via [TransferableObjects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects)
+
+[![forthebadge](https://img.shields.io/badge/made%20with-%20typescript-C1282D.svg?logo=typescript&style=for-the-badge)](https://www.typescriptlang.org/) [![forthebadge](https://img.shields.io/badge/powered%20by-%20github-7116FB.svg?logo=github&style=for-the-badge)](https://www.github.com/)

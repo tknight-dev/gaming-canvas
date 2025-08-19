@@ -58,6 +58,7 @@ export class GamingCanvasTouchEngine {
 		inputLimitPerMs: number,
 		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
 	): void {
+		GamingCanvasTouchEngine.active = true;
 		GamingCanvasTouchEngine.el = elCanvas;
 		GamingCanvasTouchEngine.queue = queue;
 

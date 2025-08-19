@@ -57,6 +57,6 @@ export const GamingCanvasInputPositionCorrector = (height: number, inverted: boo
 export enum GamingCanvasInputType {
 	GAMEPAD,
 	KEYBOARD,
-	MOUSE, // has position1
-	TOUCH, // has position1 and potentially position2
+	MOUSE, // has position
+	TOUCH, // has positions
 }

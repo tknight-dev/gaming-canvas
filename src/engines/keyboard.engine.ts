@@ -35,6 +35,7 @@ export class GamingCanvasKeyboardEngine {
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 
 	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>): void {
+		GamingCanvasKeyboardEngine.active = true;
 		GamingCanvasKeyboardEngine.queue = queue;
 
 		document.addEventListener('keydown', (event: KeyboardEvent) => {

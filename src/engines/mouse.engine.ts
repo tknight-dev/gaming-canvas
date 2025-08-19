@@ -49,6 +49,7 @@ export class GamingCanvasMouseEngine {
 		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
 		preventContextMenu: boolean,
 	): void {
+		GamingCanvasMouseEngine.active = true;
 		GamingCanvasMouseEngine.el = elCanvas;
 		GamingCanvasMouseEngine.queue = queue;
 
