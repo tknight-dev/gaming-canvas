@@ -227,7 +227,7 @@ import {
 let inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
     queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvas.getInputQueue(),
     queueInput: GamingCanvasInput | undefined,
-    queueQuit: boolean,
+    queueQuit: boolean = false,
     queueRequest: number;
 
 const processor = (timestampNow: number) => {
@@ -285,9 +285,7 @@ const processorTouch = (input: GamingCanvasInputTouch, timestampNow: number) => 
     }
 };
 
-// Start processing inputs. The default state of InputActive is true.
-setInputActive(true, true); // (true = active/inactive, true = clear inputs without having to call `clearInputQueue()`)
-queueQuit = false;
+// Start processing inputs
 queueRequest = requestAnimationFrame(processor);
 
 // Stop processing inputs
@@ -295,11 +293,11 @@ setTimeout(() => {
     /*
      *  Warning: not processing the inputs will eventually hit a queue size soft limit, and give a buffer overflow console error. Make sure to suspend further inputs.
      */
-    setInputActive(false); // Stop accepting inputs
-    clearInputQueue(); // Clear any inputs still in the queue to be processed. Watch out for keyboard/mouse/touch inputs that never registered a keyUp event.
-
     cancelAnimationFrame(queueRequest);
     queueQuit = true;
+
+    setInputActive(false); // Stop accepting inputs
+    clearInputQueue(); // Clear any inputs still in the queue to be processed. Watch out for keyboard/mouse/touch inputs that never registered a keyUp event.
 }, 1000);
 ```
 

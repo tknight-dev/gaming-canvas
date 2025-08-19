@@ -644,15 +644,15 @@ export class GamingCanvas {
 	/**
 	 * @param active means inputs will be put in the queue for processing
 	 */
-	public static setInputActive(active: boolean, clear?: boolean): void {
+	public static setInputActive(active: boolean, clearInputQueue?: boolean): void {
 		active = active === true;
-		clear && GamingCanvas.inputQueue.clear();
+		clearInputQueue && GamingCanvas.inputQueue.clear();
 
 		GamingCanvasKeyboardEngine.active = active;
 		GamingCanvasMouseEngine.active = active;
 		GamingCanvasTouchEngine.active = active;
 
-		clear && GamingCanvas.inputQueue.clear();
+		clearInputQueue && GamingCanvas.inputQueue.clear();
 	}
 
 	public static isFullscreen(): boolean {
