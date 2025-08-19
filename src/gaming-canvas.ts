@@ -78,6 +78,7 @@ export class GamingCanvas {
 	private static elementParent: HTMLElement;
 	private static elementRotator1: HTMLDivElement;
 	private static elementRotator2: HTMLDivElement;
+	private static elementWakeLock: HTMLMediaElement;
 	private static inputQueue: GamingCanvasFIFOQueue<GamingCanvasInput> = new GamingCanvasFIFOQueue<GamingCanvasInput>();
 	private static options: GamingCanvasOptions;
 	private static regExpScale: RegExp = /(?<=scale\()(.*?)(?=\))/;
@@ -88,6 +89,8 @@ export class GamingCanvas {
 	private static stateReport: GamingCanvasReport;
 	private static stateScaler: number;
 	private static stateVisibility: boolean;
+	private static stateWakeLock: WakeLockSentinel | undefined;
+	private static stateWakeLockState: boolean;
 
 	/**
 	 * Rotate, Scale, and callbackReport() as required
@@ -255,11 +258,28 @@ export class GamingCanvas {
 			});
 
 			GamingCanvas.stateVisibility = document.visibilityState !== 'hidden';
-			addEventListener('visibilitychange', () => {
+			addEventListener('visibilitychange', async () => {
 				const state: boolean = document.visibilityState !== 'hidden';
 
 				if (GamingCanvas.stateVisibility !== state) {
 					GamingCanvas.stateVisibility = state;
+
+					// Automatically suspend wakeLock when not visible
+					if (state && GamingCanvas.stateWakeLockState && !GamingCanvas.stateWakeLock) {
+						// Re-enable after becoming visible again
+						try {
+							GamingCanvas.stateWakeLock = await navigator.wakeLock.request('screen');
+						} catch (error) {}
+
+						if (!GamingCanvas.stateWakeLock) {
+							console.error('GamingCanvas: failed to wake lock after becoming visible');
+							GamingCanvas.stateWakeLockState = false;
+						}
+					} else if (!state && GamingCanvas.stateWakeLockState && GamingCanvas.stateWakeLock) {
+						// Disable while not visible
+						GamingCanvas.stateWakeLock.release();
+						GamingCanvas.stateWakeLock = undefined;
+					}
 
 					GamingCanvas.callbackVisibility && GamingCanvas.callbackVisibility(state);
 				}
@@ -541,6 +561,31 @@ export class GamingCanvas {
 		});
 	}
 
+	public static async wakeLock(enable: boolean): Promise<boolean> {
+		if (enable === GamingCanvas.stateWakeLockState) {
+			// Already in that state
+			return;
+		}
+
+		if ('wakeLock' in navigator) {
+			if (enable) {
+				try {
+					GamingCanvas.stateWakeLock = await navigator.wakeLock.request('screen');
+				} catch (error) {}
+
+				if (GamingCanvas.stateWakeLock) {
+					GamingCanvas.stateWakeLockState = true;
+				}
+			} else {
+				GamingCanvas.stateWakeLock && GamingCanvas.stateWakeLock.release();
+				GamingCanvas.stateWakeLock = undefined;
+				GamingCanvas.stateWakeLockState = false;
+			}
+		} else {
+			console.error("GamingCanvas > wakeLock: 'Wake Lock API' not supported by this browser");
+		}
+	}
+
 	/**
 	 * @return is undefined if not initialized yet
 	 */
@@ -764,5 +809,9 @@ export class GamingCanvas {
 			return true;
 		}
 		return GamingCanvas.stateVisibility;
+	}
+
+	public static isWakeLockSupported(): boolean {
+		return 'wakeLock' in navigator;
 	}
 }

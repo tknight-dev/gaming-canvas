@@ -25,6 +25,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
     - Dimensions are always rounded down to the nearest pixel to improve performance
     - Scaling uses the css `transform: scale(x)` function which your browser (CPU) offloads to your GPU (best performance)
 - **Visibility**: Quickly know if your game needs to be paused (browser minimized or switched to new tab)
+- **Wake Lock**: Quickly prevent mobile devices from dimming the screen while you're playing
 
 ## Installation
 
@@ -348,13 +349,14 @@ const processorKeyboard = (input: GamingCanvasInputKeyboard, timestampNow: numbe
     }
 
     // or track the state
-    state[input.propriatary.action.code] = input.propriatary.down;
+    // state[input.propriatary.action.code] = input.propriatary.down;
 };
 
 const processorMouse = (input: GamingCanvasInputMouse, timestampNow: number) => {
     console.log('Input-Mouse', input, timestampNow);
 
     if (input.propriatary.action === GamingCanvasInputMouseAction.LEFT_CLICK) {
+        // Fire!
     }
 };
 
@@ -385,10 +387,6 @@ setTimeout(() => {
     clearInputQueue(); // Clear any inputs still in the queue to be processed. Watch out for keyboard/mouse/touch inputs that never registered a buttonUp event.
 }, 1000);
 ```
-
-## How To: Screen Dimming (Power Saving Mode)
-
-A 3rd party library (like [NoSleep.js](https://github.com/richtr/NoSleep.js)) is required to prevent dimming (even in fullscreen mode). I may include this feature in a future release.
 
 ## How To: Screenshot
 
@@ -439,6 +437,22 @@ GamingCanvas.setCallbackVisibility((state: boolean) => {
         // You may want to pause your game here
     }
 });
+console.log('Visible?', GamingCanvas.isVisible());
+```
+
+## How To: Wake Lock
+
+> As per MDN: This feature is available only in secure contexts (HTTPS)
+
+A 3rd party library (like [NoSleep.js](https://github.com/richtr/NoSleep.js)) is required when attempting to lock without HTTPs
+
+```typescript
+import { GamingCanvas } from '@tknight-dev/gaming-canvas';
+
+// GamingCanvas will automatically toggle the lock if the visibility (See `How To: Visibility`) is ever false
+if (GamingCanvas.isWakeLockSupported()) {
+    GamingCanvas.wakeLock(true); // Enable it
+}
 ```
 
 ## Troubleshooting
