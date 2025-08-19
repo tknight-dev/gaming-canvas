@@ -20,6 +20,7 @@ export class GamingCanvasOptions {
 	canvasCount?: number;
 	debug?: boolean;
 	direction?: GamingCanvasDirection;
+	directionPreventLandscapeInversion?: boolean;
 	elementInteractive?: HTMLElement;
 	elementInject?: HTMLElement[];
 	inputKeyboardEnable?: boolean;
@@ -378,12 +379,14 @@ export class GamingCanvas {
 			GamingCanvas.elementRotator2.style.maxWidth = '100%';
 		}
 
-		if (changed || GamingCanvas.stateDirection !== options.direction) {
-			changed = true;
-			GamingCanvas.stateDirection = <GamingCanvasDirection>options.direction;
+		if (!(options.directionPreventLandscapeInversion && options.direction === GamingCanvasDirection.INVERTED)) {
+			if (changed || GamingCanvas.stateDirection !== options.direction) {
+				changed = true;
+				GamingCanvas.stateDirection = <GamingCanvasDirection>options.direction;
 
-			GamingCanvas.elementCanvasContainer.style.transform =
-				options.direction === GamingCanvasDirection.NORMAL ? 'scale(1)' : 'rotate(180deg) scale(1) translate(-100%, -100%)';
+				GamingCanvas.elementCanvasContainer.style.transform =
+					options.direction === GamingCanvasDirection.NORMAL ? 'scale(1)' : 'rotate(180deg) scale(1) translate(-100%, -100%)';
+			}
 		}
 
 		return changed;
@@ -681,6 +684,8 @@ export class GamingCanvas {
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
 		options.debug = options.debug === undefined ? false : options.debug === true;
 		options.direction = options.direction === undefined ? GamingCanvasDirection.NORMAL : options.direction;
+		options.directionPreventLandscapeInversion =
+			options.directionPreventLandscapeInversion === undefined ? true : options.directionPreventLandscapeInversion;
 
 		if (GamingCanvas.elementCanvases) {
 			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvases[0] : options.elementInteractive;
