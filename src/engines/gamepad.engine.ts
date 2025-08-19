@@ -65,6 +65,8 @@ export enum GamingCanvasInputGamepadControllerTypeXBoxButtons {
 	DPAD_UP = 12,
 	HOME = 16,
 	MENU = 9,
+	STICK_LEFT = 10,
+	STICK_RIGHT = 11,
 	VIEW = 8,
 	X = 3,
 	Y = 2,

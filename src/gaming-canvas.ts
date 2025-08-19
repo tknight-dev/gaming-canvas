@@ -561,10 +561,13 @@ export class GamingCanvas {
 		});
 	}
 
+	/**
+	 * @return is false on failure
+	 */
 	public static async wakeLock(enable: boolean): Promise<boolean> {
 		if (enable === GamingCanvas.stateWakeLockState) {
 			// Already in that state
-			return;
+			return true;
 		}
 
 		if ('wakeLock' in navigator) {
@@ -575,14 +578,19 @@ export class GamingCanvas {
 
 				if (GamingCanvas.stateWakeLock) {
 					GamingCanvas.stateWakeLockState = true;
+				} else {
+					return false;
 				}
 			} else {
 				GamingCanvas.stateWakeLock && GamingCanvas.stateWakeLock.release();
 				GamingCanvas.stateWakeLock = undefined;
 				GamingCanvas.stateWakeLockState = false;
 			}
+
+			return true;
 		} else {
 			console.error("GamingCanvas > wakeLock: 'Wake Lock API' not supported by this browser");
+			return false;
 		}
 	}
 
