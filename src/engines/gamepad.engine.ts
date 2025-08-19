@@ -9,10 +9,10 @@ export interface GamingCanvasInputGamepad extends GamingCanvasInput {
 	propriatary: {
 		axes?: number[];
 		buttons?: { [key: number]: boolean };
-		controllerType: GamingCanvasInputGamepadControllerType;
 		connected: boolean;
 		id: string;
 		idCustom: number;
+		type: GamingCanvasInputGamepadControllerType;
 	};
 }
 
@@ -73,10 +73,10 @@ export enum GamingCanvasInputGamepadControllerTypeXBoxButtons {
 export interface GamingCanvasInputGamepadState {
 	axisCount: number;
 	buttonCount: number;
-	controllerType: GamingCanvasInputGamepadControllerType;
 	connected: boolean;
 	idCustom: number;
 	timestamp: number;
+	type: GamingCanvasInputGamepadControllerType;
 }
 
 export class GamingCanvasGamepadEngine {
@@ -114,15 +114,15 @@ export class GamingCanvasGamepadEngine {
 					axisCount: gamepad.axes.length / 2,
 					buttonCount: gamepad.buttons.length,
 					connected: connected,
-					controllerType: GamingCanvasInputGamepadControllerType.UNKNOWN,
 					idCustom: GamingCanvasGamepadEngine.counter++,
 					timestamp: gamepad.timestamp,
+					type: GamingCanvasInputGamepadControllerType.UNKNOWN,
 				};
 				state = GamingCanvasGamepadEngine.states[id];
 
 				const idLowerCase: string = id.toLowerCase();
 				if (idLowerCase.includes('xbox') || idLowerCase.includes('x-box') || idLowerCase.includes('x_box')) {
-					state.controllerType = GamingCanvasInputGamepadControllerType.XBOX;
+					state.type = GamingCanvasInputGamepadControllerType.XBOX;
 				}
 			}
 			GamingCanvasGamepadEngine.axesByIdCustom[state.idCustom] = new Array(gamepad.axes.length);
@@ -135,9 +135,9 @@ export class GamingCanvasGamepadEngine {
 				GamingCanvasGamepadEngine.queue.push({
 					propriatary: {
 						connected: connected,
-						controllerType: state.controllerType,
 						id: id,
 						idCustom: state.idCustom,
+						type: state.type,
 					},
 					type: GamingCanvasInputType.GAMEPAD,
 				});
@@ -225,9 +225,9 @@ export class GamingCanvasGamepadEngine {
 										axes: changedAxes ? axes : undefined,
 										buttons: buttonsChanged,
 										connected: gamepad.connected,
-										controllerType: state.controllerType,
 										id: id,
 										idCustom: idCustom,
+										type: state.type,
 									},
 									type: GamingCanvasInputType.GAMEPAD,
 								});
