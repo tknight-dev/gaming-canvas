@@ -48,7 +48,8 @@
         "lint": "prettier esbuild.cjs esbuild.mjs src/. --write",
         "build": "yarn build:cjs && yarn build:mjs && tsc",
         "build:cjs": "node esbuild.cjs",
-        "build:mjs": "node esbuild.mjs"
+        "build:mjs": "node esbuild.mjs",
+        "dev": "tsc --noEmit --preserveWatchOutput --watch"
     },
     "type": "module",
     "types": "./dist/index.d.ts",
