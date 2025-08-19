@@ -276,6 +276,7 @@ const processorMouse = (input: GamingCanvasInputMouse, timestampNow: number) => 
 const processorTouch = (input: GamingCanvasInputTouch, timestampNow: number) => {
     console.log('Input-Touch', input, timestampNow);
 
+    // Not all touch events, like other input types, have positions associated with them
     const positions: GamingCanvasInputPosition | undefined = input.propriatary.positions;
 
     if (positions && positions.length > 1) {
@@ -284,17 +285,18 @@ const processorTouch = (input: GamingCanvasInputTouch, timestampNow: number) => 
     }
 };
 
-// Start processing inputs
+// Start processing inputs. The default state of InputActive is true.
+setInputActive(true, true); // (true = active/inactive, true = clear inputs without having to call `clearInputQueue()`)
 queueQuit = false;
 queueRequest = requestAnimationFrame(processor);
 
 // Stop processing inputs
 setTimeout(() => {
     /*
-     *  Warning: not processing the inputs will eventually lead to a queue size soft limit, and give a buffer overflow console error. Make sure to suspend further inputs.
+     *  Warning: not processing the inputs will eventually hit a queue size soft limit, and give a buffer overflow console error. Make sure to suspend further inputs.
      */
     setInputActive(false); // Stop accepting inputs
-    clearInputQueue(true); // Clear any inputs still in the queue to be processed. Watch out for keyboard/mouse/touch inputs that never registered a keyUp event.
+    clearInputQueue(); // Clear any inputs still in the queue to be processed. Watch out for keyboard/mouse/touch inputs that never registered a keyUp event.
 
     cancelAnimationFrame(queueRequest);
     queueQuit = true;
@@ -363,5 +365,6 @@ GamingCanvas.setCallbackVisibility((state: boolean) => {
 
 ## Future Releases
 
+- Add feature to replace need for `NoSleep.js` (see `How To: Screen Dimming (Power Saving Mode)`)
 - Add [Gamepad](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API) support
 - Add `GamingCanvasFIFOQueue` binary encoder/decorder for sending input chunks between [WebWorkers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) via [TransferableObjects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects)
