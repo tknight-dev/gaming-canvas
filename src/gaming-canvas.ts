@@ -347,12 +347,12 @@ export class GamingCanvas {
 		while (count--) {
 			canvas = document.createElement('canvas');
 			canvas.height = 0;
-			canvas.id = `gaming-canvas-canvas${count}`;
+			canvas.id = `gaming-canvas-canvas${count + 1}`;
 			canvas.width = 0;
 			canvas.style.left = '0';
 			canvas.style.position = 'absolute';
 			canvas.style.top = '0';
-			canvas.style.zIndex = String(count + 1);
+			canvas.style.zIndex = String((count + 1) * 10);
 
 			GamingCanvas.elementCanvases.push(canvas);
 			GamingCanvas.elementCanvasContainer.appendChild(canvas);
