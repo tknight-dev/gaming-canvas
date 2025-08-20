@@ -21,7 +21,39 @@ export enum GamingCanvasInputGamepadControllerType {
 	XBOX,
 }
 
-export interface GamingCanvasInputGamepadControllerTypeXboxAxes {
+/**
+ * Convert raw axes array to something identified nicely
+ *
+ * @return null if the mapping failed (EG tried to map an unsupported controller type or a controller is registering as an xbox controller but isn't actually an xbox controller)
+ */
+export const GamingCanvasInputGamepadControllerTypeMapAxes = (input: GamingCanvasInputGamepad): GamingCanvasInputGamepadControllerTypeMappedAxes | null => {
+	if (input.propriatary.type === GamingCanvasInputGamepadControllerType.XBOX) {
+		const axes: number[] = <number[]>input.propriatary.axes;
+
+		try {
+			return {
+				stickLeftX: axes[0],
+				stickLeftY: axes[1],
+				stickRightX: axes[4],
+				stickRightY: axes[5],
+				triggerLeft: axes[7],
+				triggerRight: axes[6],
+			};
+		} catch (error) {
+			console.error(
+				`GamingCanvas > GamingCanvasInputGamepadControllerTypeMapAxes: failed [id=${input.propriatary.id}, type=${GamingCanvasInputGamepadControllerType[input.type]}]`,
+			);
+			return null;
+		}
+	} else {
+		console.error(
+			`GamingCanvas > GamingCanvasInputGamepadControllerTypeMapAxes: unsupported [id=${input.propriatary.id}, type=${GamingCanvasInputGamepadControllerType[input.type]}]`,
+		);
+		return null;
+	}
+};
+
+export interface GamingCanvasInputGamepadControllerTypeMappedAxes {
 	stickLeftX: number;
 	stickLeftY: number;
 	stickRightX: number;
@@ -29,42 +61,6 @@ export interface GamingCanvasInputGamepadControllerTypeXboxAxes {
 	triggerLeft: number;
 	triggerRight: number;
 }
-
-/**
- * It's always faster
- */
-let xboxToAxesFailed: boolean;
-export const GamingCanvasInputGamepadControllerTypeXboxToAxes = (input: GamingCanvasInputGamepad): GamingCanvasInputGamepadControllerTypeXboxAxes => {
-	try {
-		const axes: number[] = <number[]>input.propriatary.axes;
-
-		return {
-			stickLeftX: axes[0],
-			stickLeftY: axes[1],
-			stickRightX: axes[4],
-			stickRightY: axes[5],
-			triggerLeft: axes[7],
-			triggerRight: axes[6],
-		};
-	} catch (error) {
-		// Throw a one time error to prevent overloading the console with 1000s of the same thing
-		if (!xboxToAxesFailed) {
-			xboxToAxesFailed = true;
-			console.error(
-				`GamingCanvas > GamingCanvasInputGamepadControllerTypeXboxToAxes: failed to convert input [type=${GamingCanvasInputGamepadControllerType[input.type]}]`,
-			);
-		}
-
-		return {
-			stickLeftX: 0,
-			stickLeftY: 0,
-			stickRightX: 0,
-			stickRightY: 0,
-			triggerLeft: 0,
-			triggerRight: 0,
-		};
-	}
-};
 
 export enum GamingCanvasInputGamepadControllerTypeXboxButtons {
 	A = 0,
@@ -77,6 +73,7 @@ export enum GamingCanvasInputGamepadControllerTypeXboxButtons {
 	DPAD_UP = 12,
 	HOME = 16,
 	MENU = 9,
+	SHARE = 17,
 	STICK_LEFT = 10,
 	STICK_RIGHT = 11,
 	VIEW = 8,
@@ -104,7 +101,6 @@ export class GamingCanvasGamepadEngine {
 	private static states: { [key: string]: GamingCanvasInputGamepadState } = {};
 
 	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, deadbandStick: number, deadbandTrigger: number): void {
-		xboxToAxesFailed = false;
 		GamingCanvasGamepadEngine.active = true;
 		GamingCanvasGamepadEngine.queue = queue;
 		GamingCanvasGamepadEngine.quit = false;
@@ -141,7 +137,7 @@ export class GamingCanvasGamepadEngine {
 				}
 			}
 			GamingCanvasGamepadEngine.axesByIdCustom[state.idCustom] = new Array(gamepad.axes.length).fill(0);
-			GamingCanvasGamepadEngine.buttonsByIdCustom[state.idCustom] = new Array(gamepad.buttons.length).fill(0);
+			GamingCanvasGamepadEngine.buttonsByIdCustom[state.idCustom] = new Array(gamepad.buttons.length).fill(false);
 
 			/*
 			 * Queue
@@ -212,7 +208,6 @@ export class GamingCanvasGamepadEngine {
 									if (i < 6) {
 										// Apply to sticks
 										if (value > -deadbandStick && value < deadbandStick) {
-											changedAxes = true;
 											value = 0;
 										} else {
 											value *= -1;
@@ -222,7 +217,6 @@ export class GamingCanvasGamepadEngine {
 										value = (value + 1) / 2; // convert range from -1-to-1 to 0-to-1
 
 										if (value < deadbandTrigger) {
-											changedAxes = true;
 											value = 0;
 										}
 									}
