@@ -20,7 +20,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 - **Lightweight**: Compiled/minified library is less than **25kb**
 - **Mobile**: Mobile devices are fully supported
 - **Orientation**: Auto rotate for maximum screen usage or lock it to a specific orientation (Portrait/Landscape)
-    - Device level orientation locking isn't supported by all browsers
+    - [Screen Orientation](https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock) locking isn't supported by all browsers
 - **Resolution**: Use a fixed resolution to optimize your FPS (it still scales to fill the screen like a regular video game would)
     - Dimensions are always rounded down to the nearest pixel to improve performance
     - Scaling uses the css `transform: scale(x)` function which your browser (CPU) offloads to your GPU (best performance)
