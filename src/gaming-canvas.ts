@@ -35,7 +35,7 @@ export class GamingCanvasOptions {
 	orientation?: GamingCanvasOrientation;
 	resolutionByWidthPx?: null | number;
 	resolutionScaleToFit?: boolean;
-	scaleType?: GamingCanvasScaleType;
+	scaleType?: GamingCanvasScaleType | GamingCanvasScaleType[];
 }
 
 export enum GamingCanvasDirection {
@@ -98,6 +98,7 @@ export class GamingCanvas {
 	private static stateVisibility: boolean;
 	private static stateWakeLock: WakeLockSentinel | undefined;
 	private static stateWakeLockState: boolean;
+	private static vibrateInterval: ReturnType<typeof setInterval>;
 
 	/**
 	 * Rotate, Scale, and callbackReport() as required
@@ -574,6 +575,56 @@ export class GamingCanvas {
 	}
 
 	/**
+	 * Not supported by all browsers: https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API
+	 *
+	 * @param pattern [200, 100, 300] is 200ms on, 100ms off, 300ms on
+	 * @param repeat if true will loop the pattern
+	 * @param repeatOffsetInMs delay in milliseconds before repeating
+	 * @param returns true if supported and valid
+	 */
+	public static vibrate(pattern: number[], repeat?: boolean, repeatOffsetInMs?: number): boolean {
+		if ('vibrate' in navigator) {
+			let durationInMs: number = 0;
+
+			if (!Array.isArray(pattern) || pattern.length === 0) {
+				console.error('GamingCanvas > vibrate: pattern is invalid');
+				return false;
+			}
+
+			for (let i = 0; i < pattern.length; i++) {
+				if (pattern[i] < 1) {
+					console.error('GamingCanvas > vibrate: pattern cannot contain a value less than 1');
+					return false;
+				} else {
+					durationInMs += pattern[i];
+				}
+			}
+
+			// Vibrate
+			clearInterval(GamingCanvas.vibrateInterval);
+			navigator.vibrate(pattern);
+
+			if (repeat) {
+				repeatOffsetInMs = Math.max(0, repeatOffsetInMs || 0);
+				GamingCanvas.vibrateInterval = setInterval(() => {
+					navigator.vibrate(pattern);
+				}, durationInMs + repeatOffsetInMs);
+			}
+
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public static vibrateCancel(): void {
+		clearInterval(GamingCanvas.vibrateInterval);
+		if ('vibrate' in navigator) {
+			navigator.vibrate(0);
+		}
+	}
+
+	/**
 	 * @return is false on failure
 	 */
 	public static async wakeLock(enable: boolean): Promise<boolean> {
@@ -724,13 +775,6 @@ export class GamingCanvas {
 		clearInputQueue && GamingCanvas.inputQueue.clear();
 	}
 
-	/**
-	 * @return key is gamepadId
-	 */
-	public static getGamepads(): { [key: string]: GamingCanvasInputGamepadState } {
-		return GamingCanvasGamepadEngine.getGamepads();
-	}
-
 	public static isFullscreen(): boolean {
 		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > isFullscreen: not initialized yet');
@@ -800,8 +844,10 @@ export class GamingCanvas {
 
 		// Apply
 		GamingCanvas.setDebug(<boolean>GamingCanvas.options.debug);
-		for (const canvas of GamingCanvas.elementCanvases) {
-			switch (options.scaleType) {
+
+		// Apply: Scale Type
+		const applyScaleType = (canvas: HTMLCanvasElement, scaleType: GamingCanvasScaleType) => {
+			switch (scaleType) {
 				case GamingCanvasScaleType.ANTIALIAS:
 					canvas.style.imageRendering = 'high-quality';
 					break;
@@ -811,6 +857,22 @@ export class GamingCanvas {
 				case GamingCanvasScaleType.PIXELATED:
 					canvas.style.imageRendering = 'pixelated';
 					break;
+			}
+		};
+
+		if (Array.isArray(options.scaleType)) {
+			if (options.scaleType.length === GamingCanvas.elementCanvases.length) {
+				for (let i = 0; i < options.scaleType.length; i++) {
+					applyScaleType(GamingCanvas.elementCanvases[i], options.scaleType[i]);
+				}
+			} else {
+				console.error(
+					`GamingCanvas > setOptions: cannot apply scalesTypes of length ${options.scaleType.length} to canvases of length ${GamingCanvas.elementCanvases.length}`,
+				);
+			}
+		} else {
+			for (const canvas of GamingCanvas.elementCanvases) {
+				applyScaleType(canvas, <GamingCanvasScaleType>options.scaleType);
 			}
 		}
 
@@ -840,6 +902,10 @@ export class GamingCanvas {
 		return JSON.parse(JSON.stringify(GamingCanvas.stateReport));
 	}
 
+	public static isVibrateSupported(): boolean {
+		return 'vibrate' in navigator;
+	}
+
 	public static isVisible(): boolean {
 		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > isVisible: not initialized yet');
@@ -850,5 +916,22 @@ export class GamingCanvas {
 
 	public static isWakeLockSupported(): boolean {
 		return 'wakeLock' in navigator;
+	}
+
+	/**
+	 * Function forwarding
+	 *
+	 * This prevents double enclosures on the function call while preserving the typing
+	 */
+
+	static {
+		GamingCanvas.getGamepads = GamingCanvasGamepadEngine.getGamepads;
+	}
+
+	/**
+	 * @return object key is gamepadId
+	 */
+	public static getGamepads(): { [key: string]: GamingCanvasInputGamepadState } {
+		return GamingCanvasGamepadEngine.getGamepads();
 	}
 }

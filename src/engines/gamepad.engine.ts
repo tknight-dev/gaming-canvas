@@ -94,11 +94,39 @@ export class GamingCanvasGamepadEngine {
 	public static active: boolean = true;
 	private static axesByIdCustom: { [key: number]: number[] } = {};
 	private static buttonsByIdCustom: { [key: number]: boolean[] } = {};
+	private static gamepadByIdCustom: { [key: number]: Gamepad } = {};
 	private static counter: number = 0;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 	private static quit: boolean;
 	private static scannerRequest: number;
-	private static states: { [key: string]: GamingCanvasInputGamepadState } = {};
+	private static statesById: { [key: string]: GamingCanvasInputGamepadState } = {};
+
+	// public static hapticEffect(): void {}
+
+	// public static hapticPulse(idCustom: number, durationInMs: number, hapticActuator: number, intensity: number): void {
+	// 	const gamepad: Gamepad = GamingCanvasGamepadEngine.gamepadByIdCustom[idCustom];
+
+	// 	if (gamepad) {
+	// 		const hapticActuatorCount: number = GamingCanvasGamepadEngine.statesById[gamepad.id].hapticActuatorCount;
+
+	// 		if (hapticActuatorCount !== 0) {
+	// 			hapticActuator = Math.max(0, hapticActuator);
+
+	// 			if (hapticActuator < hapticActuatorCount) {
+	// 				durationInMs = Math.max(0, durationInMs);
+	// 				intensity = Math.max(0, Math.min(1, intensity));
+
+	// 				(<any>gamepad).hapticActuators[hapticActuator].pulse(intensity, durationInMs);
+	// 			} else {
+	// 				console.error(`GamingCanvas > hapticPulse: hapticActuator ${hapticActuator} isn't within the known amount ${hapticActuatorCount}`);
+	// 			}
+	// 		} else {
+	// 			console.error('GamingCanvas > hapticPulse: gamepad has no haptic actuators or none are supported by this browser', idCustom);
+	// 		}
+	// 	} else {
+	// 		console.error('GamingCanvas > hapticPulse: unknown gamepad id-custom', idCustom);
+	// 	}
+	// }
 
 	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, deadbandStick: number, deadbandTrigger: number): void {
 		GamingCanvasGamepadEngine.active = true;
@@ -115,13 +143,13 @@ export class GamingCanvasGamepadEngine {
 			const gamepad: Gamepad = event.gamepad,
 				connected: boolean = gamepad.connected,
 				id: string = gamepad.id;
-			let state: GamingCanvasInputGamepadState = GamingCanvasGamepadEngine.states[id];
+			let state: GamingCanvasInputGamepadState = GamingCanvasGamepadEngine.statesById[id];
 
 			if (state) {
 				state.connected = connected;
 				state.timestamp = gamepad.timestamp;
 			} else {
-				GamingCanvasGamepadEngine.states[id] = {
+				GamingCanvasGamepadEngine.statesById[id] = {
 					axisCount: gamepad.axes.length / 2,
 					buttonCount: gamepad.buttons.length,
 					connected: connected,
@@ -129,7 +157,7 @@ export class GamingCanvasGamepadEngine {
 					timestamp: gamepad.timestamp,
 					type: GamingCanvasInputGamepadControllerType.UNKNOWN,
 				};
-				state = GamingCanvasGamepadEngine.states[id];
+				state = GamingCanvasGamepadEngine.statesById[id];
 
 				const idLowerCase: string = id.toLowerCase();
 				if (idLowerCase.includes('xbox') || idLowerCase.includes('x-box') || idLowerCase.includes('x_box')) {
@@ -138,6 +166,7 @@ export class GamingCanvasGamepadEngine {
 			}
 			GamingCanvasGamepadEngine.axesByIdCustom[state.idCustom] = new Array(gamepad.axes.length).fill(0);
 			GamingCanvasGamepadEngine.buttonsByIdCustom[state.idCustom] = new Array(gamepad.buttons.length).fill(false);
+			GamingCanvasGamepadEngine.gamepadByIdCustom[state.idCustom] = gamepad;
 
 			/*
 			 * Queue
@@ -177,7 +206,7 @@ export class GamingCanvasGamepadEngine {
 
 		const axesByIdCustom: { [key: number]: number[] } = GamingCanvasGamepadEngine.axesByIdCustom,
 			buttonsByIdCustom: { [key: number]: boolean[] } = GamingCanvasGamepadEngine.buttonsByIdCustom,
-			states: { [key: string]: GamingCanvasInputGamepadState } = GamingCanvasGamepadEngine.states;
+			statesById: { [key: string]: GamingCanvasInputGamepadState } = GamingCanvasGamepadEngine.statesById;
 		const scanner = (timestampNow: number) => {
 			// Always request the next animation frame before processing the current one for best performance
 			GamingCanvasGamepadEngine.scannerRequest = requestAnimationFrame(scanner);
@@ -190,7 +219,7 @@ export class GamingCanvasGamepadEngine {
 				for (gamepad of gamepads) {
 					if (GamingCanvasGamepadEngine.quit !== true && gamepad !== null) {
 						id = gamepad.id;
-						state = states[id];
+						state = statesById[id];
 
 						// New input for processing!
 						if (gamepad.timestamp !== state.timestamp) {
@@ -265,11 +294,8 @@ export class GamingCanvasGamepadEngine {
 		GamingCanvasGamepadEngine.scannerRequest = requestAnimationFrame(scanner);
 	}
 
-	/**
-	 * @return key is gamepadId
-	 */
 	public static getGamepads(): { [key: string]: GamingCanvasInputGamepadState } {
-		return JSON.parse(JSON.stringify(GamingCanvasGamepadEngine.states));
+		return JSON.parse(JSON.stringify(GamingCanvasGamepadEngine.statesById));
 	}
 
 	public static shutdown(): void {
