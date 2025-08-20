@@ -355,7 +355,7 @@ const processorGamepad = (input: GamingCanvasInputGamepad, timestampNow: number)
                     }
                 }
             } else {
-                // Parse axes and buttons yourself
+                // Parse axes and buttons yourself, or throw an error about non-compatible controller types
             }
         } else {
             // Controller connected
@@ -485,6 +485,8 @@ if (GamingCanvas.isWakeLockSupported()) {
 
 ## Troubleshooting
 
+- Gamepad axes are initialized with non-resting (eg 0) values even though no button is pressed on the controller.
+    - This is a [Gamepad API](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API/Using_the_Gamepad_API) bug that is probably due to the browser's implementation of the API. Not much I can do here to correct that.
 - `GamingCanvas > GamingCanvasFIFOQueue: input overflow [limit=*]`
     - Make sure you are processing the inputs by removing them from the queue, or disable the inputs. See section `How To: Inputs`
 

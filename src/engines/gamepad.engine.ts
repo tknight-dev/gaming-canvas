@@ -22,7 +22,7 @@ export enum GamingCanvasInputGamepadControllerType {
 }
 
 /**
- * Convert raw axes array to something identified nicely. It's always faster to do this yourself and skip the additional closure being added to your stack.
+ * Convert raw axes array to something identified nicely
  *
  * @return null if the mapping failed (EG tried to map an unsupported controller type or a controller is registering as an xbox controller but isn't actually an xbox controller)
  */
