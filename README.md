@@ -83,7 +83,9 @@ Describes `.propriatary` object. Note: Repeating events (button held down, stick
 | idCustom  | number                                 | Simple number for id instead of string. As strings are just arrays of ASCII numbers which is slower to compare.       |
 | type      | GamingCanvasInputGamepadControllerType | Can detect: Xbox                                                                                                      |
 
-## Models: GamingCanvasInputGamepadControllerTypeXboxAxes (interface)
+## Models: GamingCanvasInputGamepadControllerTypeMappedAxes (interface)
+
+Use `GamingCanvasInputGamepadControllerTypeMapAxes(input)` to convert raw `input.propriatary.axes` to this interface
 
 | Key          | type   | range   | Description                                         |
 | ------------ | ------ | ------- | --------------------------------------------------- |
@@ -277,9 +279,9 @@ import {
     GamingCanvasInput,
     GamingCanvasInputGamepad,
     GamingCanvasInputGamepadControllerType,
-    GamingCanvasInputGamepadControllerTypeXboxAxes,
+    GamingCanvasInputGamepadControllerTypeMappedAxes,
     GamingCanvasInputGamepadControllerTypeXboxButtons,
-    GamingCanvasInputGamepadControllerTypeXboxToAxes,
+    GamingCanvasInputGamepadControllerTypeMapAxes,
     GamingCanvasInputKeyboard,
     GamingCanvasInputMouse,
     GamingCanvasInputPosition,
@@ -288,7 +290,7 @@ import {
     GamingCanvasInputType,
 } from '@tknight-dev/gaming-canvas';
 
-let gamepadAxes: GamingCanvasInputGamepadControllerTypeXboxAxes,
+let gamepadAxes: GamingCanvasInputGamepadControllerTypeMappedAxes,
     gamepadZoom: number = 0,
     queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvas.getInputQueue(),
     queueInput: GamingCanvasInput | undefined,
@@ -332,7 +334,7 @@ const processorGamepad = (input: GamingCanvasInputGamepad, timestampNow: number)
             // New inputs
             if (input.propriatary.type === GamingCanvasInputGamepadControllerType.XBOX) {
                 if (input.propriatary.axes) {
-                    gamepadAxes = GamingCanvasInputGamepadControllerTypeXboxToAxes(input);
+                    gamepadAxes = GamingCanvasInputGamepadControllerTypeMapAxes(input);
 
                     /*
                      * Holding the stick or trigger down to the max will only yield -1 or 1 for one input event (doesn't repeat). If you

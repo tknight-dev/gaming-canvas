@@ -21,7 +21,39 @@ export enum GamingCanvasInputGamepadControllerType {
 	XBOX,
 }
 
-export interface GamingCanvasInputGamepadControllerTypeXboxAxes {
+/**
+ * Convert raw axes array to something identified nicely. It's always faster to do this yourself and skip the additional closure being added to your stack.
+ *
+ * @return null if the mapping failed (EG tried to map an unsupported controller type or a controller is registering as an xbox controller but isn't actually an xbox controller)
+ */
+export const GamingCanvasInputGamepadControllerTypeMapAxes = (input: GamingCanvasInputGamepad): GamingCanvasInputGamepadControllerTypeMappedAxes | null => {
+	if (input.propriatary.type === GamingCanvasInputGamepadControllerType.XBOX) {
+		const axes: number[] = <number[]>input.propriatary.axes;
+
+		try {
+			return {
+				stickLeftX: axes[0],
+				stickLeftY: axes[1],
+				stickRightX: axes[4],
+				stickRightY: axes[5],
+				triggerLeft: axes[7],
+				triggerRight: axes[6],
+			};
+		} catch (error) {
+			console.error(
+				`GamingCanvas > GamingCanvasInputGamepadControllerTypeMapAxes: failed [id=${input.propriatary.id}, type=${GamingCanvasInputGamepadControllerType[input.type]}]`,
+			);
+			return null;
+		}
+	} else {
+		console.error(
+			`GamingCanvas > GamingCanvasInputGamepadControllerTypeMapAxes: unsupported [id=${input.propriatary.id}, type=${GamingCanvasInputGamepadControllerType[input.type]}]`,
+		);
+		return null;
+	}
+};
+
+export interface GamingCanvasInputGamepadControllerTypeMappedAxes {
 	stickLeftX: number;
 	stickLeftY: number;
 	stickRightX: number;
@@ -29,42 +61,6 @@ export interface GamingCanvasInputGamepadControllerTypeXboxAxes {
 	triggerLeft: number;
 	triggerRight: number;
 }
-
-/**
- * It's always faster
- */
-let xboxToAxesFailed: boolean;
-export const GamingCanvasInputGamepadControllerTypeXboxToAxes = (input: GamingCanvasInputGamepad): GamingCanvasInputGamepadControllerTypeXboxAxes => {
-	try {
-		const axes: number[] = <number[]>input.propriatary.axes;
-
-		return {
-			stickLeftX: axes[0],
-			stickLeftY: axes[1],
-			stickRightX: axes[4],
-			stickRightY: axes[5],
-			triggerLeft: axes[7],
-			triggerRight: axes[6],
-		};
-	} catch (error) {
-		// Throw a one time error to prevent overloading the console with 1000s of the same thing
-		if (!xboxToAxesFailed) {
-			xboxToAxesFailed = true;
-			console.error(
-				`GamingCanvas > GamingCanvasInputGamepadControllerTypeXboxToAxes: failed to convert input [type=${GamingCanvasInputGamepadControllerType[input.type]}]`,
-			);
-		}
-
-		return {
-			stickLeftX: 0,
-			stickLeftY: 0,
-			stickRightX: 0,
-			stickRightY: 0,
-			triggerLeft: 0,
-			triggerRight: 0,
-		};
-	}
-};
 
 export enum GamingCanvasInputGamepadControllerTypeXboxButtons {
 	A = 0,
@@ -105,7 +101,6 @@ export class GamingCanvasGamepadEngine {
 	private static states: { [key: string]: GamingCanvasInputGamepadState } = {};
 
 	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, deadbandStick: number, deadbandTrigger: number): void {
-		xboxToAxesFailed = false;
 		GamingCanvasGamepadEngine.active = true;
 		GamingCanvasGamepadEngine.queue = queue;
 		GamingCanvasGamepadEngine.quit = false;
