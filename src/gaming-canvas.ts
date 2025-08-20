@@ -35,7 +35,6 @@ export class GamingCanvasOptions {
 	orientation?: GamingCanvasOrientation;
 	resolutionByWidthPx?: null | number;
 	resolutionScaleToFit?: boolean;
-	scaleType?: GamingCanvasScaleType;
 }
 
 export enum GamingCanvasDirection {
@@ -59,12 +58,6 @@ export interface GamingCanvasReport {
 	scaler: number;
 }
 
-export enum GamingCanvasScaleType {
-	ANTIALIAS,
-	CRISP,
-	PIXELATED,
-}
-
 /**
  * Update the dimensions of the canvas element via the report. This will clear the canvas.
  */
@@ -86,6 +79,7 @@ export class GamingCanvas {
 	private static elementParent: HTMLElement;
 	private static elementRotator1: HTMLDivElement;
 	private static elementRotator2: HTMLDivElement;
+	private static elementWakeLock: HTMLMediaElement;
 	private static inputQueue: GamingCanvasFIFOQueue<GamingCanvasInput> = new GamingCanvasFIFOQueue<GamingCanvasInput>();
 	private static options: GamingCanvasOptions;
 	private static regExpScale: RegExp = /(?<=scale\()(.*?)(?=\))/;
@@ -786,7 +780,6 @@ export class GamingCanvas {
 		options.orientation = options.orientation === undefined ? GamingCanvasOrientation.AUTO : options.orientation;
 		options.resolutionByWidthPx = options.resolutionByWidthPx === undefined ? null : Number(options.resolutionByWidthPx) | 0 || null;
 		options.resolutionScaleToFit = options.resolutionScaleToFit === undefined ? true : options.resolutionScaleToFit === true;
-		options.scaleType = options.scaleType === undefined ? GamingCanvasScaleType.ANTIALIAS : options.scaleType;
 
 		return options;
 	}
@@ -800,19 +793,6 @@ export class GamingCanvas {
 
 		// Apply
 		GamingCanvas.setDebug(<boolean>GamingCanvas.options.debug);
-		for (const canvas of GamingCanvas.elementCanvases) {
-			switch (options.scaleType) {
-				case GamingCanvasScaleType.ANTIALIAS:
-					canvas.style.imageRendering = 'high-quality';
-					break;
-				case GamingCanvasScaleType.CRISP:
-					canvas.style.imageRendering = 'crisp-edges';
-					break;
-				case GamingCanvasScaleType.PIXELATED:
-					canvas.style.imageRendering = 'pixelated';
-					break;
-			}
-		}
 
 		// Done
 		GamingCanvas.stateDirection = <any>undefined;
