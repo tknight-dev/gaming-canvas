@@ -17,7 +17,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
     - Touch: supports as many individual inputs as your screen can support
 - **Layers**: Specify how many layers you want to optimize your game for. It can generate multiple canvases for background, foreground, overlay-1, etc, etc
     - Send each layer to a different [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to dedicate a thread to each canvas element (massive performance gains)
-- **Lightweight**: Compiled/minified library is less than **20kb**
+- **Lightweight**: Compiled/minified library is less than **25kb**
 - **Mobile**: Mobile devices are fully supported
 - **Orientation**: Auto rotate for maximum screen usage or lock it to a specific orientation (Portrait/Landscape)
     - Device level orientation locking isn't supported by all browsers
