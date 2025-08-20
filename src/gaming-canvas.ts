@@ -33,9 +33,9 @@ export class GamingCanvasOptions {
 	inputTouchEnable?: boolean;
 	inputLimitPerMs?: number;
 	orientation?: GamingCanvasOrientation;
-	resolutionByWidthPx?: null | number;
 	resolutionScaleToFit?: boolean;
-	scaleType?: GamingCanvasScaleType | GamingCanvasScaleType[];
+	resolutionScaleType?: GamingCanvasResolutionScaleType | GamingCanvasResolutionScaleType[];
+	resolutionWidthPx?: null | number;
 }
 
 export enum GamingCanvasDirection {
@@ -59,9 +59,8 @@ export interface GamingCanvasReport {
 	scaler: number;
 }
 
-export enum GamingCanvasScaleType {
+export enum GamingCanvasResolutionScaleType {
 	ANTIALIAS,
-	CRISP,
 	PIXELATED,
 }
 
@@ -132,21 +131,21 @@ export class GamingCanvas {
 			devicePixelRatioEff: number = 1 / window.devicePixelRatio,
 			deviceRotated: boolean = window.innerWidth < window.innerHeight,
 			heightContainer: number = (GamingCanvas.elementRotator2.offsetWidth / aspectRatio) | 0,
-			heightResoluion: number = (options.resolutionByWidthPx ? options.resolutionByWidthPx / aspectRatio : heightContainer) | 0,
+			heightResoluion: number = (options.resolutionWidthPx ? options.resolutionWidthPx / aspectRatio : heightContainer) | 0,
 			report: GamingCanvasReport = <GamingCanvasReport>{
 				orientation: GamingCanvas.stateOrientation,
 			},
 			scaler: number,
 			styleTransform: string = GamingCanvas.elementCanvasContainer.style.transform,
 			widthContainer: number = GamingCanvas.elementRotator2.offsetWidth | 0,
-			widthResolution: number = (options.resolutionByWidthPx || widthContainer) | 0;
+			widthResolution: number = (options.resolutionWidthPx || widthContainer) | 0;
 
 		if (!deviceRotated && GamingCanvas.elementRotator2.offsetHeight < heightContainer) {
 			heightContainer = GamingCanvas.elementRotator2.offsetHeight | 0;
-			heightResoluion = (options.resolutionByWidthPx ? options.resolutionByWidthPx / aspectRatio : heightContainer) | 0;
+			heightResoluion = (options.resolutionWidthPx ? options.resolutionWidthPx / aspectRatio : heightContainer) | 0;
 
 			widthContainer = (GamingCanvas.elementRotator2.offsetHeight * aspectRatio) | 0;
-			widthResolution = (options.resolutionByWidthPx || widthContainer) | 0;
+			widthResolution = (options.resolutionWidthPx || widthContainer) | 0;
 		}
 
 		// Determine dimensions
@@ -167,16 +166,16 @@ export class GamingCanvas {
 		GamingCanvas.elementCanvasContainer.style.width = devicePixelRatio * report.canvasWidth + 'px';
 
 		// Warning: Canvas cannot be reliably set from here (offscreenCanvas)
-		// if (options.resolutionByWidthPx === null) {
+		// if (options.resolutionWidthPx === null) {
 		// 	GamingCanvas.elementCanvas.height = height;
 		// 	GamingCanvas.elementCanvas.width = width;
 		// } else {
-		// 	GamingCanvas.elementCanvas.height = options.resolutionByWidthPx;
-		// 	GamingCanvas.elementCanvas.width = (options.resolutionByWidthPx / aspectRatio) | 0;
+		// 	GamingCanvas.elementCanvas.height = options.resolutionWidthPx;
+		// 	GamingCanvas.elementCanvas.width = (options.resolutionWidthPx / aspectRatio) | 0;
 		// }
 
 		// Use CSS tranform to scale fixed dimensions canvas to native size
-		if (options.resolutionScaleToFit === true && options.resolutionByWidthPx !== null) {
+		if (options.resolutionScaleToFit === true && options.resolutionWidthPx !== null) {
 			if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
 				scaler = Math.round(((devicePixelRatioEff * widthContainer) / widthResolution) * 1000) / 1000;
 			} else {
@@ -828,11 +827,15 @@ export class GamingCanvas {
 		options.inputTouchEnable = options.inputTouchEnable === undefined ? false : options.inputTouchEnable === true;
 		options.inputLimitPerMs = options.inputLimitPerMs === undefined ? 8 : Math.max(0, Number(options.inputLimitPerMs) || 8);
 		options.orientation = options.orientation === undefined ? GamingCanvasOrientation.AUTO : options.orientation;
-		options.resolutionByWidthPx = options.resolutionByWidthPx === undefined ? null : Number(options.resolutionByWidthPx) | 0 || null;
+		options.resolutionWidthPx = options.resolutionWidthPx === undefined ? null : Number(options.resolutionWidthPx) | 0 || null;
 		options.resolutionScaleToFit = options.resolutionScaleToFit === undefined ? true : options.resolutionScaleToFit === true;
-		options.scaleType = options.scaleType === undefined ? GamingCanvasScaleType.ANTIALIAS : options.scaleType;
+		options.resolutionScaleType = options.resolutionScaleType === undefined ? GamingCanvasResolutionScaleType.ANTIALIAS : options.resolutionScaleType;
 
 		return options;
+	}
+
+	public static getOptions(): GamingCanvasOptions {
+		return JSON.parse(JSON.stringify(GamingCanvas.options || {}));
 	}
 
 	public static setOptions(options: GamingCanvasOptions): void {
@@ -846,33 +849,32 @@ export class GamingCanvas {
 		GamingCanvas.setDebug(<boolean>GamingCanvas.options.debug);
 
 		// Apply: Scale Type
-		const applyScaleType = (canvas: HTMLCanvasElement, scaleType: GamingCanvasScaleType) => {
-			switch (scaleType) {
-				case GamingCanvasScaleType.ANTIALIAS:
-					canvas.style.imageRendering = 'high-quality';
+		const applyScaleType = (canvas: HTMLCanvasElement, resolutionScaleType: GamingCanvasResolutionScaleType) => {
+			switch (resolutionScaleType) {
+				case GamingCanvasResolutionScaleType.ANTIALIAS:
+					canvas.style.imageRendering = 'revert';
+					canvas.style.imageRendering = 'smooth';
 					break;
-				case GamingCanvasScaleType.CRISP:
-					canvas.style.imageRendering = 'crisp-edges';
-					break;
-				case GamingCanvasScaleType.PIXELATED:
+				case GamingCanvasResolutionScaleType.PIXELATED:
+					canvas.style.imageRendering = 'revert';
 					canvas.style.imageRendering = 'pixelated';
 					break;
 			}
 		};
 
-		if (Array.isArray(options.scaleType)) {
-			if (options.scaleType.length === GamingCanvas.elementCanvases.length) {
-				for (let i = 0; i < options.scaleType.length; i++) {
-					applyScaleType(GamingCanvas.elementCanvases[i], options.scaleType[i]);
+		if (Array.isArray(options.resolutionScaleType)) {
+			if (options.resolutionScaleType.length === GamingCanvas.elementCanvases.length) {
+				for (let i = 0; i < options.resolutionScaleType.length; i++) {
+					applyScaleType(GamingCanvas.elementCanvases[i], options.resolutionScaleType[i]);
 				}
 			} else {
 				console.error(
-					`GamingCanvas > setOptions: cannot apply scalesTypes of length ${options.scaleType.length} to canvases of length ${GamingCanvas.elementCanvases.length}`,
+					`GamingCanvas > setOptions: cannot apply scalesTypes of length ${options.resolutionScaleType.length} to canvases of length ${GamingCanvas.elementCanvases.length}`,
 				);
 			}
 		} else {
 			for (const canvas of GamingCanvas.elementCanvases) {
-				applyScaleType(canvas, <GamingCanvasScaleType>options.scaleType);
+				applyScaleType(canvas, <GamingCanvasResolutionScaleType>options.resolutionScaleType);
 			}
 		}
 
