@@ -77,6 +77,7 @@ export enum GamingCanvasInputGamepadControllerTypeXboxButtons {
 	DPAD_UP = 12,
 	HOME = 16,
 	MENU = 9,
+	SHARE = 17,
 	STICK_LEFT = 10,
 	STICK_RIGHT = 11,
 	VIEW = 8,
@@ -141,7 +142,7 @@ export class GamingCanvasGamepadEngine {
 				}
 			}
 			GamingCanvasGamepadEngine.axesByIdCustom[state.idCustom] = new Array(gamepad.axes.length).fill(0);
-			GamingCanvasGamepadEngine.buttonsByIdCustom[state.idCustom] = new Array(gamepad.buttons.length).fill(0);
+			GamingCanvasGamepadEngine.buttonsByIdCustom[state.idCustom] = new Array(gamepad.buttons.length).fill(false);
 
 			/*
 			 * Queue
@@ -212,7 +213,6 @@ export class GamingCanvasGamepadEngine {
 									if (i < 6) {
 										// Apply to sticks
 										if (value > -deadbandStick && value < deadbandStick) {
-											changedAxes = true;
 											value = 0;
 										} else {
 											value *= -1;
@@ -222,7 +222,6 @@ export class GamingCanvasGamepadEngine {
 										value = (value + 1) / 2; // convert range from -1-to-1 to 0-to-1
 
 										if (value < deadbandTrigger) {
-											changedAxes = true;
 											value = 0;
 										}
 									}
