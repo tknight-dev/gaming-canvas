@@ -21,16 +21,20 @@ export enum GamingCanvasInputGamepadControllerType {
 	XBOX,
 }
 
-export interface GamingCanvasInputGamepadControllerTypeXBoxAxes {
+export interface GamingCanvasInputGamepadControllerTypeXboxAxes {
 	stickLeftX: number;
 	stickLeftY: number;
 	stickRightX: number;
 	stickRightY: number;
-	triggerLeft: number; // -1 - 1, where 1 is completely pressed
-	triggerRight: number; // -1 - 1, where 1 is completely pressed
+	triggerLeft: number;
+	triggerRight: number;
 }
 
-export const GamingCanvasInputGamepadControllerTypeXBoxToAxes = (input: GamingCanvasInputGamepad): GamingCanvasInputGamepadControllerTypeXBoxAxes => {
+/**
+ * It's always faster
+ */
+let xboxToAxesFailed: boolean;
+export const GamingCanvasInputGamepadControllerTypeXboxToAxes = (input: GamingCanvasInputGamepad): GamingCanvasInputGamepadControllerTypeXboxAxes => {
 	try {
 		const axes: number[] = <number[]>input.propriatary.axes;
 
@@ -43,6 +47,14 @@ export const GamingCanvasInputGamepadControllerTypeXBoxToAxes = (input: GamingCa
 			triggerRight: axes[6],
 		};
 	} catch (error) {
+		// Throw a one time error to prevent overloading the console with 1000s of the same thing
+		if (!xboxToAxesFailed) {
+			xboxToAxesFailed = true;
+			console.error(
+				`GamingCanvas > GamingCanvasInputGamepadControllerTypeXboxToAxes: failed to convert input [type=${GamingCanvasInputGamepadControllerType[input.type]}]`,
+			);
+		}
+
 		return {
 			stickLeftX: 0,
 			stickLeftY: 0,
@@ -54,7 +66,7 @@ export const GamingCanvasInputGamepadControllerTypeXBoxToAxes = (input: GamingCa
 	}
 };
 
-export enum GamingCanvasInputGamepadControllerTypeXBoxButtons {
+export enum GamingCanvasInputGamepadControllerTypeXboxButtons {
 	A = 0,
 	B = 1,
 	BUMPER_LEFT = 4,
@@ -91,7 +103,8 @@ export class GamingCanvasGamepadEngine {
 	private static scannerRequest: number;
 	private static states: { [key: string]: GamingCanvasInputGamepadState } = {};
 
-	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, deadband: number): void {
+	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, deadbandStick: number, deadbandTrigger: number): void {
+		xboxToAxesFailed = false;
 		GamingCanvasGamepadEngine.active = true;
 		GamingCanvasGamepadEngine.queue = queue;
 		GamingCanvasGamepadEngine.quit = false;
@@ -127,8 +140,8 @@ export class GamingCanvasGamepadEngine {
 					state.type = GamingCanvasInputGamepadControllerType.XBOX;
 				}
 			}
-			GamingCanvasGamepadEngine.axesByIdCustom[state.idCustom] = new Array(gamepad.axes.length);
-			GamingCanvasGamepadEngine.buttonsByIdCustom[state.idCustom] = new Array(gamepad.buttons.length);
+			GamingCanvasGamepadEngine.axesByIdCustom[state.idCustom] = new Array(gamepad.axes.length).fill(0);
+			GamingCanvasGamepadEngine.buttonsByIdCustom[state.idCustom] = new Array(gamepad.buttons.length).fill(0);
 
 			/*
 			 * Queue
@@ -189,14 +202,30 @@ export class GamingCanvasGamepadEngine {
 							state.timestamp = gamepad.timestamp;
 
 							// Axis
-							changedAxes = false;
 							axes = axesByIdCustom[idCustom];
+							changedAxes = false;
 							for (i = 0; i < gamepad.axes.length; i++) {
 								value = gamepad.axes[i];
 
-								// Deadband
-								if (value > -deadband && value < deadband) {
-									value = 0;
+								// Xbox specific adjustments
+								if (state.type === GamingCanvasInputGamepadControllerType.XBOX) {
+									if (i < 6) {
+										// Apply to sticks
+										if (value > -deadbandStick && value < deadbandStick) {
+											changedAxes = true;
+											value = 0;
+										} else {
+											value *= -1;
+										}
+									} else {
+										// Apply to triggers
+										value = (value + 1) / 2; // convert range from -1-to-1 to 0-to-1
+
+										if (value < deadbandTrigger) {
+											changedAxes = true;
+											value = 0;
+										}
+									}
 								}
 
 								if (axes[i] !== value) {

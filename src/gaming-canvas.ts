@@ -25,7 +25,8 @@ export class GamingCanvasOptions {
 	elementInteractive?: HTMLElement;
 	elementInject?: HTMLElement[];
 	inputGamepadEnable?: boolean;
-	inputGamepadDeadband?: number;
+	inputGamepadDeadbandStick?: number;
+	inputGamepadDeadbandTrigger?: number;
 	inputKeyboardEnable?: boolean;
 	inputMouseEnable?: boolean;
 	inputMousePreventContextMenu?: boolean;
@@ -369,7 +370,12 @@ export class GamingCanvas {
 		GamingCanvas.setOptions(options);
 
 		// Engines
-		options.inputGamepadEnable && GamingCanvasGamepadEngine.initialize(GamingCanvas.inputQueue, <number>options.inputGamepadDeadband);
+		options.inputGamepadEnable &&
+			GamingCanvasGamepadEngine.initialize(
+				GamingCanvas.inputQueue,
+				<number>options.inputGamepadDeadbandStick,
+				<number>options.inputGamepadDeadbandTrigger,
+			);
 		options.inputKeyboardEnable && GamingCanvasKeyboardEngine.initialize(GamingCanvas.inputQueue);
 		options.inputMouseEnable &&
 			GamingCanvasMouseEngine.initialize(
@@ -762,7 +768,10 @@ export class GamingCanvas {
 		}
 
 		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? false : options.inputGamepadEnable === true;
-		options.inputGamepadDeadband = options.inputGamepadDeadband === undefined ? 0.03 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadband) || 0));
+		options.inputGamepadDeadbandStick =
+			options.inputGamepadDeadbandStick === undefined ? 0.08 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadbandStick) || 0));
+		options.inputGamepadDeadbandTrigger =
+			options.inputGamepadDeadbandTrigger === undefined ? 0.01 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadbandTrigger) || 0));
 		options.inputKeyboardEnable = options.inputKeyboardEnable === undefined ? false : options.inputKeyboardEnable === true;
 		options.inputMouseEnable = options.inputMouseEnable === undefined ? false : options.inputMouseEnable === true;
 		options.inputMousePreventContextMenu = options.inputMousePreventContextMenu === undefined ? false : options.inputMousePreventContextMenu === true;

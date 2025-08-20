@@ -1,9 +1,9 @@
 export {
 	GamingCanvasInputGamepad,
 	GamingCanvasInputGamepadControllerType,
-	GamingCanvasInputGamepadControllerTypeXBoxAxes,
-	GamingCanvasInputGamepadControllerTypeXBoxToAxes,
-	GamingCanvasInputGamepadControllerTypeXBoxButtons,
+	GamingCanvasInputGamepadControllerTypeXboxAxes,
+	GamingCanvasInputGamepadControllerTypeXboxToAxes,
+	GamingCanvasInputGamepadControllerTypeXboxButtons,
 	GamingCanvasInputGamepadState,
 } from './engines/gamepad.engine';
 export { GamingCanvasInputKeyboardAction, GamingCanvasInputKeyboard } from './engines/keyboard.engine';

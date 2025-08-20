@@ -72,7 +72,7 @@ canvasContext.fillText('Hello world', canvas.width / 3, canvas.height / 2);
 
 ## Models: GamingCanvasInputGamepad (interface)
 
-Describes `.propriatary` object
+Describes `.propriatary` object. Note: Repeating events (button held down, stick pushed in a direction) are filtered out
 
 | Key       | type                                   | Description                                                                                                           |
 | --------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
@@ -82,6 +82,17 @@ Describes `.propriatary` object
 | id        | string                                 | Id provided by the gamepad hardware. EG: '0000-0000-Xbox Wireless Controller'                                         |
 | idCustom  | number                                 | Simple number for id instead of string. As strings are just arrays of ASCII numbers which is slower to compare.       |
 | type      | GamingCanvasInputGamepadControllerType | Can detect: Xbox                                                                                                      |
+
+## Models: GamingCanvasInputGamepadControllerTypeXboxAxes (interface)
+
+| Key          | type   | range   | Description                                         |
+| ------------ | ------ | ------- | --------------------------------------------------- |
+| stickLeftX   | number | -1 to 1 | Resting: 0, Left: -1, Right: 1                      |
+| stickLeftY   | number | -1 to 1 | Resting: 0, Away from player: 1, Towards player: -1 |
+| stickRightX  | number | -1 to 1 | Resting: 0, Left: -1, Right: 1                      |
+| stickRightY  | number | -1 to 1 | Resting: 0, Away from player: 1, Towards player: -1 |
+| triggerLeft  | number | 0 to 1  | Resting: 0, Pressed Down: 1                         |
+| triggerRight | number | 0 to 1  | Resting: 0, Pressed Down: 1                         |
 
 ## Models: GamingCanvasInputKeyboard (interface)
 
@@ -94,7 +105,7 @@ Describes `.propriatary` object
 
 ## Models: GamingCanvasInputKeyboardAction (interface)
 
-See: [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent), Note: Keyboard repeat events are filtered out
+See: [KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent). Note: Repeating events (button held down) are filtered out
 
 | Key      | Description                                                                                  |
 | -------- | -------------------------------------------------------------------------------------------- |
@@ -167,7 +178,8 @@ Describes `.propriatary` object
 | elementInject?                      | HTMLElement[]           | []       | Elements are injected into the canvas container element (id=`gaming-canvas-container`). Use CSS position `absolute` to fit your overlay relative to the canvas's dynamic position and size                                                                                                                                                                                                                                                                                                                                                                           |
 | elementInteractive?                 | HTMLElement             | canvas   | The input listeners are bound to this element, but `GamingCanvasInputPosition` is always relative to the canvas. This element should be equal to or larger then the canvas in all dimensions. EG the canvas is zIndex=2, an overlay(s) is zIndex=3, so the interactive elment should be a super overlay at zIndex=4 as the overlay(s) at zIndex=3 would intercept input liseners at zIndex=2 unless `pointer-events` and `touch-events` are set to `none` on the CSS for the overlay(s). Note: the canvas with the highest zIndex is the default elementInteractive. |
 | inputGamepadEnable                  | boolean                 | false    | Enables the serialization of Gamepad based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| inputGamepadDeadband?               | number                  | 0.03     | Any input in the deadband is set to 0. IE if x > -deadband and x < deadband then x is 0 where x is any number between -1 and 1.                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| inputGamepadDeadbandStick?          | number                  | 0.08     | Stick inputs in the deadband are set to 0. IE if x > -deadband and x < deadband then x is 0 where x is any number between -1 and 1. Note: Deadband is not applied to non-xbox identified controllers                                                                                                                                                                                                                                                                                                                                                                 |
+| inputGamepadDeadbandTrigger?        | number                  | 0.01     | Trigger inputs in the deadband are set to 0. IE if x < deadband then x is 0 where x is any number between -1 and 1. Note: Deadband is not applied to non-xbox identified controllers                                                                                                                                                                                                                                                                                                                                                                                 |
 | inputKeyboardEnable?                | boolean                 | false    | Enables the serialization of Keyboard based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | inputMouseEnable?                   | boolean                 | false    | Enables the serialization of Mouse based inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | inputMousePreventContextMenu?       | boolean                 | false    | Prevents the right-click context menu from appearing inputs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -265,9 +277,9 @@ import {
     GamingCanvasInput,
     GamingCanvasInputGamepad,
     GamingCanvasInputGamepadControllerType,
-    GamingCanvasInputGamepadControllerTypeXBoxAxes,
-    GamingCanvasInputGamepadControllerTypeXBoxButtons,
-    GamingCanvasInputGamepadControllerTypeXBoxToAxes,
+    GamingCanvasInputGamepadControllerTypeXboxAxes,
+    GamingCanvasInputGamepadControllerTypeXboxButtons,
+    GamingCanvasInputGamepadControllerTypeXboxToAxes,
     GamingCanvasInputKeyboard,
     GamingCanvasInputMouse,
     GamingCanvasInputPosition,
@@ -276,7 +288,8 @@ import {
     GamingCanvasInputType,
 } from '@tknight-dev/gaming-canvas';
 
-let inputLimitPerMs: number = GamingCanvas.getInputLimitPerMs(),
+let gamepadAxes: GamingCanvasInputGamepadControllerTypeXboxAxes,
+    gamepadZoom: number = 0,
     queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvas.getInputQueue(),
     queueInput: GamingCanvasInput | undefined,
     queueQuit: boolean = false,
@@ -291,6 +304,9 @@ const processor = (timestampNow: number) => {
         GamingCanvas.relativizeInput(queueInput);
 
         switch (queueInput.type) {
+            case GamingCanvasInputType.GAMEPAD:
+                processorGamepad(queueInput, timestampNow);
+                break;
             case GamingCanvasInputType.KEYBOARD:
                 processorKeyboard(queueInput, timestampNow);
                 break;
@@ -304,6 +320,9 @@ const processor = (timestampNow: number) => {
     }
 };
 
+setInterval(() => {
+    gamepadZoom !== 0 && myGameLogic.applyZoom(gamepadZoom);
+}, 40); // How often you want non-zero gamepad values to repeat their effects in your game
 const processorGamepad = (input: GamingCanvasInputGamepad, timestampNow: number) => {
     console.log('Input-Gamepad', input, timestampNow);
 
@@ -313,15 +332,22 @@ const processorGamepad = (input: GamingCanvasInputGamepad, timestampNow: number)
             // New inputs
             if (input.propriatary.type === GamingCanvasInputGamepadControllerType.XBOX) {
                 if (input.propriatary.axes) {
-                    let axes: GamingCanvasInputGamepadControllerTypeXBoxAxes = GamingCanvasInputGamepadControllerTypeXBoxToAxes();
-                    // axes.stickRightY controllers player up or down motion
+                    gamepadAxes = GamingCanvasInputGamepadControllerTypeXboxToAxes(input);
+
+                    /*
+                     * Holding the stick or trigger down to the max will only yield -1 or 1 for one input event (doesn't repeat). If you
+                     *  want the input to continue applying that value then you'll need to do something like this. See `setInterval()` above
+                     */
+                    gamepadZoom = Math.max(-1, Math.min(1, gamepadAxes.stickRightY + gamepadAxes.triggerRight - gamepadAxes.triggerLeft));
                 }
 
                 if (input.propriatary.buttons) {
-                    for (let [buttonNumber, pressed] of input.propriatary.buttons) {
-                        switch (buttonNumber) {
-                            case GamingCanvasInputGamepadControllerTypeXBoxButtons.DPAD_UP:
-                                // Move player up
+                    for (const [buttonNumber, pressed] of Object.entries(input.propriatary.buttons)) {
+                        switch (Number(buttonNumber)) {
+                            case GamingCanvasInputGamepadControllerTypeXboxButtons.DPAD_UP:
+                                if (pressed) {
+                                    // Move player up
+                                }
                                 break;
                         }
                     }
