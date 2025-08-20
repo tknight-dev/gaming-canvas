@@ -25,7 +25,8 @@ export class GamingCanvasOptions {
 	elementInteractive?: HTMLElement;
 	elementInject?: HTMLElement[];
 	inputGamepadEnable?: boolean;
-	inputGamepadDeadband?: number;
+	inputGamepadDeadbandStick?: number;
+	inputGamepadDeadbandTrigger?: number;
 	inputKeyboardEnable?: boolean;
 	inputMouseEnable?: boolean;
 	inputMousePreventContextMenu?: boolean;
@@ -78,6 +79,7 @@ export class GamingCanvas {
 	private static elementParent: HTMLElement;
 	private static elementRotator1: HTMLDivElement;
 	private static elementRotator2: HTMLDivElement;
+	private static elementWakeLock: HTMLMediaElement;
 	private static inputQueue: GamingCanvasFIFOQueue<GamingCanvasInput> = new GamingCanvasFIFOQueue<GamingCanvasInput>();
 	private static options: GamingCanvasOptions;
 	private static regExpScale: RegExp = /(?<=scale\()(.*?)(?=\))/;
@@ -88,6 +90,8 @@ export class GamingCanvas {
 	private static stateReport: GamingCanvasReport;
 	private static stateScaler: number;
 	private static stateVisibility: boolean;
+	private static stateWakeLock: WakeLockSentinel | undefined;
+	private static stateWakeLockState: boolean;
 
 	/**
 	 * Rotate, Scale, and callbackReport() as required
@@ -255,11 +259,28 @@ export class GamingCanvas {
 			});
 
 			GamingCanvas.stateVisibility = document.visibilityState !== 'hidden';
-			addEventListener('visibilitychange', () => {
+			addEventListener('visibilitychange', async () => {
 				const state: boolean = document.visibilityState !== 'hidden';
 
 				if (GamingCanvas.stateVisibility !== state) {
 					GamingCanvas.stateVisibility = state;
+
+					// Automatically suspend wakeLock when not visible
+					if (state && GamingCanvas.stateWakeLockState && !GamingCanvas.stateWakeLock) {
+						// Re-enable after becoming visible again
+						try {
+							GamingCanvas.stateWakeLock = await navigator.wakeLock.request('screen');
+						} catch (error) {}
+
+						if (!GamingCanvas.stateWakeLock) {
+							console.error('GamingCanvas: failed to wake lock after becoming visible');
+							GamingCanvas.stateWakeLockState = false;
+						}
+					} else if (!state && GamingCanvas.stateWakeLockState && GamingCanvas.stateWakeLock) {
+						// Disable while not visible
+						GamingCanvas.stateWakeLock.release();
+						GamingCanvas.stateWakeLock = undefined;
+					}
 
 					GamingCanvas.callbackVisibility && GamingCanvas.callbackVisibility(state);
 				}
@@ -326,12 +347,12 @@ export class GamingCanvas {
 		while (count--) {
 			canvas = document.createElement('canvas');
 			canvas.height = 0;
-			canvas.id = `gaming-canvas-canvas${count}`;
+			canvas.id = `gaming-canvas-canvas${count + 1}`;
 			canvas.width = 0;
 			canvas.style.left = '0';
 			canvas.style.position = 'absolute';
 			canvas.style.top = '0';
-			canvas.style.zIndex = String(count + 1);
+			canvas.style.zIndex = String((count + 1) * 10);
 
 			GamingCanvas.elementCanvases.push(canvas);
 			GamingCanvas.elementCanvasContainer.appendChild(canvas);
@@ -349,7 +370,12 @@ export class GamingCanvas {
 		GamingCanvas.setOptions(options);
 
 		// Engines
-		options.inputGamepadEnable && GamingCanvasGamepadEngine.initialize(GamingCanvas.inputQueue, <number>options.inputGamepadDeadband);
+		options.inputGamepadEnable &&
+			GamingCanvasGamepadEngine.initialize(
+				GamingCanvas.inputQueue,
+				<number>options.inputGamepadDeadbandStick,
+				<number>options.inputGamepadDeadbandTrigger,
+			);
 		options.inputKeyboardEnable && GamingCanvasKeyboardEngine.initialize(GamingCanvas.inputQueue);
 		options.inputMouseEnable &&
 			GamingCanvasMouseEngine.initialize(
@@ -542,6 +568,39 @@ export class GamingCanvas {
 	}
 
 	/**
+	 * @return is false on failure
+	 */
+	public static async wakeLock(enable: boolean): Promise<boolean> {
+		if (enable === GamingCanvas.stateWakeLockState) {
+			// Already in that state
+			return true;
+		}
+
+		if ('wakeLock' in navigator) {
+			if (enable) {
+				try {
+					GamingCanvas.stateWakeLock = await navigator.wakeLock.request('screen');
+				} catch (error) {}
+
+				if (GamingCanvas.stateWakeLock) {
+					GamingCanvas.stateWakeLockState = true;
+				} else {
+					return false;
+				}
+			} else {
+				GamingCanvas.stateWakeLock && GamingCanvas.stateWakeLock.release();
+				GamingCanvas.stateWakeLock = undefined;
+				GamingCanvas.stateWakeLockState = false;
+			}
+
+			return true;
+		} else {
+			console.error("GamingCanvas > wakeLock: 'Wake Lock API' not supported by this browser");
+			return false;
+		}
+	}
+
+	/**
 	 * @return is undefined if not initialized yet
 	 */
 	public static getCanvases(): HTMLCanvasElement[] {
@@ -708,12 +767,15 @@ export class GamingCanvas {
 			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvases[0] : options.elementInteractive;
 		}
 
-		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? true : options.inputGamepadEnable === true;
-		options.inputGamepadDeadband = options.inputGamepadDeadband === undefined ? 0.03 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadband) || 0));
-		options.inputKeyboardEnable = options.inputKeyboardEnable === undefined ? true : options.inputKeyboardEnable === true;
-		options.inputMouseEnable = options.inputMouseEnable === undefined ? true : options.inputMouseEnable === true;
+		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? false : options.inputGamepadEnable === true;
+		options.inputGamepadDeadbandStick =
+			options.inputGamepadDeadbandStick === undefined ? 0.08 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadbandStick) || 0));
+		options.inputGamepadDeadbandTrigger =
+			options.inputGamepadDeadbandTrigger === undefined ? 0.01 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadbandTrigger) || 0));
+		options.inputKeyboardEnable = options.inputKeyboardEnable === undefined ? false : options.inputKeyboardEnable === true;
+		options.inputMouseEnable = options.inputMouseEnable === undefined ? false : options.inputMouseEnable === true;
 		options.inputMousePreventContextMenu = options.inputMousePreventContextMenu === undefined ? false : options.inputMousePreventContextMenu === true;
-		options.inputTouchEnable = options.inputTouchEnable === undefined ? true : options.inputTouchEnable === true;
+		options.inputTouchEnable = options.inputTouchEnable === undefined ? false : options.inputTouchEnable === true;
 		options.inputLimitPerMs = options.inputLimitPerMs === undefined ? 8 : Math.max(0, Number(options.inputLimitPerMs) || 8);
 		options.orientation = options.orientation === undefined ? GamingCanvasOrientation.AUTO : options.orientation;
 		options.resolutionByWidthPx = options.resolutionByWidthPx === undefined ? null : Number(options.resolutionByWidthPx) | 0 || null;
@@ -764,5 +826,9 @@ export class GamingCanvas {
 			return true;
 		}
 		return GamingCanvas.stateVisibility;
+	}
+
+	public static isWakeLockSupported(): boolean {
+		return 'wakeLock' in navigator;
 	}
 }
