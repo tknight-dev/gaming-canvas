@@ -33,7 +33,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 
 ## Documentation
 
-You can find the documentation here [documentation](https://app.tknight.dev/docs/gaming-canvas/)
+Link: [Documentation](https://app.tknight.dev/docs/gaming-canvas/)
 
 - [Quick Start](https://app.tknight.dev/docs/gaming-canvas/)
 - [Tips & Tricks](https://app.tknight.dev/docs/gaming-canvas/category/tips--tricks)
