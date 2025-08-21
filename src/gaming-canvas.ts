@@ -94,120 +94,136 @@ export class GamingCanvas {
 	private static vibrateInterval: ReturnType<typeof setInterval>;
 
 	/**
+	 * Function forwarding: Reduce enclosures (extra functions in your stack) and temporary variabes (reduce garbage collector demand)
+	 */
+	static {
+		// GamingCanvas.getGamepads = GamingCanvasGamepadEngine.getGamepads;
+
+		GamingCanvas.go__funcForward();
+	}
+
+	/**
 	 * Rotate, Scale, and callbackReport() as required
 	 */
 	private static go(_?: any, skipCallback?: boolean): GamingCanvasReport {
-		let changed: boolean;
+		return <any>undefined;
+	}
+	private static go__funcForward(): void {
+		let changed: boolean, initial: boolean, options: GamingCanvasOptions;
 
-		const initial: boolean = GamingCanvas.stateOrientation === undefined,
-			options: GamingCanvasOptions = GamingCanvas.options;
+		const go = (_?: any, skipCallback?: boolean) => {
+			changed = false;
+			initial = GamingCanvas.stateOrientation === undefined;
+			options = GamingCanvas.options;
 
-		/**
-		 * Orientation
-		 */
-		if (options.orientation === GamingCanvasOrientation.LANDSCAPE) {
-			changed = GamingCanvas.oLandscape();
-		} else if (options.orientation === GamingCanvasOrientation.PORTRAIT) {
-			changed = GamingCanvas.oPortrait();
-		} else {
-			// Auto
-			if (window.innerWidth < window.innerHeight) {
+			/**
+			 * Orientation
+			 */
+			if (options.orientation === GamingCanvasOrientation.LANDSCAPE) {
+				changed = GamingCanvas.oLandscape();
+			} else if (options.orientation === GamingCanvasOrientation.PORTRAIT) {
 				changed = GamingCanvas.oPortrait();
 			} else {
-				changed = GamingCanvas.oLandscape();
-			}
-		}
-
-		/**
-		 * Size and Scale
-		 */
-		let aspectRatio: number = <number>options.aspectRatio,
-			devicePixelRatio: number = window.devicePixelRatio,
-			devicePixelRatioEff: number = 1 / window.devicePixelRatio,
-			heightContainer: number = (GamingCanvas.elementRotator2.clientWidth / aspectRatio) | 0,
-			heightResoluion: number = (options.resolutionWidthPx ? options.resolutionWidthPx / aspectRatio : heightContainer) | 0,
-			report: GamingCanvasReport = <GamingCanvasReport>{
-				orientation: GamingCanvas.stateOrientation,
-			},
-			scaler: number,
-			styleTransform: string = GamingCanvas.elementContainerCanvas.style.transform,
-			widthContainer: number = GamingCanvas.elementRotator2.clientWidth | 0,
-			widthResolution: number = (options.resolutionWidthPx || widthContainer) | 0;
-
-		// Offset by magic factor, idk
-		if (options.resolutionWidthPx === null && GamingCanvas.stateOrientation !== GamingCanvasOrientation.LANDSCAPE) {
-			heightResoluion = (heightResoluion * 1.78) | 0;
-			widthResolution = (widthResolution * 1.78) | 0;
-		}
-
-		// Determine dimensions
-		report.devicePixelRatio = devicePixelRatio;
-		report.canvasHeight = heightResoluion;
-		report.canvasWidth = widthResolution;
-
-		// Determine scaler
-		if (options.resolutionScaleToFit === true && options.resolutionWidthPx !== null) {
-			if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
-				scaler = (devicePixelRatioEff * widthContainer) / widthResolution;
-			} else {
-				scaler = widthContainer / devicePixelRatio / heightResoluion;
-			}
-		} else {
-			scaler = devicePixelRatioEff;
-		}
-		report.canvasHeightScaled = (report.canvasHeight * scaler) | 0;
-		report.canvasWidthScaled = (report.canvasWidth * scaler) | 0;
-		report.scaler = scaler;
-		GamingCanvas.elementContainerCanvas.style.transform = styleTransform.replace(
-			`scale(${(GamingCanvas.regExpScale.exec(styleTransform) || [''])[0]})`,
-			'scale(' + scaler + ')',
-		);
-
-		// Set the container canvas size
-		GamingCanvas.elementContainerCanvas.style.height = ((devicePixelRatio * report.canvasHeight) | 0) + 'px';
-		GamingCanvas.elementContainerCanvas.style.width = ((devicePixelRatio * report.canvasWidth) | 0) + 'px';
-
-		// Set the container overlay size
-		if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
-			GamingCanvas.elementContainerOverlay.style.height = GamingCanvas.elementContainerCanvas.style.height;
-			GamingCanvas.elementContainerOverlay.style.width = GamingCanvas.elementContainerCanvas.style.width;
-		} else {
-			GamingCanvas.elementContainerOverlay.style.height = GamingCanvas.elementContainerCanvas.style.width;
-			GamingCanvas.elementContainerOverlay.style.width = GamingCanvas.elementContainerCanvas.style.height;
-		}
-
-		// Callback
-		GamingCanvas.stateReport = report;
-		if (!skipCallback && GamingCanvas.callbackReport) {
-			if (changed || initial || report.canvasHeight !== GamingCanvas.stateHeight) {
-				GamingCanvas.stateHeight = report.canvasHeight;
-
-				if (GamingCanvas.options.callbackReportLimitPerMs === 0) {
-					GamingCanvas.callbackReport(report);
+				// Auto
+				if (window.innerWidth < window.innerHeight) {
+					changed = GamingCanvas.oPortrait();
 				} else {
-					let now: number = performance.now(),
-						diff: number = now - GamingCanvas.callbackReportLastInMs;
+					changed = GamingCanvas.oLandscape();
+				}
+			}
 
-					if (diff > <number>GamingCanvas.options.callbackReportLimitPerMs) {
-						clearTimeout(GamingCanvas.callbackReportTimeout);
-						GamingCanvas.callbackReportLastInMs = now;
+			/**
+			 * Size and Scale
+			 */
+			let aspectRatio: number = <number>options.aspectRatio,
+				devicePixelRatio: number = window.devicePixelRatio,
+				devicePixelRatioEff: number = 1 / window.devicePixelRatio,
+				heightContainer: number = (GamingCanvas.elementRotator2.clientWidth / aspectRatio) | 0,
+				heightResoluion: number = (options.resolutionWidthPx ? options.resolutionWidthPx / aspectRatio : heightContainer) | 0,
+				report: GamingCanvasReport = <GamingCanvasReport>{
+					orientation: GamingCanvas.stateOrientation,
+				},
+				scaler: number,
+				styleTransform: string = GamingCanvas.elementContainerCanvas.style.transform,
+				widthContainer: number = GamingCanvas.elementRotator2.clientWidth | 0,
+				widthResolution: number = (options.resolutionWidthPx || widthContainer) | 0;
+
+			// Offset by magic factor, idk
+			if (options.resolutionWidthPx === null && GamingCanvas.stateOrientation !== GamingCanvasOrientation.LANDSCAPE) {
+				heightResoluion = (heightResoluion * 1.78) | 0;
+				widthResolution = (widthResolution * 1.78) | 0;
+			}
+
+			// Determine dimensions
+			report.devicePixelRatio = devicePixelRatio;
+			report.canvasHeight = heightResoluion;
+			report.canvasWidth = widthResolution;
+
+			// Determine scaler
+			if (options.resolutionScaleToFit === true && options.resolutionWidthPx !== null) {
+				if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
+					scaler = (devicePixelRatioEff * widthContainer) / widthResolution;
+				} else {
+					scaler = widthContainer / devicePixelRatio / heightResoluion;
+				}
+			} else {
+				scaler = devicePixelRatioEff;
+			}
+			report.canvasHeightScaled = (report.canvasHeight * scaler) | 0;
+			report.canvasWidthScaled = (report.canvasWidth * scaler) | 0;
+			report.scaler = scaler;
+			GamingCanvas.elementContainerCanvas.style.transform = styleTransform.replace(
+				`scale(${(GamingCanvas.regExpScale.exec(styleTransform) || [''])[0]})`,
+				'scale(' + scaler + ')',
+			);
+
+			// Set the container canvas size
+			GamingCanvas.elementContainerCanvas.style.height = ((devicePixelRatio * report.canvasHeight) | 0) + 'px';
+			GamingCanvas.elementContainerCanvas.style.width = ((devicePixelRatio * report.canvasWidth) | 0) + 'px';
+
+			// Set the container overlay size
+			if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
+				GamingCanvas.elementContainerOverlay.style.height = GamingCanvas.elementContainerCanvas.style.height;
+				GamingCanvas.elementContainerOverlay.style.width = GamingCanvas.elementContainerCanvas.style.width;
+			} else {
+				GamingCanvas.elementContainerOverlay.style.height = GamingCanvas.elementContainerCanvas.style.width;
+				GamingCanvas.elementContainerOverlay.style.width = GamingCanvas.elementContainerCanvas.style.height;
+			}
+
+			// Callback
+			GamingCanvas.stateReport = report;
+			if (!skipCallback && GamingCanvas.callbackReport) {
+				if (changed || initial || report.canvasHeight !== GamingCanvas.stateHeight) {
+					GamingCanvas.stateHeight = report.canvasHeight;
+
+					if (GamingCanvas.options.callbackReportLimitPerMs === 0) {
 						GamingCanvas.callbackReport(report);
 					} else {
-						GamingCanvas.stateReport = report;
-						clearTimeout(GamingCanvas.callbackReportTimeout);
-						GamingCanvas.callbackReportTimeout = setTimeout(
-							() => {
-								GamingCanvas.callbackReportLastInMs = performance.now();
-								GamingCanvas.callbackReport(GamingCanvas.stateReport);
-							},
-							<number>GamingCanvas.options.callbackReportLimitPerMs - diff,
-						);
+						let now: number = performance.now(),
+							diff: number = now - GamingCanvas.callbackReportLastInMs;
+
+						if (diff > <number>GamingCanvas.options.callbackReportLimitPerMs) {
+							clearTimeout(GamingCanvas.callbackReportTimeout);
+							GamingCanvas.callbackReportLastInMs = now;
+							GamingCanvas.callbackReport(report);
+						} else {
+							GamingCanvas.stateReport = report;
+							clearTimeout(GamingCanvas.callbackReportTimeout);
+							GamingCanvas.callbackReportTimeout = setTimeout(
+								() => {
+									GamingCanvas.callbackReportLastInMs = performance.now();
+									GamingCanvas.callbackReport(GamingCanvas.stateReport);
+								},
+								<number>GamingCanvas.options.callbackReportLimitPerMs - diff,
+							);
+						}
 					}
 				}
 			}
-		}
 
-		return report;
+			return report;
+		};
+		GamingCanvas.go = go;
 	}
 
 	/**
@@ -832,16 +848,6 @@ export class GamingCanvas {
 
 	public static isWakeLockSupported(): boolean {
 		return 'wakeLock' in navigator;
-	}
-
-	/**
-	 * Function forwarding
-	 *
-	 * This prevents double enclosures on the function call while preserving the typing
-	 */
-
-	static {
-		GamingCanvas.getGamepads = GamingCanvasGamepadEngine.getGamepads;
 	}
 
 	/**
