@@ -25,31 +25,44 @@ export class GamingCanvasTouchEngine {
 	private static timeout: ReturnType<typeof setTimeout>;
 	private static timestamp: number = -2025;
 
-	private static calc(event: TouchEvent): GamingCanvasInputPosition[] {
-		let domRect: DOMRect = GamingCanvasTouchEngine.el.getBoundingClientRect(),
-			touch: Touch,
-			touchLength: number = event.touches.length,
-			touchList: TouchList = event.touches,
-			touchPositions: GamingCanvasInputPosition[] = [],
-			xEff: number,
-			yEff: number;
+	/**
+	 * Function forwarding: Reduce garbage collector demand be reducing temporary variables (best performance for repeating functions
+	 */
+	static {
+		GamingCanvasTouchEngine.calc__funcForward();
+	}
 
-		for (let i = 0; i < touchLength; i++) {
-			touch = touchList[i];
+	private static calc(_: TouchEvent): GamingCanvasInputPosition[] {
+		return <GamingCanvasInputPosition[]>(<unknown>undefined);
+	}
 
-			xEff = Math.max(0, Math.min(domRect.width, touch.clientX - domRect.x)) | 0;
-			yEff = Math.max(0, Math.min(domRect.height, touch.clientY - domRect.y)) | 0;
+	private static calc__funcForward(): void {
+		let domRect: DOMRect, touch: Touch, touchLength: number, touchList: TouchList, touchPositions: GamingCanvasInputPosition[], xEff: number, yEff: number;
 
-			touchPositions.push({
-				out: xEff === 0 || yEff === 0 || xEff === domRect.width || yEff === domRect.height,
-				x: xEff,
-				xRelative: xEff / domRect.width,
-				y: yEff,
-				yRelative: yEff / domRect.height,
-			});
-		}
+		const calc = (event: TouchEvent) => {
+			domRect = GamingCanvasTouchEngine.el.getBoundingClientRect();
+			touchLength = event.touches.length;
+			touchList = event.touches;
+			touchPositions = [];
 
-		return touchPositions;
+			for (let i = 0; i < touchLength; i++) {
+				touch = touchList[i];
+
+				xEff = Math.max(0, Math.min(domRect.width, touch.clientX - domRect.x)) | 0;
+				yEff = Math.max(0, Math.min(domRect.height, touch.clientY - domRect.y)) | 0;
+
+				touchPositions.push({
+					out: xEff === 0 || yEff === 0 || xEff === domRect.width || yEff === domRect.height,
+					x: xEff,
+					xRelative: xEff / domRect.width,
+					y: yEff,
+					yRelative: yEff / domRect.height,
+				});
+			}
+
+			return touchPositions;
+		};
+		GamingCanvasTouchEngine.calc = calc;
 	}
 
 	public static initialize(
@@ -98,15 +111,15 @@ export class GamingCanvasTouchEngine {
 			return false;
 		});
 
+		let touchmoveDiff: number, touchmoveNow: number;
 		elInteractive.addEventListener('touchmove', (event: TouchEvent) => {
 			event.preventDefault();
 			event.stopPropagation();
 
 			if (GamingCanvasTouchEngine.active) {
-				const now: number = performance.now(),
-					diff: number = now - GamingCanvasTouchEngine.timestamp;
+				((touchmoveNow = performance.now()), (touchmoveDiff = touchmoveNow - GamingCanvasTouchEngine.timestamp));
 
-				if (diff > inputLimitPerMs) {
+				if (touchmoveDiff > inputLimitPerMs) {
 					clearTimeout(GamingCanvasTouchEngine.timeout);
 					GamingCanvasTouchEngine.queue.push({
 						propriatary: {
@@ -116,7 +129,7 @@ export class GamingCanvasTouchEngine {
 						type: GamingCanvasInputType.TOUCH,
 					});
 
-					GamingCanvasTouchEngine.timestamp = now;
+					GamingCanvasTouchEngine.timestamp = touchmoveNow;
 				} else {
 					clearTimeout(GamingCanvasTouchEngine.timeout);
 					GamingCanvasTouchEngine.timeout = setTimeout(() => {
@@ -127,7 +140,7 @@ export class GamingCanvasTouchEngine {
 							},
 							type: GamingCanvasInputType.TOUCH,
 						});
-					}, diff - inputLimitPerMs);
+					}, touchmoveDiff - inputLimitPerMs);
 				}
 			}
 

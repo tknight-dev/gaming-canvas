@@ -1,5 +1,5 @@
 import { GamingCanvasFIFOQueue } from './fifo-queue';
-import { GamingCanvasInput, GamingCanvasInputPositionCorrector, GamingCanvasInputPosition, GamingCanvasInputType } from './input';
+import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from './input';
 import { GamingCanvasGamepadEngine, GamingCanvasInputGamepadState } from './engines/gamepad.engine';
 import { GamingCanvasKeyboardEngine } from './engines/keyboard.engine';
 import { GamingCanvasMouseEngine } from './engines/mouse.engine';
@@ -20,10 +20,9 @@ export class GamingCanvasOptions {
 	callbackReportLimitPerMs?: number;
 	canvasCount?: number;
 	debug?: boolean;
-	direction?: GamingCanvasDirection;
-	directionPreventLandscapeInversion?: boolean;
 	elementInteractive?: HTMLElement;
-	elementInject?: HTMLElement[];
+	elementInjectAsCanvas?: HTMLElement[];
+	elementInjectAsOverlay?: HTMLElement[];
 	inputGamepadEnable?: boolean;
 	inputGamepadDeadbandStick?: number;
 	inputGamepadDeadbandTrigger?: number;
@@ -33,14 +32,10 @@ export class GamingCanvasOptions {
 	inputTouchEnable?: boolean;
 	inputLimitPerMs?: number;
 	orientation?: GamingCanvasOrientation;
+	orientationLeftOnPortait?: boolean;
 	resolutionScaleToFit?: boolean;
-	resolutionScaleType?: GamingCanvasResolutionScaleType | GamingCanvasResolutionScaleType[];
+	resolutionScaleType?: GamingCanvasResolutionScaleType;
 	resolutionWidthPx?: null | number;
-}
-
-export enum GamingCanvasDirection {
-	NORMAL,
-	INVERTED,
 }
 
 export enum GamingCanvasOrientation {
@@ -79,168 +74,168 @@ export class GamingCanvas {
 	private static callbackReportTimeout: ReturnType<typeof setTimeout>;
 	private static callbackVisibility: (state: boolean) => void;
 	private static elementCanvases: HTMLCanvasElement[];
-	private static elementCanvasContainerDomRect: DOMRect;
-	private static elementCanvasContainer: HTMLDivElement;
 	private static elementContainer: HTMLElement;
+	private static elementContainerCanvas: HTMLDivElement;
+	private static elementContainerOverlay: HTMLDivElement;
+	private static elementContainerOverlayWrapper: HTMLDivElement;
 	private static elementParent: HTMLElement;
 	private static elementRotator1: HTMLDivElement;
 	private static elementRotator2: HTMLDivElement;
 	private static inputQueue: GamingCanvasFIFOQueue<GamingCanvasInput> = new GamingCanvasFIFOQueue<GamingCanvasInput>();
 	private static options: GamingCanvasOptions;
 	private static regExpScale: RegExp = /(?<=scale\()(.*?)(?=\))/;
-	private static stateDirection: GamingCanvasDirection;
 	private static stateFullscreen: boolean;
 	private static stateHeight: number;
 	private static stateOrientation: GamingCanvasOrientation;
 	private static stateReport: GamingCanvasReport;
-	private static stateScaler: number;
 	private static stateVisibility: boolean;
 	private static stateWakeLock: WakeLockSentinel | undefined;
 	private static stateWakeLockState: boolean;
 	private static vibrateInterval: ReturnType<typeof setInterval>;
 
 	/**
+	 * Function forwarding: Reduce garbage collector demand be reducing temporary variables (best performance for repeating functions
+	 */
+	static {
+		GamingCanvas.go__funcForward();
+		GamingCanvas.relativizeInputToCanvas__funcForward();
+	}
+
+	/**
 	 * Rotate, Scale, and callbackReport() as required
 	 */
-	private static go(_?: any, skipCallback?: boolean): GamingCanvasReport {
-		let changed: boolean;
+	private static go(_?: any, __?: boolean): GamingCanvasReport {
+		return <GamingCanvasReport>(<unknown>undefined);
+	}
+	private static go__funcForward(): void {
+		let changed: boolean,
+			diff: number,
+			aspectRatio: number,
+			devicePixelRatio: number,
+			devicePixelRatioEff: number,
+			heightContainer: number,
+			heightResoluion: number,
+			initial: boolean,
+			now: number,
+			options: GamingCanvasOptions,
+			report: GamingCanvasReport,
+			scaler: number,
+			styleTransform: string,
+			widthContainer: number,
+			widthResolution: number;
 
-		const initial: boolean = GamingCanvas.stateDirection === undefined,
-			options: GamingCanvasOptions = GamingCanvas.options;
+		const go = (_?: any, skipCallback?: boolean) => {
+			changed = false;
+			initial = GamingCanvas.stateOrientation === undefined;
+			options = GamingCanvas.options;
 
-		/**
-		 * Direction/Orientation
-		 */
-		if (options.orientation === GamingCanvasOrientation.LANDSCAPE) {
-			changed = GamingCanvas.oLandscape();
-		} else if (options.orientation === GamingCanvasOrientation.PORTRAIT) {
-			changed = GamingCanvas.oPortrait();
-		} else {
-			if (window.innerWidth < window.innerHeight) {
+			/**
+			 * Orientation
+			 */
+			if (options.orientation === GamingCanvasOrientation.LANDSCAPE) {
+				changed = GamingCanvas.oLandscape();
+			} else if (options.orientation === GamingCanvasOrientation.PORTRAIT) {
 				changed = GamingCanvas.oPortrait();
 			} else {
-				changed = GamingCanvas.oLandscape();
+				// Auto
+				if (window.innerWidth < window.innerHeight) {
+					changed = GamingCanvas.oPortrait();
+				} else {
+					changed = GamingCanvas.oLandscape();
+				}
 			}
-		}
 
-		/**
-		 * Scale
-		 */
-		let aspectRatio: number = <number>options.aspectRatio,
-			devicePixelRatio: number = window.devicePixelRatio,
-			devicePixelRatioEff: number = 1 / window.devicePixelRatio,
-			deviceRotated: boolean = window.innerWidth < window.innerHeight,
-			heightContainer: number = (GamingCanvas.elementRotator2.offsetWidth / aspectRatio) | 0,
-			heightResoluion: number = (options.resolutionWidthPx ? options.resolutionWidthPx / aspectRatio : heightContainer) | 0,
-			report: GamingCanvasReport = <GamingCanvasReport>{
-				orientation: GamingCanvas.stateOrientation,
-			},
-			scaler: number,
-			styleTransform: string = GamingCanvas.elementCanvasContainer.style.transform,
-			widthContainer: number = GamingCanvas.elementRotator2.offsetWidth | 0,
-			widthResolution: number = (options.resolutionWidthPx || widthContainer) | 0;
-
-		if (!deviceRotated && GamingCanvas.elementRotator2.offsetHeight < heightContainer) {
-			heightContainer = GamingCanvas.elementRotator2.offsetHeight | 0;
+			/**
+			 * Size and Scale
+			 */
+			aspectRatio = <number>options.aspectRatio;
+			devicePixelRatio = window.devicePixelRatio;
+			devicePixelRatioEff = 1 / window.devicePixelRatio;
+			heightContainer = (GamingCanvas.elementRotator2.clientWidth / aspectRatio) | 0;
 			heightResoluion = (options.resolutionWidthPx ? options.resolutionWidthPx / aspectRatio : heightContainer) | 0;
-
-			widthContainer = (GamingCanvas.elementRotator2.offsetHeight * aspectRatio) | 0;
+			report = <GamingCanvasReport>{
+				orientation: GamingCanvas.stateOrientation,
+			};
+			styleTransform = GamingCanvas.elementContainerCanvas.style.transform;
+			widthContainer = GamingCanvas.elementRotator2.clientWidth | 0;
 			widthResolution = (options.resolutionWidthPx || widthContainer) | 0;
-		}
 
-		// Determine dimensions
-		report.devicePixelRatio = devicePixelRatio;
-		report.devicePixelRatio = devicePixelRatio;
-		if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
+			// Offset by magic factor, idk
+			if (options.resolutionWidthPx === null && GamingCanvas.stateOrientation !== GamingCanvasOrientation.LANDSCAPE) {
+				heightResoluion = (heightResoluion * 1.78) | 0;
+				widthResolution = (widthResolution * 1.78) | 0;
+			}
+
+			// Determine dimensions
+			report.devicePixelRatio = devicePixelRatio;
 			report.canvasHeight = heightResoluion;
 			report.canvasWidth = widthResolution;
-		} else {
-			// report.canvasHeight = widthResolution;
-			// report.canvasWidth = heightResoluion;
-			report.canvasHeight = heightResoluion * aspectRatio;
-			report.canvasWidth = widthResolution * aspectRatio;
-		}
 
-		// Set the container size
-		GamingCanvas.elementCanvasContainer.style.height = devicePixelRatio * report.canvasHeight + 'px';
-		GamingCanvas.elementCanvasContainer.style.width = devicePixelRatio * report.canvasWidth + 'px';
-
-		// Warning: Canvas cannot be reliably set from here (offscreenCanvas)
-		// if (options.resolutionWidthPx === null) {
-		// 	GamingCanvas.elementCanvas.height = height;
-		// 	GamingCanvas.elementCanvas.width = width;
-		// } else {
-		// 	GamingCanvas.elementCanvas.height = options.resolutionWidthPx;
-		// 	GamingCanvas.elementCanvas.width = (options.resolutionWidthPx / aspectRatio) | 0;
-		// }
-
-		// Use CSS tranform to scale fixed dimensions canvas to native size
-		if (options.resolutionScaleToFit === true && options.resolutionWidthPx !== null) {
-			if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
-				scaler = Math.round(((devicePixelRatioEff * widthContainer) / widthResolution) * 1000) / 1000;
-			} else {
-				scaler = Math.round(((devicePixelRatioEff * widthContainer) / widthResolution) * 1000) / 1000;
-				// scaler = Math.round(((devicePixelRatioEff * heightContainer) / heightResoluion) * 1000) / 1000;
-			}
-		} else {
-			scaler = devicePixelRatioEff;
-		}
-		GamingCanvas.stateScaler = scaler;
-		report.canvasHeightScaled = report.canvasHeight * scaler;
-		report.canvasWidthScaled = report.canvasWidth * scaler;
-		report.scaler = scaler;
-		GamingCanvas.elementCanvasContainer.style.transform = styleTransform.replace(
-			`scale(${(GamingCanvas.regExpScale.exec(styleTransform) || [''])[0]})`,
-			'scale(' + scaler + ')',
-		);
-		GamingCanvas.elementCanvasContainerDomRect = GamingCanvas.elementCanvasContainer.getBoundingClientRect();
-
-		// Center on super wierd aspect ratios
-		if (GamingCanvas.elementCanvasContainerDomRect.height < GamingCanvas.elementRotator2.clientHeight) {
-			GamingCanvas.elementCanvasContainer.style.top =
-				(GamingCanvas.elementRotator2.clientHeight - GamingCanvas.elementCanvasContainerDomRect.height) / 2 + 'px';
-		} else {
-			GamingCanvas.elementCanvasContainer.style.top = '0';
-		}
-		if (GamingCanvas.elementCanvasContainerDomRect.width < GamingCanvas.elementRotator2.clientWidth) {
-			GamingCanvas.elementCanvasContainer.style.left =
-				(GamingCanvas.elementRotator2.clientWidth - GamingCanvas.elementCanvasContainerDomRect.width) / 2 + 'px';
-		} else {
-			GamingCanvas.elementCanvasContainer.style.left = '0';
-		}
-
-		// Callback
-		GamingCanvas.stateReport = report;
-		if (!skipCallback && GamingCanvas.callbackReport) {
-			if (changed || initial || report.canvasHeight !== GamingCanvas.stateHeight) {
-				GamingCanvas.stateHeight = report.canvasHeight;
-
-				if (GamingCanvas.options.callbackReportLimitPerMs === 0) {
-					GamingCanvas.callbackReport(report);
+			// Determine scaler
+			if (options.resolutionScaleToFit === true && options.resolutionWidthPx !== null) {
+				if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
+					scaler = (devicePixelRatioEff * widthContainer) / widthResolution;
 				} else {
-					let now: number = performance.now(),
-						diff: number = now - GamingCanvas.callbackReportLastInMs;
+					scaler = widthContainer / devicePixelRatio / heightResoluion;
+				}
+			} else {
+				scaler = devicePixelRatioEff;
+			}
+			report.canvasHeightScaled = (report.canvasHeight * scaler) | 0;
+			report.canvasWidthScaled = (report.canvasWidth * scaler) | 0;
+			report.scaler = scaler;
+			GamingCanvas.elementContainerCanvas.style.transform = styleTransform.replace(
+				`scale(${(GamingCanvas.regExpScale.exec(styleTransform) || [''])[0]})`,
+				'scale(' + scaler + ')',
+			);
 
-					if (diff > <number>GamingCanvas.options.callbackReportLimitPerMs) {
-						clearTimeout(GamingCanvas.callbackReportTimeout);
-						GamingCanvas.callbackReportLastInMs = now;
+			// Set the container canvas size
+			GamingCanvas.elementContainerCanvas.style.height = ((devicePixelRatio * report.canvasHeight) | 0) + 'px';
+			GamingCanvas.elementContainerCanvas.style.width = ((devicePixelRatio * report.canvasWidth) | 0) + 'px';
+
+			// Set the container overlay size
+			if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
+				GamingCanvas.elementContainerOverlay.style.height = GamingCanvas.elementContainerCanvas.style.height;
+				GamingCanvas.elementContainerOverlay.style.width = GamingCanvas.elementContainerCanvas.style.width;
+			} else {
+				GamingCanvas.elementContainerOverlay.style.height = GamingCanvas.elementContainerCanvas.style.width;
+				GamingCanvas.elementContainerOverlay.style.width = GamingCanvas.elementContainerCanvas.style.height;
+			}
+
+			// Callback
+			GamingCanvas.stateReport = report;
+			if (!skipCallback && GamingCanvas.callbackReport) {
+				if (changed || initial || report.canvasHeight !== GamingCanvas.stateHeight) {
+					GamingCanvas.stateHeight = report.canvasHeight;
+
+					if (GamingCanvas.options.callbackReportLimitPerMs === 0) {
 						GamingCanvas.callbackReport(report);
 					} else {
-						GamingCanvas.stateReport = report;
-						clearTimeout(GamingCanvas.callbackReportTimeout);
-						GamingCanvas.callbackReportTimeout = setTimeout(
-							() => {
-								GamingCanvas.callbackReportLastInMs = performance.now();
-								GamingCanvas.callbackReport(GamingCanvas.stateReport);
-							},
-							<number>GamingCanvas.options.callbackReportLimitPerMs - diff,
-						);
+						now = performance.now();
+						diff = now - GamingCanvas.callbackReportLastInMs;
+
+						if (diff > <number>GamingCanvas.options.callbackReportLimitPerMs) {
+							clearTimeout(GamingCanvas.callbackReportTimeout);
+							GamingCanvas.callbackReportLastInMs = now;
+							GamingCanvas.callbackReport(report);
+						} else {
+							GamingCanvas.stateReport = report;
+							clearTimeout(GamingCanvas.callbackReportTimeout);
+							GamingCanvas.callbackReportTimeout = setTimeout(
+								() => {
+									GamingCanvas.callbackReportLastInMs = performance.now();
+									GamingCanvas.callbackReport(GamingCanvas.stateReport);
+								},
+								<number>GamingCanvas.options.callbackReportLimitPerMs - diff,
+							);
+						}
 					}
 				}
 			}
-		}
 
-		return report;
+			return report;
+		};
+		GamingCanvas.go = go;
 	}
 
 	/**
@@ -334,16 +329,18 @@ export class GamingCanvas {
 		GamingCanvas.elementRotator2.id = 'gaming-canvas-rotator2';
 		GamingCanvas.elementRotator2.style.height = '100%';
 		GamingCanvas.elementRotator2.style.maxHeight = 'auto';
+		GamingCanvas.elementRotator2.style.position = 'relative';
 		GamingCanvas.elementRotator2.style.width = 'auto';
 		GamingCanvas.elementRotator2.style.maxWidth = '100%';
 		GamingCanvas.elementRotator1.appendChild(GamingCanvas.elementRotator2);
 
-		// Element: Canvas Container
-		GamingCanvas.elementCanvasContainer = document.createElement('div');
-		GamingCanvas.elementCanvasContainer.id = 'gaming-canvas-container';
-		GamingCanvas.elementCanvasContainer.style.transformOrigin = 'top left';
-		GamingCanvas.elementCanvasContainer.style.position = 'relative';
-		GamingCanvas.elementRotator2.appendChild(GamingCanvas.elementCanvasContainer);
+		// Element: Container Canvas
+		GamingCanvas.elementContainerCanvas = document.createElement('div');
+		GamingCanvas.elementContainerCanvas.id = 'gaming-canvas-container-canvas';
+		GamingCanvas.elementContainerCanvas.style.transformOrigin = 'top left';
+		GamingCanvas.elementContainerCanvas.style.position = 'relative';
+		GamingCanvas.elementContainerCanvas.style.zIndex = '1';
+		GamingCanvas.elementRotator2.appendChild(GamingCanvas.elementContainerCanvas);
 
 		// Element: Canvas
 		let canvas: HTMLCanvasElement,
@@ -361,16 +358,47 @@ export class GamingCanvas {
 			canvas.style.zIndex = String((count + 1) * 10);
 
 			GamingCanvas.elementCanvases.push(canvas);
-			GamingCanvas.elementCanvasContainer.appendChild(canvas);
+			GamingCanvas.elementContainerCanvas.appendChild(canvas);
 		}
 		options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvases[0] : options.elementInteractive;
 
-		// Element: Injectables
-		if (options.elementInject && Array.isArray(options.elementInject)) {
-			for (let element of options.elementInject) {
-				GamingCanvas.elementCanvasContainer.appendChild(element);
+		// Element: Canvas Injectables
+		if (options.elementInjectAsCanvas && Array.isArray(options.elementInjectAsCanvas)) {
+			for (let element of options.elementInjectAsCanvas) {
+				GamingCanvas.elementContainerCanvas.appendChild(element);
 			}
 		}
+
+		// Element: Container Overlays
+		GamingCanvas.elementContainerOverlay = document.createElement('div');
+		GamingCanvas.elementContainerOverlay.id = 'gaming-canvas-container-overlay';
+		GamingCanvas.elementContainerOverlay.style.left = '0';
+		GamingCanvas.elementContainerOverlay.style.position = 'absolute';
+		GamingCanvas.elementContainerOverlay.style.top = '0';
+		GamingCanvas.elementContainerOverlay.style.transformOrigin = 'top left';
+		GamingCanvas.elementContainerOverlay.style.zIndex = '2';
+		GamingCanvas.elementRotator2.appendChild(GamingCanvas.elementContainerOverlay);
+
+		// Element: Container Overlays Wrapper
+		GamingCanvas.elementContainerOverlayWrapper = document.createElement('div');
+		GamingCanvas.elementContainerOverlayWrapper.id = 'gaming-canvas-container-overlay-wrapper';
+		GamingCanvas.elementContainerOverlayWrapper.style.height = '100%';
+		GamingCanvas.elementContainerOverlayWrapper.style.position = 'relative';
+		GamingCanvas.elementContainerOverlayWrapper.style.width = '100%';
+		GamingCanvas.elementContainerOverlay.appendChild(GamingCanvas.elementContainerOverlayWrapper);
+
+		// Element: Overlay Injectables
+		if (options.elementInjectAsOverlay && Array.isArray(options.elementInjectAsOverlay)) {
+			for (let element of options.elementInjectAsOverlay) {
+				GamingCanvas.elementContainerOverlayWrapper.appendChild(element);
+			}
+		}
+
+		// Initialize sizing: fixes browser issues between desktop and mobile (idk why)
+		GamingCanvas.stateOrientation = <any>undefined;
+		GamingCanvas.oPortrait();
+		GamingCanvas.stateOrientation = <any>undefined;
+		GamingCanvas.oLandscape();
 
 		// Apply
 		GamingCanvas.setOptions(options);
@@ -403,15 +431,10 @@ export class GamingCanvas {
 	}
 
 	private static oLandscape(): boolean {
-		let changed: boolean = false;
-
-		const options: GamingCanvasOptions = GamingCanvas.options;
-
 		if (GamingCanvas.stateOrientation !== GamingCanvasOrientation.LANDSCAPE) {
-			changed = true;
 			GamingCanvas.stateOrientation = GamingCanvasOrientation.LANDSCAPE;
 
-			GamingCanvas.elementRotator1.style.aspectRatio = `${options.aspectRatio}`;
+			GamingCanvas.elementRotator1.style.aspectRatio = `${GamingCanvas.options.aspectRatio}`;
 			GamingCanvas.elementRotator1.style.height = 'auto';
 			GamingCanvas.elementRotator1.style.maxHeight = '100%';
 			GamingCanvas.elementRotator1.style.width = '100%';
@@ -422,31 +445,20 @@ export class GamingCanvas {
 			GamingCanvas.elementRotator2.style.maxHeight = 'auto';
 			GamingCanvas.elementRotator2.style.width = 'auto';
 			GamingCanvas.elementRotator2.style.maxWidth = '100%';
+
+			GamingCanvas.elementContainerCanvas.style.transform = 'scale(1)';
+
+			return true;
+		} else {
+			return false;
 		}
-
-		if (!(options.directionPreventLandscapeInversion && options.direction === GamingCanvasDirection.INVERTED)) {
-			if (changed || GamingCanvas.stateDirection !== options.direction) {
-				changed = true;
-				GamingCanvas.stateDirection = <GamingCanvasDirection>options.direction;
-
-				GamingCanvas.elementCanvasContainer.style.transform =
-					options.direction === GamingCanvasDirection.NORMAL ? 'scale(1)' : 'rotate(180deg) scale(1) translate(-100%, -100%)';
-			}
-		}
-
-		return changed;
 	}
 
 	private static oPortrait(): boolean {
-		let changed: boolean = false;
-
-		const options: GamingCanvasOptions = GamingCanvas.options;
-
 		if (GamingCanvas.stateOrientation !== GamingCanvasOrientation.PORTRAIT) {
-			changed = true;
 			GamingCanvas.stateOrientation = GamingCanvasOrientation.PORTRAIT;
 
-			GamingCanvas.elementRotator1.style.aspectRatio = `${1 / <number>options.aspectRatio}`;
+			GamingCanvas.elementRotator1.style.aspectRatio = `${1 / <number>GamingCanvas.options.aspectRatio}`;
 			GamingCanvas.elementRotator1.style.height = '100%';
 			GamingCanvas.elementRotator1.style.maxHeight = 'auto';
 			GamingCanvas.elementRotator1.style.width = 'auto';
@@ -457,79 +469,97 @@ export class GamingCanvas {
 			GamingCanvas.elementRotator2.style.maxHeight = '100%';
 			GamingCanvas.elementRotator2.style.width = '100%';
 			GamingCanvas.elementRotator2.style.maxWidth = 'auto';
+
+			GamingCanvas.elementContainerCanvas.style.transform = GamingCanvas.options.orientationLeftOnPortait
+				? 'rotate(-90deg) scale(1) translateX(-100%)'
+				: 'rotate(90deg) scale(1) translateY(-100%)';
+
+			return true;
+		} else {
+			return false;
 		}
-
-		if (changed || GamingCanvas.stateDirection !== options.direction) {
-			changed = true;
-			GamingCanvas.stateDirection = <GamingCanvasDirection>options.direction;
-
-			GamingCanvas.elementCanvasContainer.style.transform =
-				options.direction === GamingCanvasDirection.NORMAL ? 'rotate(90deg) scale(1) translateY(-100%)' : 'rotate(-90deg) scale(1) translateX(-100%)';
-		}
-
-		return changed;
 	}
 
 	/**
-	 * If the canvas is rotated then x is y and vice versa. This corrects that.
+	 * Inputs are relative to the overlay container, but this will convert it to be relative to the canvas container
 	 */
-	public static relativizeInput(input: GamingCanvasInput): GamingCanvasInput {
-		if (input.type === GamingCanvasInputType.GAMEPAD || input.type === GamingCanvasInputType.KEYBOARD) {
-			// Nothing to do
+	public static relativizeInputToCanvas(_: GamingCanvasInput): GamingCanvasInput {
+		return <GamingCanvasInput>(<unknown>undefined);
+	}
+	public static relativizeInputToCanvas__funcForward(): void {
+		let a: number,
+			aRelative: number,
+			height: number,
+			position: GamingCanvasInputPosition,
+			positions: GamingCanvasInputPosition[] | undefined,
+			rotatedLeft: boolean,
+			width: number;
+
+		const relativizeInputToCanvas = (input: GamingCanvasInput) => {
+			if (
+				input.type === GamingCanvasInputType.GAMEPAD ||
+				input.type === GamingCanvasInputType.KEYBOARD ||
+				GamingCanvas.stateOrientation !== GamingCanvasOrientation.PORTRAIT
+			) {
+				// Nothing to do
+				return input;
+			}
+
+			// Set temp variables
+			height = GamingCanvas.elementContainerCanvas.clientHeight;
+			width = GamingCanvas.elementContainerCanvas.clientWidth;
+			rotatedLeft = <boolean>GamingCanvas.options.orientationLeftOnPortait;
+
+			// Fix it
+			switch (input.type) {
+				case GamingCanvasInputType.MOUSE:
+					position = input.propriatary.position;
+
+					// Rotate
+					a = position.x;
+					aRelative = position.xRelative;
+					if (rotatedLeft) {
+						position.x = width - position.y;
+						position.xRelative = 1 - position.yRelative;
+						position.y = a;
+						position.yRelative = aRelative;
+					} else {
+						position.x = position.y;
+						position.xRelative = position.yRelative;
+						position.y = height - a;
+						position.yRelative = 1 - aRelative;
+					}
+					break;
+				case GamingCanvasInputType.TOUCH:
+					positions = input.propriatary.positions;
+
+					if (positions) {
+						for (let i = 0; i < positions.length; i++) {
+							position = positions[i];
+
+							// Rotate
+							a = position.x;
+							aRelative = position.xRelative;
+							if (rotatedLeft) {
+								position.x = width - position.y;
+								position.xRelative = 1 - position.yRelative;
+								position.y = a;
+								position.yRelative = aRelative;
+							} else {
+								position.x = position.y;
+								position.xRelative = position.yRelative;
+								position.y = height - a;
+								position.yRelative = 1 - aRelative;
+							}
+						}
+					}
+					break;
+			}
+
 			return input;
-		}
+		};
 
-		// Fix X & Y rotation
-		const inverted: boolean = GamingCanvas.stateDirection === GamingCanvasDirection.INVERTED;
-		const rotated: boolean = GamingCanvas.stateOrientation === GamingCanvasOrientation.PORTRAIT;
-		if (inverted || rotated) {
-			let height: number, width: number;
-
-			if (rotated && (!inverted || rotated)) {
-				height = GamingCanvas.elementCanvasContainerDomRect.height;
-				width = GamingCanvas.elementCanvasContainerDomRect.width;
-			} else {
-				height = GamingCanvas.stateReport.canvasHeightScaled;
-				width = GamingCanvas.stateReport.canvasWidthScaled;
-			}
-
-			switch (input.type) {
-				case GamingCanvasInputType.MOUSE:
-					GamingCanvasInputPositionCorrector(height, inverted, input.propriatary.position, rotated, width);
-					break;
-				case GamingCanvasInputType.TOUCH:
-					const positions: GamingCanvasInputPosition[] | undefined = input.propriatary.positions;
-
-					if (positions) {
-						for (let i = 0; i < positions.length; i++) {
-							GamingCanvasInputPositionCorrector(height, inverted, positions[i], rotated, width);
-						}
-					}
-					break;
-			}
-		}
-
-		// Fix X & Y scaling
-		if (GamingCanvas.stateScaler !== 1) {
-			switch (input.type) {
-				case GamingCanvasInputType.MOUSE:
-					input.propriatary.position.x /= GamingCanvas.stateScaler;
-					input.propriatary.position.y /= GamingCanvas.stateScaler;
-					break;
-				case GamingCanvasInputType.TOUCH:
-					const positions: GamingCanvasInputPosition[] | undefined = input.propriatary.positions;
-
-					if (positions) {
-						for (let i = 0; i < positions.length; i++) {
-							positions[i].x /= GamingCanvas.stateScaler;
-							positions[i].y /= GamingCanvas.stateScaler;
-						}
-					}
-					break;
-			}
-		}
-
-		return input;
+		GamingCanvas.relativizeInputToCanvas = relativizeInputToCanvas;
 	}
 
 	/**
@@ -684,14 +714,6 @@ export class GamingCanvas {
 		GamingCanvas.callbackVisibility = callbackVisibility;
 	}
 
-	public static getCurrentDirection(): GamingCanvasDirection {
-		if (!GamingCanvas.elementParent) {
-			console.error('GamingCanvas > getCurrentDirection: not initialized yet');
-			return GamingCanvasDirection.NORMAL;
-		}
-		return GamingCanvas.stateDirection;
-	}
-
 	public static getCurrentOrientation(): GamingCanvasOrientation {
 		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > getCurrentOrientation: not initialized yet');
@@ -719,18 +741,6 @@ export class GamingCanvas {
 
 			GamingCanvas.elementCanvases[0].style.backgroundColor = 'transparent';
 			GamingCanvas.elementCanvases[0].style.boxShadow = 'none';
-		}
-	}
-
-	public static setDirection(direction: GamingCanvasDirection) {
-		if (!GamingCanvas.elementParent) {
-			console.error('GamingCanvas > setDirection: not initialized yet');
-			return;
-		}
-		if (direction !== GamingCanvas.stateDirection) {
-			GamingCanvas.options.direction = direction === undefined ? GamingCanvasDirection.NORMAL : direction;
-			GamingCanvas.stateDirection = <any>undefined;
-			GamingCanvas.go();
 		}
 	}
 
@@ -795,7 +805,7 @@ export class GamingCanvas {
 		}
 
 		if (state) {
-			await (element || GamingCanvas.elementCanvasContainer).requestFullscreen();
+			await (element || GamingCanvas.elementContainerCanvas).requestFullscreen();
 		} else {
 			await document.exitFullscreen();
 		}
@@ -808,9 +818,6 @@ export class GamingCanvas {
 		options.callbackReportLimitPerMs = Math.max(0, Number(options.callbackReportLimitPerMs) || 8);
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
 		options.debug = options.debug === undefined ? false : options.debug === true;
-		options.direction = options.direction === undefined ? GamingCanvasDirection.NORMAL : options.direction;
-		options.directionPreventLandscapeInversion =
-			options.directionPreventLandscapeInversion === undefined ? true : options.directionPreventLandscapeInversion;
 
 		if (GamingCanvas.elementCanvases) {
 			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvases[0] : options.elementInteractive;
@@ -827,9 +834,10 @@ export class GamingCanvas {
 		options.inputTouchEnable = options.inputTouchEnable === undefined ? false : options.inputTouchEnable === true;
 		options.inputLimitPerMs = options.inputLimitPerMs === undefined ? 8 : Math.max(0, Number(options.inputLimitPerMs) || 8);
 		options.orientation = options.orientation === undefined ? GamingCanvasOrientation.AUTO : options.orientation;
-		options.resolutionWidthPx = options.resolutionWidthPx === undefined ? null : Number(options.resolutionWidthPx) | 0 || null;
+		options.orientationLeftOnPortait = options.orientationLeftOnPortait === undefined ? false : options.orientationLeftOnPortait === true;
 		options.resolutionScaleToFit = options.resolutionScaleToFit === undefined ? true : options.resolutionScaleToFit === true;
 		options.resolutionScaleType = options.resolutionScaleType === undefined ? GamingCanvasResolutionScaleType.ANTIALIAS : options.resolutionScaleType;
+		options.resolutionWidthPx = options.resolutionWidthPx === undefined ? null : Number(options.resolutionWidthPx) | 0 || null;
 
 		return options;
 	}
@@ -838,6 +846,9 @@ export class GamingCanvas {
 		return JSON.parse(JSON.stringify(GamingCanvas.options || {}));
 	}
 
+	/**
+	 * This cannot update inject requests that were set during initialization. You have to re-initialize for that.
+	 */
 	public static setOptions(options: GamingCanvasOptions): void {
 		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setOptions: not initialized yet');
@@ -849,37 +860,16 @@ export class GamingCanvas {
 		GamingCanvas.setDebug(<boolean>GamingCanvas.options.debug);
 
 		// Apply: Scale Type
-		const applyScaleType = (canvas: HTMLCanvasElement, resolutionScaleType: GamingCanvasResolutionScaleType) => {
-			switch (resolutionScaleType) {
-				case GamingCanvasResolutionScaleType.ANTIALIAS:
-					canvas.style.imageRendering = 'revert';
-					canvas.style.imageRendering = 'smooth';
-					break;
-				case GamingCanvasResolutionScaleType.PIXELATED:
-					canvas.style.imageRendering = 'revert';
-					canvas.style.imageRendering = 'pixelated';
-					break;
-			}
-		};
-
-		if (Array.isArray(options.resolutionScaleType)) {
-			if (options.resolutionScaleType.length === GamingCanvas.elementCanvases.length) {
-				for (let i = 0; i < options.resolutionScaleType.length; i++) {
-					applyScaleType(GamingCanvas.elementCanvases[i], options.resolutionScaleType[i]);
-				}
-			} else {
-				console.error(
-					`GamingCanvas > setOptions: cannot apply scalesTypes of length ${options.resolutionScaleType.length} to canvases of length ${GamingCanvas.elementCanvases.length}`,
-				);
-			}
-		} else {
-			for (const canvas of GamingCanvas.elementCanvases) {
-				applyScaleType(canvas, <GamingCanvasResolutionScaleType>options.resolutionScaleType);
-			}
+		switch (<GamingCanvasResolutionScaleType>options.resolutionScaleType) {
+			case GamingCanvasResolutionScaleType.ANTIALIAS:
+				GamingCanvas.elementContainerCanvas.style.imageRendering = 'smooth';
+				break;
+			case GamingCanvasResolutionScaleType.PIXELATED:
+				GamingCanvas.elementContainerCanvas.style.imageRendering = 'pixelated';
+				break;
 		}
 
 		// Done
-		GamingCanvas.stateDirection = <any>undefined;
 		GamingCanvas.stateOrientation = <any>undefined;
 		GamingCanvas.go();
 	}
@@ -890,7 +880,7 @@ export class GamingCanvas {
 			return;
 		}
 		if (orientation !== GamingCanvas.stateOrientation) {
-			GamingCanvas.options.orientation = orientation === undefined ? GamingCanvasOrientation.LANDSCAPE : orientation;
+			GamingCanvas.options.orientation = orientation === undefined ? GamingCanvasOrientation.AUTO : orientation;
 			GamingCanvas.stateOrientation = <any>undefined;
 			GamingCanvas.go();
 		}
@@ -918,16 +908,6 @@ export class GamingCanvas {
 
 	public static isWakeLockSupported(): boolean {
 		return 'wakeLock' in navigator;
-	}
-
-	/**
-	 * Function forwarding
-	 *
-	 * This prevents double enclosures on the function call while preserving the typing
-	 */
-
-	static {
-		GamingCanvas.getGamepads = GamingCanvasGamepadEngine.getGamepads;
 	}
 
 	/**

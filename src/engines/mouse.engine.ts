@@ -29,18 +29,34 @@ export class GamingCanvasMouseEngine {
 	private static el: HTMLCanvasElement;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 
-	private static calc(event: MouseEvent): GamingCanvasInputPosition {
-		let domRect: DOMRect = GamingCanvasMouseEngine.el.getBoundingClientRect(),
-			xEff: number = Math.max(0, Math.min(domRect.width, event.clientX - domRect.x)) | 0,
-			yEff: number = Math.max(0, Math.min(domRect.height, event.clientY - domRect.y)) | 0;
+	/**
+	 * Function forwarding: Reduce garbage collector demand be reducing temporary variables (best performance for repeating functions
+	 */
+	static {
+		GamingCanvasMouseEngine.calc__funcForward();
+	}
 
-		return {
-			out: xEff === 0 || yEff === 0 || xEff === domRect.width || yEff === domRect.height,
-			x: xEff,
-			xRelative: xEff / domRect.width,
-			y: yEff,
-			yRelative: yEff / domRect.height,
+	private static calc(_: MouseEvent): GamingCanvasInputPosition {
+		return <GamingCanvasInputPosition>(<unknown>undefined);
+	}
+
+	private static calc__funcForward(): void {
+		let domRect: DOMRect, xEff: number, yEff: number;
+
+		const calc = (event: MouseEvent) => {
+			domRect = GamingCanvasMouseEngine.el.getBoundingClientRect();
+			xEff = Math.max(0, Math.min(domRect.width, event.clientX - domRect.x)) | 0;
+			yEff = Math.max(0, Math.min(domRect.height, event.clientY - domRect.y)) | 0;
+
+			return {
+				out: xEff === 0 || yEff === 0 || xEff === domRect.width || yEff === domRect.height,
+				x: xEff,
+				xRelative: xEff / domRect.width,
+				y: yEff,
+				yRelative: yEff / domRect.height,
+			};
 		};
+		GamingCanvasMouseEngine.calc = calc;
 	}
 
 	public static initialize(
@@ -60,42 +76,42 @@ export class GamingCanvasMouseEngine {
 				return false;
 			});
 		}
+
+		let clickAction: GamingCanvasInputMouseAction;
 		elInteractive.addEventListener('click', (event: MouseEvent) => {
 			if (GamingCanvasMouseEngine.active && event.button < 3) {
-				let action: GamingCanvasInputMouseAction;
-
 				if (event.button === 0) {
-					action = GamingCanvasInputMouseAction.LEFT_CLICK;
+					clickAction = GamingCanvasInputMouseAction.LEFT_CLICK;
 				} else if (event.button === 1) {
-					action = GamingCanvasInputMouseAction.WHEEL_CLICK;
+					clickAction = GamingCanvasInputMouseAction.WHEEL_CLICK;
 				} else {
-					action = GamingCanvasInputMouseAction.RIGHT_CLICK;
+					clickAction = GamingCanvasInputMouseAction.RIGHT_CLICK;
 				}
 
 				GamingCanvasMouseEngine.queue.push({
 					propriatary: {
-						action: action,
+						action: clickAction,
 						position: GamingCanvasMouseEngine.calc(event),
 					},
 					type: GamingCanvasInputType.MOUSE,
 				});
 			}
 		});
+
+		let mousedownAction: GamingCanvasInputMouseAction;
 		elInteractive.addEventListener('mousedown', (event: MouseEvent) => {
 			if (GamingCanvasMouseEngine.active && event.button < 3) {
-				let action: GamingCanvasInputMouseAction;
-
 				if (event.button === 0) {
-					action = GamingCanvasInputMouseAction.LEFT;
+					mousedownAction = GamingCanvasInputMouseAction.LEFT;
 				} else if (event.button === 1) {
-					action = GamingCanvasInputMouseAction.WHEEL;
+					mousedownAction = GamingCanvasInputMouseAction.WHEEL;
 				} else {
-					action = GamingCanvasInputMouseAction.RIGHT;
+					mousedownAction = GamingCanvasInputMouseAction.RIGHT;
 				}
 
 				GamingCanvasMouseEngine.queue.push({
 					propriatary: {
-						action: action,
+						action: mousedownAction,
 						down: true,
 						position: GamingCanvasMouseEngine.calc(event),
 					},
@@ -103,6 +119,7 @@ export class GamingCanvasMouseEngine {
 				});
 			}
 		});
+
 		elInteractive.addEventListener('mousemove', (event: MouseEvent) => {
 			if (GamingCanvasMouseEngine.active) {
 				GamingCanvasMouseEngine.queue.push({
@@ -114,21 +131,21 @@ export class GamingCanvasMouseEngine {
 				});
 			}
 		});
+
+		let mouseupAction: GamingCanvasInputMouseAction;
 		elInteractive.addEventListener('mouseup', (event: MouseEvent) => {
 			if (GamingCanvasMouseEngine.active && event.button < 3) {
-				let action: GamingCanvasInputMouseAction;
-
 				if (event.button === 0) {
-					action = GamingCanvasInputMouseAction.LEFT;
+					mouseupAction = GamingCanvasInputMouseAction.LEFT;
 				} else if (event.button === 1) {
-					action = GamingCanvasInputMouseAction.WHEEL;
+					mouseupAction = GamingCanvasInputMouseAction.WHEEL;
 				} else {
-					action = GamingCanvasInputMouseAction.RIGHT;
+					mouseupAction = GamingCanvasInputMouseAction.RIGHT;
 				}
 
 				GamingCanvasMouseEngine.queue.push({
 					propriatary: {
-						action: action,
+						action: mouseupAction,
 						down: false,
 						position: GamingCanvasMouseEngine.calc(event),
 					},
