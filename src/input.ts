@@ -27,24 +27,6 @@ export const GamingCanvasInputPositionDistanceRelative = (a: GamingCanvasInputPo
 	return Math.sqrt(x * x + y * y);
 };
 
-export const GamingCanvasInputPositionUnrotate = (height: number, position: GamingCanvasInputPosition, rotatedLeft: boolean, width: number) => {
-	if (rotatedLeft) {
-		const a: number = position.x,
-			aRelative: number = position.xRelative;
-		position.x = width - position.y;
-		position.xRelative = 1 - position.yRelative;
-		position.y = a;
-		position.yRelative = aRelative;
-	} else {
-		const a: number = position.x,
-			aRelative: number = position.xRelative;
-		position.x = position.y;
-		position.xRelative = position.yRelative;
-		position.y = height - a;
-		position.yRelative = 1 - aRelative;
-	}
-};
-
 export enum GamingCanvasInputType {
 	GAMEPAD,
 	KEYBOARD,

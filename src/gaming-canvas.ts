@@ -1,5 +1,5 @@
 import { GamingCanvasFIFOQueue } from './fifo-queue';
-import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputPositionUnrotate, GamingCanvasInputType } from './input';
+import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from './input';
 import { GamingCanvasGamepadEngine, GamingCanvasInputGamepadState } from './engines/gamepad.engine';
 import { GamingCanvasKeyboardEngine } from './engines/keyboard.engine';
 import { GamingCanvasMouseEngine } from './engines/mouse.engine';
@@ -94,22 +94,35 @@ export class GamingCanvas {
 	private static vibrateInterval: ReturnType<typeof setInterval>;
 
 	/**
-	 * Function forwarding: Reduce enclosures (extra functions in your stack) and temporary variabes (reduce garbage collector demand)
+	 * Function forwarding: Reduce garbage collector demand be reducing temporary variables (best performance for repeating functions
 	 */
 	static {
-		// GamingCanvas.getGamepads = GamingCanvasGamepadEngine.getGamepads;
-
 		GamingCanvas.go__funcForward();
+		GamingCanvas.relativizeInputToCanvas__funcForward();
 	}
 
 	/**
 	 * Rotate, Scale, and callbackReport() as required
 	 */
-	private static go(_?: any, skipCallback?: boolean): GamingCanvasReport {
-		return <any>undefined;
+	private static go(_?: any, __?: boolean): GamingCanvasReport {
+		return <GamingCanvasReport>(<unknown>undefined);
 	}
 	private static go__funcForward(): void {
-		let changed: boolean, initial: boolean, options: GamingCanvasOptions;
+		let changed: boolean,
+			diff: number,
+			aspectRatio: number,
+			devicePixelRatio: number,
+			devicePixelRatioEff: number,
+			heightContainer: number,
+			heightResoluion: number,
+			initial: boolean,
+			now: number,
+			options: GamingCanvasOptions,
+			report: GamingCanvasReport,
+			scaler: number,
+			styleTransform: string,
+			widthContainer: number,
+			widthResolution: number;
 
 		const go = (_?: any, skipCallback?: boolean) => {
 			changed = false;
@@ -135,18 +148,17 @@ export class GamingCanvas {
 			/**
 			 * Size and Scale
 			 */
-			let aspectRatio: number = <number>options.aspectRatio,
-				devicePixelRatio: number = window.devicePixelRatio,
-				devicePixelRatioEff: number = 1 / window.devicePixelRatio,
-				heightContainer: number = (GamingCanvas.elementRotator2.clientWidth / aspectRatio) | 0,
-				heightResoluion: number = (options.resolutionWidthPx ? options.resolutionWidthPx / aspectRatio : heightContainer) | 0,
-				report: GamingCanvasReport = <GamingCanvasReport>{
-					orientation: GamingCanvas.stateOrientation,
-				},
-				scaler: number,
-				styleTransform: string = GamingCanvas.elementContainerCanvas.style.transform,
-				widthContainer: number = GamingCanvas.elementRotator2.clientWidth | 0,
-				widthResolution: number = (options.resolutionWidthPx || widthContainer) | 0;
+			aspectRatio = <number>options.aspectRatio;
+			devicePixelRatio = window.devicePixelRatio;
+			devicePixelRatioEff = 1 / window.devicePixelRatio;
+			heightContainer = (GamingCanvas.elementRotator2.clientWidth / aspectRatio) | 0;
+			heightResoluion = (options.resolutionWidthPx ? options.resolutionWidthPx / aspectRatio : heightContainer) | 0;
+			report = <GamingCanvasReport>{
+				orientation: GamingCanvas.stateOrientation,
+			};
+			styleTransform = GamingCanvas.elementContainerCanvas.style.transform;
+			widthContainer = GamingCanvas.elementRotator2.clientWidth | 0;
+			widthResolution = (options.resolutionWidthPx || widthContainer) | 0;
 
 			// Offset by magic factor, idk
 			if (options.resolutionWidthPx === null && GamingCanvas.stateOrientation !== GamingCanvasOrientation.LANDSCAPE) {
@@ -199,8 +211,8 @@ export class GamingCanvas {
 					if (GamingCanvas.options.callbackReportLimitPerMs === 0) {
 						GamingCanvas.callbackReport(report);
 					} else {
-						let now: number = performance.now(),
-							diff: number = now - GamingCanvas.callbackReportLastInMs;
+						now = performance.now();
+						diff = now - GamingCanvas.callbackReportLastInMs;
 
 						if (diff > <number>GamingCanvas.options.callbackReportLimitPerMs) {
 							clearTimeout(GamingCanvas.callbackReportTimeout);
@@ -471,35 +483,83 @@ export class GamingCanvas {
 	/**
 	 * Inputs are relative to the overlay container, but this will convert it to be relative to the canvas container
 	 */
-	public static relativizeInputToCanvas(input: GamingCanvasInput): GamingCanvasInput {
-		if (
-			input.type === GamingCanvasInputType.GAMEPAD ||
-			input.type === GamingCanvasInputType.KEYBOARD ||
-			GamingCanvas.stateOrientation !== GamingCanvasOrientation.PORTRAIT
-		) {
-			// Nothing to do
-			return input;
-		}
-		const height = GamingCanvas.elementContainerCanvas.clientHeight,
-			width = GamingCanvas.elementContainerCanvas.clientWidth,
-			rotatedLeft: boolean = <boolean>GamingCanvas.options.orientationLeftOnPortait;
+	public static relativizeInputToCanvas(_: GamingCanvasInput): GamingCanvasInput {
+		return <GamingCanvasInput>(<unknown>undefined);
+	}
+	public static relativizeInputToCanvas__funcForward(): void {
+		let a: number,
+			aRelative: number,
+			height: number,
+			position: GamingCanvasInputPosition,
+			positions: GamingCanvasInputPosition[] | undefined,
+			rotatedLeft: boolean,
+			width: number;
 
-		switch (input.type) {
-			case GamingCanvasInputType.MOUSE:
-				GamingCanvasInputPositionUnrotate(height, input.propriatary.position, rotatedLeft, width);
-				break;
-			case GamingCanvasInputType.TOUCH:
-				const positions: GamingCanvasInputPosition[] | undefined = input.propriatary.positions;
+		const relativizeInputToCanvas = (input: GamingCanvasInput) => {
+			if (
+				input.type === GamingCanvasInputType.GAMEPAD ||
+				input.type === GamingCanvasInputType.KEYBOARD ||
+				GamingCanvas.stateOrientation !== GamingCanvasOrientation.PORTRAIT
+			) {
+				// Nothing to do
+				return input;
+			}
 
-				if (positions) {
-					for (let i = 0; i < positions.length; i++) {
-						GamingCanvasInputPositionUnrotate(height, positions[i], rotatedLeft, width);
+			// Set temp variables
+			height = GamingCanvas.elementContainerCanvas.clientHeight;
+			width = GamingCanvas.elementContainerCanvas.clientWidth;
+			rotatedLeft = <boolean>GamingCanvas.options.orientationLeftOnPortait;
+
+			// Fix it
+			switch (input.type) {
+				case GamingCanvasInputType.MOUSE:
+					position = input.propriatary.position;
+
+					// Rotate
+					a = position.x;
+					aRelative = position.xRelative;
+					if (rotatedLeft) {
+						position.x = width - position.y;
+						position.xRelative = 1 - position.yRelative;
+						position.y = a;
+						position.yRelative = aRelative;
+					} else {
+						position.x = position.y;
+						position.xRelative = position.yRelative;
+						position.y = height - a;
+						position.yRelative = 1 - aRelative;
 					}
-				}
-				break;
-		}
+					break;
+				case GamingCanvasInputType.TOUCH:
+					positions = input.propriatary.positions;
 
-		return input;
+					if (positions) {
+						for (let i = 0; i < positions.length; i++) {
+							position = positions[i];
+
+							// Rotate
+							a = position.x;
+							aRelative = position.xRelative;
+							if (rotatedLeft) {
+								position.x = width - position.y;
+								position.xRelative = 1 - position.yRelative;
+								position.y = a;
+								position.yRelative = aRelative;
+							} else {
+								position.x = position.y;
+								position.xRelative = position.yRelative;
+								position.y = height - a;
+								position.yRelative = 1 - aRelative;
+							}
+						}
+					}
+					break;
+			}
+
+			return input;
+		};
+
+		GamingCanvas.relativizeInputToCanvas = relativizeInputToCanvas;
 	}
 
 	/**
