@@ -482,6 +482,8 @@ export class GamingCanvas {
 
 	/**
 	 * Inputs are relative to the overlay container, but this will convert it to be relative to the canvas container
+	 *
+	 * This has to be applied after the input is pulled from the queue as the canvas(es) may have rotated or scaled while the input was waiting in the queue
 	 */
 	public static relativizeInputToCanvas(_input: GamingCanvasInput): GamingCanvasInput {
 		return <GamingCanvasInput>(<unknown>undefined);
