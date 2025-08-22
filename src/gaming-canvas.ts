@@ -486,7 +486,7 @@ export class GamingCanvas {
 	public static relativizeInputToCanvas(_: GamingCanvasInput): GamingCanvasInput {
 		return <GamingCanvasInput>(<unknown>undefined);
 	}
-	public static relativizeInputToCanvas__funcForward(): void {
+	private static relativizeInputToCanvas__funcForward(): void {
 		let a: number,
 			aRelative: number,
 			height: number,
