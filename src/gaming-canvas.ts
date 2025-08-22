@@ -104,7 +104,7 @@ export class GamingCanvas {
 	/**
 	 * Rotate, Scale, and callbackReport() as required
 	 */
-	private static go(_?: any, __?: boolean): GamingCanvasReport {
+	private static go(_?: any, _skipCallback?: boolean): GamingCanvasReport {
 		return <GamingCanvasReport>(<unknown>undefined);
 	}
 	private static go__funcForward(): void {
@@ -483,7 +483,7 @@ export class GamingCanvas {
 	/**
 	 * Inputs are relative to the overlay container, but this will convert it to be relative to the canvas container
 	 */
-	public static relativizeInputToCanvas(_: GamingCanvasInput): GamingCanvasInput {
+	public static relativizeInputToCanvas(_input: GamingCanvasInput): GamingCanvasInput {
 		return <GamingCanvasInput>(<unknown>undefined);
 	}
 	private static relativizeInputToCanvas__funcForward(): void {

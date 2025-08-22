@@ -32,7 +32,7 @@ export class GamingCanvasTouchEngine {
 		GamingCanvasTouchEngine.calc__funcForward();
 	}
 
-	private static calc(_: TouchEvent): GamingCanvasInputPosition[] {
+	private static calc(_event: TouchEvent): GamingCanvasInputPosition[] {
 		return <GamingCanvasInputPosition[]>(<unknown>undefined);
 	}
 
