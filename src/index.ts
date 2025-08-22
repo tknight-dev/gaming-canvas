@@ -12,3 +12,4 @@ export { GamingCanvasInputTouchAction, GamingCanvasInputTouch } from './engines/
 export * from './fifo-queue';
 export * from './input';
 export * from './gaming-canvas';
+export * from './stat';

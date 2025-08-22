@@ -36,7 +36,7 @@ export class GamingCanvasMouseEngine {
 		GamingCanvasMouseEngine.calc__funcForward();
 	}
 
-	private static calc(_: MouseEvent): GamingCanvasInputPosition {
+	private static calc(_event: MouseEvent): GamingCanvasInputPosition {
 		return <GamingCanvasInputPosition>(<unknown>undefined);
 	}
 
