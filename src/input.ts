@@ -30,6 +30,6 @@ export const GamingCanvasInputPositionDistanceRelative = (a: GamingCanvasInputPo
 export enum GamingCanvasInputType {
 	GAMEPAD,
 	KEYBOARD,
-	MOUSE, // has position
-	TOUCH, // has positions
+	MOUSE,
+	TOUCH,
 }
