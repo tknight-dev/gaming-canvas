@@ -195,11 +195,11 @@ export class GamingCanvas {
 
 			// Set the container overlay size
 			if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
-				GamingCanvas.elementContainerOverlay.style.height = GamingCanvas.elementContainerCanvas.style.height;
-				GamingCanvas.elementContainerOverlay.style.width = GamingCanvas.elementContainerCanvas.style.width;
+				GamingCanvas.elementContainerOverlay.style.height = ((devicePixelRatio * report.canvasHeight * scaler) | 0) + 'px';
+				GamingCanvas.elementContainerOverlay.style.width = ((devicePixelRatio * report.canvasWidth * scaler) | 0) + 'px';
 			} else {
-				GamingCanvas.elementContainerOverlay.style.height = GamingCanvas.elementContainerCanvas.style.width;
-				GamingCanvas.elementContainerOverlay.style.width = GamingCanvas.elementContainerCanvas.style.height;
+				GamingCanvas.elementContainerOverlay.style.height = ((devicePixelRatio * report.canvasWidth * scaler) | 0) + 'px';
+				GamingCanvas.elementContainerOverlay.style.width = ((devicePixelRatio * report.canvasHeight * scaler) | 0) + 'px';
 			}
 
 			// Callback
@@ -505,7 +505,6 @@ export class GamingCanvas {
 				return input;
 			}
 
-			// Set temp variables
 			height = GamingCanvas.elementContainerCanvas.clientHeight;
 			width = GamingCanvas.elementContainerCanvas.clientWidth;
 			rotatedLeft = <boolean>GamingCanvas.options.orientationLeftOnPortait;
