@@ -1,6 +1,6 @@
 # Gaming Canvas &middot; ![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)
 
-![Logo](https://app.tknight.dev/docs/gaming-canvas/img/logo.png)
+![Logo](https://app.tknight.dev/docs/gaming-canvas/img/logo.webp)
 
 Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
 
