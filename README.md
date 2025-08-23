@@ -36,11 +36,9 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 Link: [Documentation](https://app.tknight.dev/docs/gaming-canvas/)
 
 - [Quick Start](https://app.tknight.dev/docs/gaming-canvas/)
-- [Tips & Tricks](https://app.tknight.dev/docs/gaming-canvas/category/tips--tricks)
 - [How To](https://app.tknight.dev/docs/gaming-canvas/category/how-to)
-- [Multithreading](https://app.tknight.dev/docs/gaming-canvas/category/multithreading)
-- [Model Definitions](https://app.tknight.dev/docs/gaming-canvas/category/models)
+- [Model Definitions](https://app.tknight.dev/docs/gaming-canvas/category/model-definitions)
+- [Tips & Tricks](https://app.tknight.dev/docs/gaming-canvas/category/tips--tricks)
 - [Troubleshooting](https://app.tknight.dev/docs/gaming-canvas/troubleshooting)
-- [Future Releases](https://app.tknight.dev/docs/gaming-canvas/future-releases)
 
 [![forthebadge](https://img.shields.io/badge/made%20with-%20typescript-C1282D.svg?logo=typescript&style=for-the-badge)](https://www.typescriptlang.org/) [![forthebadge](https://img.shields.io/badge/powered%20by-%20github-7116FB.svg?logo=github&style=for-the-badge)](https://www.github.com/)
