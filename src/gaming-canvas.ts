@@ -827,7 +827,7 @@ export class GamingCanvas {
 		}
 
 		if (state) {
-			await (element || GamingCanvas.elementContainerCanvas).requestFullscreen();
+			await (element || GamingCanvas.elementContainer).requestFullscreen();
 		} else {
 			await document.exitFullscreen();
 		}
