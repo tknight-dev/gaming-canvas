@@ -360,7 +360,7 @@ export class GamingCanvas {
 			GamingCanvas.elementCanvases.push(canvas);
 			GamingCanvas.elementContainerCanvas.appendChild(canvas);
 		}
-		options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvases[0] : options.elementInteractive;
+		options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
 
 		// Element: Canvas Injectables
 		if (options.elementInjectAsCanvas && Array.isArray(options.elementInjectAsCanvas)) {
@@ -494,22 +494,27 @@ export class GamingCanvas {
 			height: number,
 			position: GamingCanvasInputPosition,
 			positions: GamingCanvasInputPosition[] | undefined,
+			rotated: boolean,
 			rotatedLeft: boolean,
+			scaler: number,
 			width: number;
 
 		const relativizeInputToCanvas = (input: GamingCanvasInput) => {
-			if (
-				input.type === GamingCanvasInputType.GAMEPAD ||
-				input.type === GamingCanvasInputType.KEYBOARD ||
-				GamingCanvas.stateOrientation !== GamingCanvasOrientation.PORTRAIT
-			) {
+			if (input.type === GamingCanvasInputType.GAMEPAD || input.type === GamingCanvasInputType.KEYBOARD) {
 				// Nothing to do
 				return input;
 			}
+			rotated = GamingCanvas.stateOrientation !== GamingCanvasOrientation.LANDSCAPE;
+			scaler = GamingCanvas.stateReport.scaler;
 
-			height = GamingCanvas.elementContainerCanvas.clientHeight;
-			width = GamingCanvas.elementContainerCanvas.clientWidth;
-			rotatedLeft = <boolean>GamingCanvas.options.orientationLeftOnPortait;
+			if (rotated) {
+				height = GamingCanvas.elementContainerCanvas.clientHeight;
+				rotatedLeft = <boolean>GamingCanvas.options.orientationLeftOnPortait;
+				width = GamingCanvas.elementContainerCanvas.clientWidth;
+			} else if (scaler === 1) {
+				// Nothing to do
+				return input;
+			}
 
 			// Fix it
 			switch (input.type) {
@@ -517,18 +522,26 @@ export class GamingCanvas {
 					position = input.propriatary.position;
 
 					// Rotate
-					a = position.x;
-					aRelative = position.xRelative;
-					if (rotatedLeft) {
-						position.x = width - position.y;
-						position.xRelative = 1 - position.yRelative;
-						position.y = a;
-						position.yRelative = aRelative;
-					} else {
-						position.x = position.y;
-						position.xRelative = position.yRelative;
-						position.y = height - a;
-						position.yRelative = 1 - aRelative;
+					if (rotated === true) {
+						a = position.x;
+						aRelative = position.xRelative;
+						if (rotatedLeft === true) {
+							position.x = width - position.y;
+							position.xRelative = 1 - position.yRelative;
+							position.y = a;
+							position.yRelative = aRelative;
+						} else {
+							position.x = position.y;
+							position.xRelative = position.yRelative;
+							position.y = height - a;
+							position.yRelative = 1 - aRelative;
+						}
+					}
+
+					// Scale
+					if (scaler !== 1) {
+						position.x = (position.x / scaler) | 0;
+						position.y = (position.y / scaler) | 0;
 					}
 					break;
 				case GamingCanvasInputType.TOUCH:
@@ -538,19 +551,27 @@ export class GamingCanvas {
 						for (let i = 0; i < positions.length; i++) {
 							position = positions[i];
 
-							// Rotate
-							a = position.x;
-							aRelative = position.xRelative;
-							if (rotatedLeft) {
-								position.x = width - position.y;
-								position.xRelative = 1 - position.yRelative;
-								position.y = a;
-								position.yRelative = aRelative;
-							} else {
-								position.x = position.y;
-								position.xRelative = position.yRelative;
-								position.y = height - a;
-								position.yRelative = 1 - aRelative;
+							if (rotated === true) {
+								// Rotate
+								a = position.x;
+								aRelative = position.xRelative;
+								if (rotatedLeft === true) {
+									position.x = width - position.y;
+									position.xRelative = 1 - position.yRelative;
+									position.y = a;
+									position.yRelative = aRelative;
+								} else {
+									position.x = position.y;
+									position.xRelative = position.yRelative;
+									position.y = height - a;
+									position.yRelative = 1 - aRelative;
+								}
+							}
+
+							// Scale
+							if (scaler !== 1) {
+								position.x = (position.x / scaler) | 0;
+								position.y = (position.y / scaler) | 0;
 							}
 						}
 					}
@@ -821,7 +842,7 @@ export class GamingCanvas {
 		options.debug = options.debug === undefined ? false : options.debug === true;
 
 		if (GamingCanvas.elementCanvases) {
-			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementCanvases[0] : options.elementInteractive;
+			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
 		}
 
 		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? false : options.inputGamepadEnable === true;
