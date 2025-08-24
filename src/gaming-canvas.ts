@@ -751,8 +751,10 @@ export class GamingCanvas {
 	 *
 	 * @param bufferId is the number returned by the controlPlay() function
 	 * @param pan is -1 left, 0 center, 1 right
+	 * @param durationInMs is how long it takes to apply the new value completely (default is 0 milliseconds)
+	 * @param callback is triggered when audio or fader is complete
 	 */
-	public static audioControlPan(bufferId: number, pan: number): void {}
+	public static audioControlPan(_bufferId: number, _pan: number, _durationInMs: number = 0, _callback?: (bufferId: number) => void): void {}
 
 	/**
 	 * Suspend playing the audio without ending it, or resume audio where you suspended it
@@ -760,7 +762,7 @@ export class GamingCanvas {
 	 * @param bufferId is the number returned by the controlPlay() function
 	 * @param state true = pause, false = unpause
 	 */
-	public static audioControlPause(bufferId: number, state: boolean): void {}
+	public static audioControlPause(_bufferId: number, _state: boolean): void {}
 
 	/**
 	 * If an audio buffer is available, via the availibility FIFO queue, then the asset will be loaded into the buffer and played from that source
@@ -788,20 +790,22 @@ export class GamingCanvas {
 	 *
 	 * @param bufferId is the number returned by the controlPlay() function
 	 */
-	public static audioControlStop(bufferId: number): void {}
+	public static audioControlStop(_bufferId: number): void {}
 
 	/**
 	 * Set the specific audio instance's volume
 	 *
 	 * @param bufferId is the number returned by the controlPlay() function
 	 * @param volume is between 0 and 1
+	 * @param durationInMs is how long it takes to apply the new value completely (default is 0 milliseconds)
+	 * @param callback is triggered when audio or fader is complete
 	 */
-	public static audioControlVolume(bufferId: number, volume: number): void {}
+	public static audioControlVolume(_bufferId: number, _volume: number, _durationInMs: number = 0, _callback?: (bufferId: number) => void): void {}
 
 	/**
 	 * @param assets Map<identifing number, Blob/DataURL/URL>
 	 */
-	public static async audioLoad(assets: Map<number, string>): Promise<void> {}
+	public static async audioLoad(_assets: Map<number, string>): Promise<void> {}
 
 	public static isAudioMuted(): boolean {
 		return false;
@@ -810,7 +814,7 @@ export class GamingCanvas {
 	/**
 	 * Mute or unmute all audio
 	 */
-	public static audioMute(enable: boolean): void {}
+	public static audioMute(_enable: boolean): void {}
 
 	public static isAudioPermitted(): boolean {
 		return false;
