@@ -4,7 +4,8 @@
         "declarationMap": true,
         "emitDeclarationOnly": true,
         "lib": ["dom", "ESNext"],
-        "outDir": "./dist"
+        "outDir": "./dist",
+        "target": "ESNext"
     },
     "include": ["src/**/*.ts"],
     "exclude": ["node_modules"]
