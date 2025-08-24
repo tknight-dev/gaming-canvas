@@ -175,6 +175,7 @@ export class GamingCanvasEngineAudio {
 
 				if (pan > panCurrent - 0.01 && pan < panCurrent + 0.01) {
 					// The change request is too small
+					callback && callback(buffer.id);
 					return;
 				}
 				durationInMs = Math.max(0, durationInMs);
@@ -183,7 +184,7 @@ export class GamingCanvasEngineAudio {
 				if (durationInMs > GamingCanvasEngineAudio.goIntervalInMs) {
 					const fader: Fader = GamingCanvasEngineAudio.faders[bufferId];
 
-					// Duration can't be twice as long as the audio source is
+					// Duration can't be more than twice as long as the audio source is
 					durationInMs = Math.min((<HTMLAudioElement>GamingCanvasEngineAudio.assets.get(<number>buffer.assetId)).duration * 2000, durationInMs);
 
 					// Set the fader parameters
@@ -201,6 +202,7 @@ export class GamingCanvasEngineAudio {
 					GamingCanvasEngineAudio.fadersActive.add(buffer.id);
 				} else {
 					buffer.panner.pan.setValueAtTime(pan, 0);
+					callback && callback(buffer.id);
 				}
 			}
 		}
@@ -338,12 +340,16 @@ export class GamingCanvasEngineAudio {
 
 				if (volume > volumeCurrent - 0.01 && volume < volumeCurrent + 0.01) {
 					// The change request is too small
+					callback && callback(buffer.id);
 					return;
 				}
 
 				// Don't fade if the request duration is less than the goIntervalInMs
 				if (durationInMs > GamingCanvasEngineAudio.goIntervalInMs) {
 					const fader: Fader = GamingCanvasEngineAudio.faders[bufferId];
+
+					// Duration can't be more than twice as long as the audio source is
+					durationInMs = Math.min((<HTMLAudioElement>GamingCanvasEngineAudio.assets.get(<number>buffer.assetId)).duration * 2000, durationInMs);
 
 					// Set the fader parameters
 					fader.active = true;
@@ -360,6 +366,7 @@ export class GamingCanvasEngineAudio {
 					GamingCanvasEngineAudio.fadersActive.add(buffer.id);
 				} else {
 					buffer.audio.volume = volume;
+					callback && callback(buffer.id);
 				}
 			}
 		}
