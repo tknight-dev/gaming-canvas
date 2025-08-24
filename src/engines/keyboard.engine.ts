@@ -30,17 +30,17 @@ export interface GamingCanvasInputKeyboard extends GamingCanvasInput {
 	};
 }
 
-export class GamingCanvasKeyboardEngine {
+export class GamingCanvasEngineKeyboard {
 	public static active: boolean = true;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 
 	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>): void {
-		GamingCanvasKeyboardEngine.active = true;
-		GamingCanvasKeyboardEngine.queue = queue;
+		GamingCanvasEngineKeyboard.active = true;
+		GamingCanvasEngineKeyboard.queue = queue;
 
 		document.addEventListener('keydown', (event: KeyboardEvent) => {
-			if (GamingCanvasKeyboardEngine.active && !event.repeat) {
-				GamingCanvasKeyboardEngine.queue.push({
+			if (GamingCanvasEngineKeyboard.active && !event.repeat) {
+				GamingCanvasEngineKeyboard.queue.push({
 					propriatary: {
 						action: {
 							code: event.code,
@@ -56,8 +56,8 @@ export class GamingCanvasKeyboardEngine {
 			}
 		});
 		document.addEventListener('keyup', (event: KeyboardEvent) => {
-			if (GamingCanvasKeyboardEngine.active) {
-				GamingCanvasKeyboardEngine.queue.push({
+			if (GamingCanvasEngineKeyboard.active) {
+				GamingCanvasEngineKeyboard.queue.push({
 					propriatary: {
 						action: {
 							code: event.code,

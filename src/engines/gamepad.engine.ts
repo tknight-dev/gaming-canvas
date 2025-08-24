@@ -90,7 +90,7 @@ export interface GamingCanvasInputGamepadState {
 	type: GamingCanvasInputGamepadControllerType;
 }
 
-export class GamingCanvasGamepadEngine {
+export class GamingCanvasEngineGamepad {
 	public static active: boolean = true;
 	private static axesByIdCustom: { [key: number]: number[] } = {};
 	private static buttonsByIdCustom: { [key: number]: boolean[] } = {};
@@ -104,10 +104,10 @@ export class GamingCanvasGamepadEngine {
 	// public static hapticEffect(): void {}
 
 	// public static hapticPulse(idCustom: number, durationInMs: number, hapticActuator: number, intensity: number): void {
-	// 	const gamepad: Gamepad = GamingCanvasGamepadEngine.gamepadByIdCustom[idCustom];
+	// 	const gamepad: Gamepad = GamingCanvasEngineGamepad.gamepadByIdCustom[idCustom];
 
 	// 	if (gamepad) {
-	// 		const hapticActuatorCount: number = GamingCanvasGamepadEngine.statesById[gamepad.id].hapticActuatorCount;
+	// 		const hapticActuatorCount: number = GamingCanvasEngineGamepad.statesById[gamepad.id].hapticActuatorCount;
 
 	// 		if (hapticActuatorCount !== 0) {
 	// 			hapticActuator = Math.max(0, hapticActuator);
@@ -129,9 +129,9 @@ export class GamingCanvasGamepadEngine {
 	// }
 
 	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, deadbandStick: number, deadbandTrigger: number): void {
-		GamingCanvasGamepadEngine.active = true;
-		GamingCanvasGamepadEngine.queue = queue;
-		GamingCanvasGamepadEngine.quit = false;
+		GamingCanvasEngineGamepad.active = true;
+		GamingCanvasEngineGamepad.queue = queue;
+		GamingCanvasEngineGamepad.quit = false;
 
 		/*
 		 * Connection
@@ -143,36 +143,36 @@ export class GamingCanvasGamepadEngine {
 			const gamepad: Gamepad = event.gamepad,
 				connected: boolean = gamepad.connected,
 				id: string = gamepad.id;
-			let state: GamingCanvasInputGamepadState = GamingCanvasGamepadEngine.statesById[id];
+			let state: GamingCanvasInputGamepadState = GamingCanvasEngineGamepad.statesById[id];
 
 			if (state) {
 				state.connected = connected;
 				state.timestamp = gamepad.timestamp;
 			} else {
-				GamingCanvasGamepadEngine.statesById[id] = {
+				GamingCanvasEngineGamepad.statesById[id] = {
 					axisCount: gamepad.axes.length / 2,
 					buttonCount: gamepad.buttons.length,
 					connected: connected,
-					idCustom: GamingCanvasGamepadEngine.counter++,
+					idCustom: GamingCanvasEngineGamepad.counter++,
 					timestamp: gamepad.timestamp,
 					type: GamingCanvasInputGamepadControllerType.UNKNOWN,
 				};
-				state = GamingCanvasGamepadEngine.statesById[id];
+				state = GamingCanvasEngineGamepad.statesById[id];
 
 				const idLowerCase: string = id.toLowerCase();
 				if (idLowerCase.includes('xbox') || idLowerCase.includes('x-box') || idLowerCase.includes('x_box')) {
 					state.type = GamingCanvasInputGamepadControllerType.XBOX;
 				}
 			}
-			GamingCanvasGamepadEngine.axesByIdCustom[state.idCustom] = new Array(gamepad.axes.length).fill(0);
-			GamingCanvasGamepadEngine.buttonsByIdCustom[state.idCustom] = new Array(gamepad.buttons.length).fill(false);
-			GamingCanvasGamepadEngine.gamepadByIdCustom[state.idCustom] = gamepad;
+			GamingCanvasEngineGamepad.axesByIdCustom[state.idCustom] = new Array(gamepad.axes.length).fill(0);
+			GamingCanvasEngineGamepad.buttonsByIdCustom[state.idCustom] = new Array(gamepad.buttons.length).fill(false);
+			GamingCanvasEngineGamepad.gamepadByIdCustom[state.idCustom] = gamepad;
 
 			/*
 			 * Queue
 			 */
-			if (GamingCanvasGamepadEngine.active) {
-				GamingCanvasGamepadEngine.queue.push({
+			if (GamingCanvasEngineGamepad.active) {
+				GamingCanvasEngineGamepad.queue.push({
 					propriatary: {
 						connected: connected,
 						id: id,
@@ -204,20 +204,20 @@ export class GamingCanvasGamepadEngine {
 			timestamp: number = 0,
 			value: number;
 
-		const axesByIdCustom: { [key: number]: number[] } = GamingCanvasGamepadEngine.axesByIdCustom,
-			buttonsByIdCustom: { [key: number]: boolean[] } = GamingCanvasGamepadEngine.buttonsByIdCustom,
-			statesById: { [key: string]: GamingCanvasInputGamepadState } = GamingCanvasGamepadEngine.statesById;
+		const axesByIdCustom: { [key: number]: number[] } = GamingCanvasEngineGamepad.axesByIdCustom,
+			buttonsByIdCustom: { [key: number]: boolean[] } = GamingCanvasEngineGamepad.buttonsByIdCustom,
+			statesById: { [key: string]: GamingCanvasInputGamepadState } = GamingCanvasEngineGamepad.statesById;
 		const scanner = (timestampNow: number) => {
 			// Always request the next animation frame before processing the current one for best performance
-			GamingCanvasGamepadEngine.scannerRequest = requestAnimationFrame(scanner);
+			GamingCanvasEngineGamepad.scannerRequest = requestAnimationFrame(scanner);
 
 			// Limit how often we check for inputs. Controllers can be really chatty on the communication bus.
-			if (GamingCanvasGamepadEngine.active === true && timestampNow - timestamp > 4) {
+			if (GamingCanvasEngineGamepad.active === true && timestampNow - timestamp > 4) {
 				gamepads = navigator.getGamepads();
 				timestamp = timestampNow;
 
 				for (gamepad of gamepads) {
-					if (GamingCanvasGamepadEngine.quit !== true && gamepad !== null) {
+					if (GamingCanvasEngineGamepad.quit !== true && gamepad !== null) {
 						id = gamepad.id;
 						state = statesById[id];
 
@@ -274,7 +274,7 @@ export class GamingCanvasGamepadEngine {
 							}
 
 							if (changedAxes || changedButtons) {
-								GamingCanvasGamepadEngine.queue.push({
+								GamingCanvasEngineGamepad.queue.push({
 									propriatary: {
 										axes: changedAxes ? axes : undefined,
 										buttons: buttonsChanged,
@@ -291,15 +291,15 @@ export class GamingCanvasGamepadEngine {
 				}
 			}
 		};
-		GamingCanvasGamepadEngine.scannerRequest = requestAnimationFrame(scanner);
+		GamingCanvasEngineGamepad.scannerRequest = requestAnimationFrame(scanner);
 	}
 
 	public static getGamepads(): { [key: string]: GamingCanvasInputGamepadState } {
-		return JSON.parse(JSON.stringify(GamingCanvasGamepadEngine.statesById));
+		return JSON.parse(JSON.stringify(GamingCanvasEngineGamepad.statesById));
 	}
 
 	public static shutdown(): void {
-		cancelAnimationFrame(GamingCanvasGamepadEngine.scannerRequest);
-		GamingCanvasGamepadEngine.quit = true;
+		cancelAnimationFrame(GamingCanvasEngineGamepad.scannerRequest);
+		GamingCanvasEngineGamepad.quit = true;
 	}
 }
