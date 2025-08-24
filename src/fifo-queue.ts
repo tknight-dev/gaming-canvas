@@ -14,6 +14,34 @@ export class GamingCanvasFIFOQueue<T> {
 	private limit: number = -1;
 	private overflow: boolean;
 
+	public GamingCanvasFIFOQueue(array?: T[]) {
+		if (array !== undefined && Array.isArray(array)) {
+			let data: T, node: GamingCanvasFIFOQueueNode<T>;
+
+			for (data of array) {
+				node = {
+					data: data,
+					next: undefined,
+				};
+
+				if (this.end) {
+					this.end.next = node;
+					this.end = node;
+				} else {
+					this.end = node;
+					this.start = node;
+				}
+
+				// Reset overflow one-time alarm
+				if (this.overflow) {
+					this.overflow = false;
+				}
+
+				this._length++;
+			}
+		}
+	}
+
 	/**
 	 * Remove all nodes
 	 */
@@ -21,14 +49,6 @@ export class GamingCanvasFIFOQueue<T> {
 		this.end = undefined;
 		this._length = 0;
 		this.start = undefined;
-	}
-
-	public getEnd(): T | undefined {
-		return this.end !== undefined ? this.end.data : undefined;
-	}
-
-	public getStart(): T | undefined {
-		return this.start !== undefined ? this.start.data : undefined;
 	}
 
 	/**
@@ -116,6 +136,7 @@ export class GamingCanvasFIFOQueue<T> {
 	public setLimit(limit: number | null) {
 		this.limit = limit || -1;
 	}
+
 	public isOverflow(): boolean {
 		return this.overflow;
 	}

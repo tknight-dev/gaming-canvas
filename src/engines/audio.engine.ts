@@ -16,6 +16,14 @@ interface Buffer {
 	type?: GamingCanvasAudioType;
 }
 
+interface Fader {
+	audio: HTMLAudioElement;
+	id: number;
+	panner: StereoPannerNode;
+	source: MediaElementAudioSourceNode;
+	type?: GamingCanvasAudioType;
+}
+
 export enum GamingCanvasAudioType {
 	ALL,
 	EFFECT,
@@ -28,10 +36,13 @@ export class GamingCanvasEngineAudio {
 	private static buffersAvailable: GamingCanvasFIFOQueue<Buffer> = new GamingCanvasFIFOQueue<Buffer>();
 	private static callbackIsPermitted: (state: boolean) => void;
 	private static context: AudioContext = new AudioContext();
+	private static enabled: boolean = false;
+	private static faders: Fader[];
 	private static muted: boolean = false;
 	private static permission: boolean = false;
 	private static permissionInterval: ReturnType<typeof setInterval>;
 	private static permissionSample: HTMLAudioElement;
+	private static request: number;
 	private static volumeAll: number = 1;
 	private static volumeEffect: number = 0.8;
 	private static volumeEffectEff: number = GamingCanvasEngineAudio.volumeEffect;
@@ -43,8 +54,9 @@ export class GamingCanvasEngineAudio {
 	 *
 	 * @param bufferId is the number returned by the controlPlay() function
 	 * @param pan is -1 left, 0 center, 1 right
+	 * @param durationInMs is how long it takes to apply the new value completely (default is 0 milliseconds)
 	 */
-	public static controlPan(bufferId: number, pan: number): void {
+	public static controlPan(bufferId: number, pan: number, durationInMs: number = 0): void {
 		if (bufferId < 0 || bufferId >= GamingCanvasEngineAudio.buffers.length) {
 			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlVolume: buffer id ${bufferId} is invalid`);
 		} else {
@@ -158,8 +170,9 @@ export class GamingCanvasEngineAudio {
 	 *
 	 * @param bufferId is the number returned by the controlPlay() function
 	 * @param volume is between 0 and 1
+	 * @param durationInMs is how long it takes to apply the new value completely (default is 0 milliseconds)
 	 */
-	public static controlVolume(bufferId: number, volume: number): void {
+	public static controlVolume(bufferId: number, volume: number, durationInMs: number = 0): void {
 		if (bufferId < 0 || bufferId >= GamingCanvasEngineAudio.buffers.length) {
 			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlVolume: buffer id ${bufferId} is invalid`);
 		} else {
@@ -174,10 +187,17 @@ export class GamingCanvasEngineAudio {
 		}
 	}
 
-	public static initialize(bufferCount: number): void {
+	public static initialize(enable: boolean, bufferCount: number): void {
+		GamingCanvasEngineAudio.enabled = enable;
+		if (!enable) {
+			cancelAnimationFrame(GamingCanvasEngineAudio.request);
+			return;
+		}
+
 		if (GamingCanvasEngineAudio.buffers === undefined) {
 			GamingCanvasEngineAudio.buffers = new Array(bufferCount);
-			GamingCanvasEngineAudio.initializeBuffers(bufferCount);
+			GamingCanvasEngineAudio.faders = new Array(bufferCount);
+			GamingCanvasEngineAudio.initializeBuffersAndFaders(bufferCount);
 		}
 
 		/**
@@ -216,7 +236,7 @@ export class GamingCanvasEngineAudio {
 		}, 1000);
 	}
 
-	private static initializeBuffers(bufferCount: number): void {
+	private static initializeBuffersAndFaders(bufferCount: number): void {
 		let audio: HTMLAudioElement,
 			buffers: Buffer[] = GamingCanvasEngineAudio.buffers,
 			buffersAvailable: GamingCanvasFIFOQueue<Buffer> = GamingCanvasEngineAudio.buffersAvailable,

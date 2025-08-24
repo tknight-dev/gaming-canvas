@@ -19,6 +19,7 @@ import { GamingCanvasEngineTouch } from './engines/touch.engine';
 export class GamingCanvasOptions {
 	aspectRatio?: number;
 	audioBufferCount?: number;
+	audioEnable?: boolean;
 	callbackReportLimitPerMs?: number;
 	canvasCount?: number;
 	debug?: boolean;
@@ -440,7 +441,7 @@ export class GamingCanvas {
 		GamingCanvas.setOptions(options);
 
 		// Engines
-		GamingCanvasEngineAudio.initialize(<number>options.audioBufferCount);
+		GamingCanvasEngineAudio.initialize(<boolean>options.audioEnable, <number>options.audioBufferCount);
 		options.inputGamepadEnable &&
 			GamingCanvasEngineGamepad.initialize(
 				GamingCanvas.inputQueue,
@@ -972,6 +973,7 @@ export class GamingCanvas {
 	private static formatOptions(options: GamingCanvasOptions): GamingCanvasOptions {
 		options.aspectRatio = options.aspectRatio === undefined ? 16 / 9 : Number(options.aspectRatio) || 16 / 9;
 		options.audioBufferCount = options.audioBufferCount === undefined ? 20 : Math.max(5, Math.min(50, Number(options.audioBufferCount)));
+		options.audioEnable = options.audioEnable === undefined ? false : options.audioEnable === true;
 		options.callbackReportLimitPerMs = Math.max(0, Number(options.callbackReportLimitPerMs) || 8);
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
 		options.debug = options.debug === undefined ? false : options.debug === true;
