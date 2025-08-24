@@ -1,9 +1,10 @@
 import { GamingCanvasFIFOQueue } from './fifo-queue';
 import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from './input';
-import { GamingCanvasGamepadEngine, GamingCanvasInputGamepadState } from './engines/gamepad.engine';
-import { GamingCanvasKeyboardEngine } from './engines/keyboard.engine';
-import { GamingCanvasMouseEngine } from './engines/mouse.engine';
-import { GamingCanvasTouchEngine } from './engines/touch.engine';
+import { GamingCanvasAudioType, GamingCanvasEngineAudio } from './engines/audio.engine';
+import { GamingCanvasEngineGamepad, GamingCanvasInputGamepadState } from './engines/gamepad.engine';
+import { GamingCanvasEngineKeyboard } from './engines/keyboard.engine';
+import { GamingCanvasEngineMouse } from './engines/mouse.engine';
+import { GamingCanvasEngineTouch } from './engines/touch.engine';
 
 /**
  * Canvas:
@@ -17,6 +18,8 @@ import { GamingCanvasTouchEngine } from './engines/touch.engine';
 
 export class GamingCanvasOptions {
 	aspectRatio?: number;
+	audioBufferCount?: number;
+	audioEnable?: boolean;
 	callbackReportLimitPerMs?: number;
 	canvasCount?: number;
 	debug?: boolean;
@@ -94,11 +97,27 @@ export class GamingCanvas {
 	private static vibrateInterval: ReturnType<typeof setInterval>;
 
 	/**
-	 * Function forwarding: Reduce garbage collector demand be reducing temporary variables (best performance for repeating functions
+	 * Function Forwarding: Reduce garbage collector demand be reducing temporary variables (best performance for repeating functions)
 	 */
 	static {
 		GamingCanvas.go__funcForward();
 		GamingCanvas.relativizeInputToCanvas__funcForward();
+
+		// Function Forward: Engine Audio
+		GamingCanvas.audioControlPan = GamingCanvasEngineAudio.controlPan;
+		GamingCanvas.audioControlPause = GamingCanvasEngineAudio.controlPause;
+		GamingCanvas.audioControlPlay = GamingCanvasEngineAudio.controlPlay;
+		GamingCanvas.audioControlStop = GamingCanvasEngineAudio.controlStop;
+		GamingCanvas.audioControlVolume = GamingCanvasEngineAudio.controlVolume;
+		GamingCanvas.audioLoad = GamingCanvasEngineAudio.load;
+		GamingCanvas.audioMute = GamingCanvasEngineAudio.mute;
+		GamingCanvas.isAudioMuted = GamingCanvasEngineAudio.isMuted;
+		GamingCanvas.isAudioPermitted = GamingCanvasEngineAudio.isPermitted;
+		GamingCanvas.audioVolumeGlobal = GamingCanvasEngineAudio.volumeGlobal;
+		GamingCanvas.setCallbackIsAudioPermitted = GamingCanvasEngineAudio.setCallbackIsPermitted;
+
+		// Function Forward: Engine Gamepad
+		GamingCanvas.getGamepads = GamingCanvasEngineGamepad.getGamepads;
 	}
 
 	/**
@@ -306,7 +325,7 @@ export class GamingCanvas {
 			});
 		} else {
 			// Stop active processes
-			GamingCanvasGamepadEngine.shutdown();
+			GamingCanvasEngineGamepad.shutdown();
 
 			// Clear old elements and listeners
 			GamingCanvas.elementContainer.innerText = '';
@@ -422,22 +441,23 @@ export class GamingCanvas {
 		GamingCanvas.setOptions(options);
 
 		// Engines
+		GamingCanvasEngineAudio.initialize(<boolean>options.audioEnable, <number>options.audioBufferCount);
 		options.inputGamepadEnable &&
-			GamingCanvasGamepadEngine.initialize(
+			GamingCanvasEngineGamepad.initialize(
 				GamingCanvas.inputQueue,
 				<number>options.inputGamepadDeadbandStick,
 				<number>options.inputGamepadDeadbandTrigger,
 			);
-		options.inputKeyboardEnable && GamingCanvasKeyboardEngine.initialize(GamingCanvas.inputQueue);
+		options.inputKeyboardEnable && GamingCanvasEngineKeyboard.initialize(GamingCanvas.inputQueue);
 		options.inputMouseEnable &&
-			GamingCanvasMouseEngine.initialize(
+			GamingCanvasEngineMouse.initialize(
 				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1], // Use the top most canvas
 				<HTMLElement>options.elementInteractive,
 				GamingCanvas.inputQueue,
 				<boolean>options.inputMousePreventContextMenu,
 			);
 		options.inputTouchEnable &&
-			GamingCanvasTouchEngine.initialize(
+			GamingCanvasEngineTouch.initialize(
 				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1], // Use the top most canvas
 				<HTMLElement>options.elementInteractive,
 				<number>options.inputLimitPerMs,
@@ -727,11 +747,95 @@ export class GamingCanvas {
 	}
 
 	/**
+	 * Set the specific audio instance's volume
+	 *
+	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param pan is -1 left, 0 center, 1 right
+	 * @param durationInMs is how long it takes to apply the new value completely (default is 0 milliseconds)
+	 * @param callback is triggered when audio or fader is complete
+	 */
+	public static audioControlPan(_bufferId: number, _pan: number, _durationInMs: number = 0, _callback?: (bufferId: number) => void): void {}
+
+	/**
+	 * Suspend playing the audio without ending it, or resume audio where you suspended it
+	 *
+	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param state true = pause, false = unpause
+	 */
+	public static audioControlPause(_bufferId: number, _state: boolean): void {}
+
+	/**
+	 * If an audio buffer is available, via the availibility FIFO queue, then the asset will be loaded into the buffer and played from that source
+	 *
+	 * @param effect (default is true) [false implies music]
+	 * @param loop (default is false)
+	 * @param pan is -1 left, 0 center, 1 right (default is 0)
+	 * @param positionInS is between 0 and the duration of the audio asset in seconds (default is 0)
+	 * @param volume is between 0 and 1 (default is 1)
+	 * @return is bufferId, use this to modify the active audio (null on failure)
+	 */
+	public static async audioControlPlay(
+		_assetId: number,
+		_effect: boolean = true,
+		_loop: boolean = false,
+		_pan: number = 0,
+		_positionInS: number = 0,
+		_volume: number = 1,
+	): Promise<number | null> {
+		return null;
+	}
+
+	/**
+	 * Stop the audio and return the buffer to the availability FIFO queue
+	 *
+	 * @param bufferId is the number returned by the controlPlay() function
+	 */
+	public static audioControlStop(_bufferId: number): void {}
+
+	/**
+	 * Set the specific audio instance's volume
+	 *
+	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param volume is between 0 and 1
+	 * @param durationInMs is how long it takes to apply the new value completely (default is 0 milliseconds)
+	 * @param callback is triggered when audio or fader is complete
+	 */
+	public static audioControlVolume(_bufferId: number, _volume: number, _durationInMs: number = 0, _callback?: (bufferId: number) => void): void {}
+
+	/**
+	 * @param assets Map<identifing number, Blob/DataURL/URL>
+	 */
+	public static async audioLoad(_assets: Map<number, string>): Promise<void> {}
+
+	public static isAudioMuted(): boolean {
+		return false;
+	}
+
+	/**
+	 * Mute or unmute all audio
+	 */
+	public static audioMute(_enable: boolean): void {}
+
+	public static isAudioPermitted(): boolean {
+		return false;
+	}
+
+	/**
+	 * @param volume must be between 0 and 1
+	 */
+	public static audioVolumeGlobal(_volume: number, _type: GamingCanvasAudioType) {}
+
+	/**
 	 * @return is undefined if not initialized yet
 	 */
 	public static getCanvases(): HTMLCanvasElement[] {
 		return GamingCanvas.elementCanvases;
 	}
+
+	/**
+	 * Get notified when the browser toggles the permission to play audio
+	 */
+	public static setCallbackIsAudioPermitted(callbackIsPermitted: (state: boolean) => void): void {}
 
 	/**
 	 * gos if the browser is in fullscreen mode or not
@@ -816,10 +920,10 @@ export class GamingCanvas {
 		active = active === true;
 		clearInputQueue && GamingCanvas.inputQueue.clear();
 
-		GamingCanvasMouseEngine.active = active;
-		GamingCanvasKeyboardEngine.active = active;
-		GamingCanvasMouseEngine.active = active;
-		GamingCanvasTouchEngine.active = active;
+		GamingCanvasEngineMouse.active = active;
+		GamingCanvasEngineKeyboard.active = active;
+		GamingCanvasEngineMouse.active = active;
+		GamingCanvasEngineTouch.active = active;
 
 		clearInputQueue && GamingCanvas.inputQueue.clear();
 	}
@@ -872,6 +976,8 @@ export class GamingCanvas {
 
 	private static formatOptions(options: GamingCanvasOptions): GamingCanvasOptions {
 		options.aspectRatio = options.aspectRatio === undefined ? 16 / 9 : Number(options.aspectRatio) || 16 / 9;
+		options.audioBufferCount = options.audioBufferCount === undefined ? 20 : Math.max(5, Math.min(50, Number(options.audioBufferCount)));
+		options.audioEnable = options.audioEnable === undefined ? false : options.audioEnable === true;
 		options.callbackReportLimitPerMs = Math.max(0, Number(options.callbackReportLimitPerMs) || 8);
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
 		options.debug = options.debug === undefined ? false : options.debug === true;
@@ -971,6 +1077,6 @@ export class GamingCanvas {
 	 * @return object key is gamepadId
 	 */
 	public static getGamepads(): { [key: string]: GamingCanvasInputGamepadState } {
-		return GamingCanvasGamepadEngine.getGamepads();
+		return <{ [key: string]: GamingCanvasInputGamepadState }>(<unknown>undefined);
 	}
 }

@@ -1,3 +1,5 @@
+export { GamingCanvasAudioType } from './engines/audio.engine';
+export * from './double-linked-list';
 export {
 	GamingCanvasInputGamepad,
 	GamingCanvasInputGamepadControllerType,
