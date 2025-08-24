@@ -1,4 +1,4 @@
-import { GamingCanvasDoubleLinkedList, GamingCanvasDoubleLinkedListNode } from '../double-linked-list';
+import { GamingCanvasDoubleLinkedListNode } from '../double-linked-list';
 import { GamingCanvasFIFOQueue } from '../fifo-queue';
 
 /**
