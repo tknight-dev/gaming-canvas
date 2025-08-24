@@ -42,7 +42,6 @@ export enum GamingCanvasAudioType {
 
 // Ensures that the callback doesn't block the animationFrame loop
 const faderCallback = (bufferId: number, callback: (bufferId: number) => void, faderInternal: Fader, pan: boolean) => {
-	console.log('faderCallback');
 	if (pan) {
 		faderInternal.panCallback = undefined;
 	} else {
@@ -125,7 +124,6 @@ export class GamingCanvasEngineAudio {
 
 						if (fader.panSteps === 0) {
 							buffer.panner.pan.setValueAtTime(fader.panRequested, 0);
-							console.log('FINAL: pan');
 							fader.panCallback !== undefined && faderCallback(faderId, fader.panCallback, fader, true);
 						} else {
 							buffer.panner.pan.setValueAtTime(Math.max(-1, Math.min(1, buffer.panner.pan.value + fader.panStepValue)), 0);
@@ -138,7 +136,6 @@ export class GamingCanvasEngineAudio {
 
 						if (fader.volumeSteps === 0) {
 							buffer.audio.volume = fader.volumeRequested;
-							console.log('FINAL: volume');
 							fader.volumeCallback !== undefined && faderCallback(faderId, fader.volumeCallback, fader, false);
 						} else {
 							buffer.audio.volume = Math.max(0, Math.min(1, buffer.audio.volume + fader.volumeStepValue));
