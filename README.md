@@ -18,9 +18,9 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 - **Fullscreen**: Quickly fullscreen your game
 - **Inputs**: Quickly gives you access to **Gamepad**, **Keyboard**, **Mouse**, and **Touch** via a serialized (FIFO) input queue
     - Enable or disable any input type you want
-    - Gamepad: supports any controller type. This library includes Xbox compatible controller detection by providing mapping for easy axes and buttons use
-    - Mouse: supports left, right, and wheel based inputs
-    - Touch: supports as many individual inputs as your screen can support
+    - Gamepad: Support currently excludes triggers due to different browser's bugs/implementations of the [Gamepad API](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API)
+    - Mouse: Supports left, right, and wheel based inputs
+    - Touch: Supports as many individual inputs as your screen can support
 - **Layers**: Specify how many layers you want to optimize your game for. It can generate multiple canvases for background, foreground, overlay-1, etc, etc
     - Send each layer to a different [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to dedicate a thread to each canvas element (massive performance gains)
 - **Lists**: Provides `List` implementions where `Array` performance faulters
