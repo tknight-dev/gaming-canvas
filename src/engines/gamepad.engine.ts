@@ -90,7 +90,6 @@ export class GamingCanvasEngineGamepad {
 					timestamp: gamepad.timestamp,
 				};
 				state = GamingCanvasEngineGamepad.statesByIndex[index];
-				console.log('state', state);
 			}
 			GamingCanvasEngineGamepad.axesByIndex[index] = new Array(4).fill(0);
 			GamingCanvasEngineGamepad.buttonsByIndex[index] = new Array(gamepad.buttons.length).fill(false);
