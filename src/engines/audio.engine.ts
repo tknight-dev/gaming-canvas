@@ -70,7 +70,7 @@ export class GamingCanvasEngineAudio {
 	private static buffers: Buffer[];
 	private static buffersAvailable: GamingCanvasFIFOQueue<Buffer> = new GamingCanvasFIFOQueue();
 	private static callbackIsPermitted: (state: boolean) => void;
-	private static context: AudioContext = new AudioContext();
+	private static context: AudioContext;
 	private static enabled: boolean = false;
 	private static faders: Fader[];
 	private static fadersActive: Set<number> = new Set();
@@ -369,7 +369,14 @@ export class GamingCanvasEngineAudio {
 		}
 	}
 
-	public static initialize(enable: boolean, bufferCount: number): void {
+	public static isContext(): boolean {
+		return GamingCanvasEngineAudio.context !== undefined;
+	}
+
+	public static initialize(enable: boolean, bufferCount: number, audioContext?: AudioContext): void {
+		if (audioContext) {
+			GamingCanvasEngineAudio.context = audioContext;
+		}
 		if (!enable) {
 			GamingCanvasEngineAudio.enabled = false;
 			cancelAnimationFrame(GamingCanvasEngineAudio.request);
