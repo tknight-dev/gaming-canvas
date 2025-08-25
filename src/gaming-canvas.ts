@@ -27,8 +27,6 @@ export class GamingCanvasOptions {
 	elementInjectAsCanvas?: HTMLElement[];
 	elementInjectAsOverlay?: HTMLElement[];
 	inputGamepadEnable?: boolean;
-	inputGamepadDeadbandStick?: number;
-	inputGamepadDeadbandTrigger?: number;
 	inputKeyboardEnable?: boolean;
 	inputMouseEnable?: boolean;
 	inputMousePreventContextMenu?: boolean;
@@ -459,12 +457,7 @@ export class GamingCanvas {
 			<number>options.audioBufferCount,
 			GamingCanvasEngineAudio.isContext() ? undefined : new AudioContext(),
 		);
-		options.inputGamepadEnable &&
-			GamingCanvasEngineGamepad.initialize(
-				GamingCanvas.inputQueue,
-				<number>options.inputGamepadDeadbandStick,
-				<number>options.inputGamepadDeadbandTrigger,
-			);
+		options.inputGamepadEnable && GamingCanvasEngineGamepad.initialize(GamingCanvas.inputQueue);
 		options.inputKeyboardEnable && GamingCanvasEngineKeyboard.initialize(GamingCanvas.inputQueue);
 		options.inputMouseEnable &&
 			GamingCanvasEngineMouse.initialize(
@@ -1023,10 +1016,6 @@ export class GamingCanvas {
 		}
 
 		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? false : options.inputGamepadEnable === true;
-		options.inputGamepadDeadbandStick =
-			options.inputGamepadDeadbandStick === undefined ? 0.08 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadbandStick) || 0));
-		options.inputGamepadDeadbandTrigger =
-			options.inputGamepadDeadbandTrigger === undefined ? 0.01 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadbandTrigger) || 0));
 		options.inputKeyboardEnable = options.inputKeyboardEnable === undefined ? false : options.inputKeyboardEnable === true;
 		options.inputMouseEnable = options.inputMouseEnable === undefined ? false : options.inputMouseEnable === true;
 		options.inputMousePreventContextMenu = options.inputMousePreventContextMenu === undefined ? false : options.inputMousePreventContextMenu === true;
