@@ -1,4 +1,6 @@
 /**
+ * IE a DLL (Double-Linked-List)
+ *
  * @author tknight-dev
  */
 
@@ -13,7 +15,7 @@ export class GamingCanvasDoubleLinkedList<T> {
 	private start: GamingCanvasDoubleLinkedListNode<T> | undefined = undefined;
 	private _length: number = 0;
 
-	public GamingCanvasDoubleLinkedList(array?: T[]) {
+	public constructor(array?: T[]) {
 		if (array !== undefined && Array.isArray(array)) {
 			let data: T, node: GamingCanvasDoubleLinkedListNode<T>;
 
@@ -162,6 +164,14 @@ export class GamingCanvasDoubleLinkedList<T> {
 		return array;
 	}
 
+	public toJSON(): string {
+		return JSON.stringify(this.toArray());
+	}
+
+	public toString(): string {
+		return this.toArray().toString();
+	}
+
 	public get length(): number {
 		return this._length;
 	}
@@ -173,4 +183,26 @@ export class GamingCanvasDoubleLinkedList<T> {
 			node = node.next;
 		}
 	}
+
+	[Symbol.iterator] = () => {
+		let i: number = 0,
+			length: number = this.length,
+			node: GamingCanvasDoubleLinkedListNode<T> | undefined = this.start;
+
+		return {
+			next() {
+				if (length === 0 || i === length) {
+					return {
+						done: true,
+					};
+				} else {
+					if (i !== 0) {
+						node = (<GamingCanvasDoubleLinkedListNode<T>>node).next;
+					}
+					i++;
+					return { value: node, done: false };
+				}
+			},
+		};
+	};
 }

@@ -33,6 +33,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 - **Resolution**: Use a fixed resolution to optimize your FPS (it still scales to fill the screen like a regular video game would)
     - Dimensions are always rounded down to the nearest pixel to improve performance
     - Scaling uses the css `transform: scale(x)` function which your browser (CPU) offloads to your GPU (best performance)
+    - Use the `aspectRatio` option to fix your display to something like `1 / 1 `, `4 / 3`, and `16 / 9` (the default)
 - **Vibration**: Set vibration (think mobile device vibration during an incoming phone call) for single use or repeating patterns
     - Not supported by all browsers ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API))
 - **Visibility**: Quickly know if your game needs to be paused (browser minimized or switched to new tab)

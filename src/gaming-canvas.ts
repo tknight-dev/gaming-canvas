@@ -127,11 +127,14 @@ export class GamingCanvas {
 		return <GamingCanvasReport>(<unknown>undefined);
 	}
 	private static go__funcForward(): void {
-		let changed: boolean,
-			diff: number,
-			aspectRatio: number,
+		let aspectRatio: number,
+			center: boolean,
+			changed: boolean,
 			devicePixelRatio: number,
 			devicePixelRatioEff: number,
+			diff: number,
+			domRectContainerCanvas: DOMRect,
+			domRectRotator2: DOMRect,
 			heightContainer: number,
 			heightResolution: number,
 			initial: boolean,
@@ -221,25 +224,35 @@ export class GamingCanvas {
 				GamingCanvas.elementContainerOverlay.style.width = ((devicePixelRatio * report.canvasHeight * scaler) | 0) + 'px';
 			}
 
-			// This is a hacky way to fix portrait, veritical alignment, in fullscreen, and only on mobile device browser versions
-			if (
+			/*
+			 * Centering (if required)
+			 */
+			center = false;
+			if (options.resolutionWidthPx !== null && options.resolutionScaleToFit !== true) {
+				center = true;
+			} else if (
 				GamingCanvas.stateFullscreen === true &&
 				GamingCanvas.stateOrientation === GamingCanvasOrientation.PORTRAIT &&
 				GamingCanvas.isMobileOrTablet()
 			) {
-				const domRectContainerCanvas: DOMRect = GamingCanvas.elementContainerCanvas.getBoundingClientRect(),
-					domRectRotator2: DOMRect = GamingCanvas.elementRotator2.getBoundingClientRect();
+				// This is a hacky way to fix portrait, veritical alignment, in fullscreen, and only on mobile device browser versions
+				center = true;
+			}
 
-				if (domRectContainerCanvas.height < domRectRotator2.height) {
-					GamingCanvas.elementContainerCanvas.style.marginTop = (domRectRotator2.height - domRectContainerCanvas.height) / 2 + 'px';
-				} else {
-					GamingCanvas.elementContainerCanvas.style.marginTop = '0';
-				}
+			if (center === true) {
+				domRectContainerCanvas = GamingCanvas.elementContainerCanvas.getBoundingClientRect();
+				domRectRotator2 = GamingCanvas.elementRotator2.getBoundingClientRect();
+
+				GamingCanvas.elementContainerCanvas.style.marginLeft = (domRectRotator2.width - domRectContainerCanvas.width) / 2 + 'px';
+				GamingCanvas.elementContainerCanvas.style.marginTop = (domRectRotator2.height - domRectContainerCanvas.height) / 2 + 'px';
 			} else {
+				GamingCanvas.elementContainerCanvas.style.marginLeft = '0';
 				GamingCanvas.elementContainerCanvas.style.marginTop = '0';
 			}
 
-			// Callback
+			/*
+			 * Callback
+			 */
 			GamingCanvas.stateReport = report;
 			if (!skipCallback && GamingCanvas.callbackReport) {
 				if (changed || initial || report.canvasHeight !== GamingCanvas.stateHeight) {
@@ -943,22 +956,27 @@ export class GamingCanvas {
 	/**
 	 * @param element use this to fullscreen something other than the canvas element. Not needed when exiting fullscreen.
 	 */
-	public static async setFullscreen(state: boolean, element?: HTMLElement): Promise<void> {
+	public static async setFullscreen(state: boolean, element?: HTMLElement): Promise<boolean> {
 		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setFullscreen: not initialized yet');
-			return;
-		}
-		if (GamingCanvas.stateFullscreen === state) {
-			return;
+			return true;
+		} else if (GamingCanvas.stateFullscreen === state) {
+			return true;
 		}
 
 		if (state) {
-			await (element || GamingCanvas.elementContainer).requestFullscreen();
+			try {
+				await (element || GamingCanvas.elementContainer).requestFullscreen();
+				GamingCanvas.stateFullscreen = state;
+				return true;
+			} catch (error) {
+				return false;
+			}
 		} else {
 			await document.exitFullscreen();
+			GamingCanvas.stateFullscreen = state;
+			return true;
 		}
-
-		GamingCanvas.stateFullscreen = state;
 	}
 
 	// detectmobilebrowsers.com | unlicense | 'This is free and unencumbered software released into the public domain.' [08/23/25]
