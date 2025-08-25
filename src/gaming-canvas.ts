@@ -1053,6 +1053,10 @@ export class GamingCanvas {
 		}
 	}
 
+	public static isLandscape(): boolean {
+		return GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE;
+	}
+
 	public static getReport(): GamingCanvasReport {
 		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > getReport: not initialized yet');

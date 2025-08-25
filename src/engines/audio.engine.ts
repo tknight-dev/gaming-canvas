@@ -242,6 +242,11 @@ export class GamingCanvasEngineAudio {
 		positionInS: number = 0,
 		volume: number = 1,
 	): Promise<number | null> {
+		if (GamingCanvasEngineAudio.enabled !== true) {
+			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPlay: audio not enabled [see options]`);
+			return null;
+		}
+
 		const asset: HTMLAudioElement | undefined = GamingCanvasEngineAudio.assets.get(assetId);
 		if (asset === undefined) {
 			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPlay: assetId ${assetId} is invalid`);
