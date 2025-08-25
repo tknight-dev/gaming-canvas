@@ -956,19 +956,24 @@ export class GamingCanvas {
 	/**
 	 * @param element use this to fullscreen something other than the canvas element. Not needed when exiting fullscreen.
 	 */
-	public static async setFullscreen(state: boolean, element?: HTMLElement): Promise<void> {
+	public static async setFullscreen(state: boolean, element?: HTMLElement): Promise<boolean> {
 		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setFullscreen: not initialized yet');
-			return;
-		}
-		if (GamingCanvas.stateFullscreen === state) {
-			return;
+			return true;
+		} else if (GamingCanvas.stateFullscreen === state) {
+			return true;
 		}
 
 		if (state) {
-			await (element || GamingCanvas.elementContainer).requestFullscreen();
+			try {
+				await (element || GamingCanvas.elementContainer).requestFullscreen();
+				return true;
+			} catch (error) {
+				return false;
+			}
 		} else {
 			await document.exitFullscreen();
+			return true;
 		}
 
 		GamingCanvas.stateFullscreen = state;
