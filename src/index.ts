@@ -2,10 +2,9 @@ export { GamingCanvasAudioType } from './engines/audio.engine';
 export * from './double-linked-list';
 export {
 	GamingCanvasInputGamepad,
-	GamingCanvasInputGamepadControllerType,
-	GamingCanvasInputGamepadControllerTypeMapAxes,
-	GamingCanvasInputGamepadControllerTypeMappedAxes,
-	GamingCanvasInputGamepadControllerTypeXboxButtons,
+	GamingCanvasInputGamepadControllerAxes,
+	GamingCanvasInputGamepadControllerAxesMapper,
+	GamingCanvasInputGamepadControllerButtons,
 	GamingCanvasInputGamepadState,
 } from './engines/gamepad.engine';
 export { GamingCanvasInputKeyboardAction, GamingCanvasInputKeyboard } from './engines/keyboard.engine';

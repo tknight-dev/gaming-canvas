@@ -10,24 +10,20 @@ export interface GamingCanvasInputGamepad extends GamingCanvasInput {
 		axes?: number[];
 		buttons?: { [key: number]: boolean };
 		connected: boolean;
+		device: string;
 		id: string;
 		idCustom: number;
-		type: GamingCanvasInputGamepadControllerType;
+		vendor: string;
 	};
-}
-
-export enum GamingCanvasInputGamepadControllerType {
-	UNKNOWN,
-	XBOX,
 }
 
 /**
  * Convert raw axes array to something identified nicely
  *
- * @return null if the mapping failed (EG tried to map an unsupported controller type or a controller is registering as an xbox controller but isn't actually an xbox controller)
+ * @return null if the mapping failed
  */
-export const GamingCanvasInputGamepadControllerTypeMapAxes = (input: GamingCanvasInputGamepad): GamingCanvasInputGamepadControllerTypeMappedAxes | null => {
-	if (input.propriatary.type === GamingCanvasInputGamepadControllerType.XBOX) {
+export const GamingCanvasInputGamepadControllerAxesMapper = (input: GamingCanvasInputGamepad): GamingCanvasInputGamepadControllerAxes | null => {
+	if (input.propriatary.vendor !== '?') {
 		const axes: number[] = <number[]>input.propriatary.axes;
 
 		try {
@@ -41,19 +37,19 @@ export const GamingCanvasInputGamepadControllerTypeMapAxes = (input: GamingCanva
 			};
 		} catch (error) {
 			console.error(
-				`GamingCanvas > GamingCanvasInputGamepadControllerTypeMapAxes: failed [id=${input.propriatary.id}, type=${GamingCanvasInputGamepadControllerType[input.type]}]`,
+				`GamingCanvas > GamingCanvasInputGamepadControllerAxesMapper: failed [id=${input.propriatary.id}, device=${input.propriatary.device}, vendor=${input.propriatary.vendor}]`,
 			);
 			return null;
 		}
 	} else {
 		console.error(
-			`GamingCanvas > GamingCanvasInputGamepadControllerTypeMapAxes: unsupported [id=${input.propriatary.id}, type=${GamingCanvasInputGamepadControllerType[input.type]}]`,
+			`GamingCanvas > GamingCanvasInputGamepadControllerAxesMapper: unsupported [id=${input.propriatary.id}, device=${input.propriatary.device}, vendor=${input.propriatary.vendor}]`,
 		);
 		return null;
 	}
 };
 
-export interface GamingCanvasInputGamepadControllerTypeMappedAxes {
+export interface GamingCanvasInputGamepadControllerAxes {
 	stickLeftX: number;
 	stickLeftY: number;
 	stickRightX: number;
@@ -62,32 +58,37 @@ export interface GamingCanvasInputGamepadControllerTypeMappedAxes {
 	triggerRight: number;
 }
 
-export enum GamingCanvasInputGamepadControllerTypeXboxButtons {
-	A = 0,
-	B = 1,
-	BUMPER_LEFT = 4,
-	BUMPER_RIGHT = 5,
-	DPAD_DOWN = 13,
-	DPAD_LEFT = 14,
-	DPAD_RIGHT = 15,
-	DPAD_UP = 12,
-	HOME = 16,
-	MENU = 9,
-	SHARE = 17,
-	STICK_LEFT = 10,
-	STICK_RIGHT = 11,
-	VIEW = 8,
-	X = 3,
-	Y = 2,
+/**
+ * Format: XboxName__PlaystationName
+ */
+export enum GamingCanvasInputGamepadControllerButtons {
+	A__X = 0,
+	B__O = 1,
+	BUMPER__LEFT = 4,
+	BUMPER__RIGHT = 5,
+	DPAD__DOWN = 13,
+	DPAD__LEFT = 14,
+	DPAD__RIGHT = 15,
+	DPAD__UP = 12,
+	HOME__HOME = 16,
+	MENU__OPTIONS = 9,
+	SHARE__ = 17,
+	STICK__LEFT = 10,
+	STICK__RIGHT = 11,
+	VIEW__SHARE = 8,
+	X__TRIANGE = 3,
+	Y__SQUARE = 2,
 }
 
 export interface GamingCanvasInputGamepadState {
 	axisCount: number;
 	buttonCount: number;
 	connected: boolean;
+	description: string;
+	device: string;
 	idCustom: number;
 	timestamp: number;
-	type: GamingCanvasInputGamepadControllerType;
+	vendor: string;
 }
 
 export class GamingCanvasEngineGamepad {
@@ -153,16 +154,13 @@ export class GamingCanvasEngineGamepad {
 					axisCount: gamepad.axes.length / 2,
 					buttonCount: gamepad.buttons.length,
 					connected: connected,
+					description: id.substring(9, id.length).replace('-', ''),
+					device: id.substring(5, 9).toUpperCase(),
 					idCustom: GamingCanvasEngineGamepad.counter++,
 					timestamp: gamepad.timestamp,
-					type: GamingCanvasInputGamepadControllerType.UNKNOWN,
+					vendor: id.substring(0, 4).toUpperCase(),
 				};
 				state = GamingCanvasEngineGamepad.statesById[id];
-
-				const idLowerCase: string = id.toLowerCase();
-				if (idLowerCase.includes('xbox') || idLowerCase.includes('x-box') || idLowerCase.includes('x_box')) {
-					state.type = GamingCanvasInputGamepadControllerType.XBOX;
-				}
 			}
 			GamingCanvasEngineGamepad.axesByIdCustom[state.idCustom] = new Array(gamepad.axes.length).fill(0);
 			GamingCanvasEngineGamepad.buttonsByIdCustom[state.idCustom] = new Array(gamepad.buttons.length).fill(false);
@@ -175,9 +173,10 @@ export class GamingCanvasEngineGamepad {
 				GamingCanvasEngineGamepad.queue.push({
 					propriatary: {
 						connected: connected,
+						device: state.device,
 						id: id,
 						idCustom: state.idCustom,
-						type: state.type,
+						vendor: state.vendor,
 					},
 					type: GamingCanvasInputType.GAMEPAD,
 				});
@@ -232,22 +231,19 @@ export class GamingCanvasEngineGamepad {
 							for (i = 0; i < gamepad.axes.length; i++) {
 								value = gamepad.axes[i];
 
-								// Xbox specific adjustments
-								if (state.type === GamingCanvasInputGamepadControllerType.XBOX) {
-									if (i < 6) {
-										// Apply to sticks
-										if (value > -deadbandStick && value < deadbandStick) {
-											value = 0;
-										} else {
-											value *= -1;
-										}
+								if (i < 6) {
+									// Apply to sticks
+									if (value > -deadbandStick && value < deadbandStick) {
+										value = 0;
 									} else {
-										// Apply to triggers
-										value = (value + 1) / 2; // convert range from -1-to-1 to 0-to-1
+										value *= -1;
+									}
+								} else {
+									// Apply to triggers
+									value = (value + 1) / 2; // convert range from -1-to-1 to 0-to-1
 
-										if (value < deadbandTrigger) {
-											value = 0;
-										}
+									if (value < deadbandTrigger) {
+										value = 0;
 									}
 								}
 
@@ -279,9 +275,10 @@ export class GamingCanvasEngineGamepad {
 										axes: changedAxes ? axes : undefined,
 										buttons: buttonsChanged,
 										connected: gamepad.connected,
+										device: state.device,
 										id: id,
 										idCustom: idCustom,
-										type: state.type,
+										vendor: state.vendor,
 									},
 									type: GamingCanvasInputType.GAMEPAD,
 								});
