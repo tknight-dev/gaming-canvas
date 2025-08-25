@@ -13,7 +13,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 - **Audio**: The built in audio system provides buffers which allow you play multiple audio files at the same time (even the same audio file)
     - Quickly update the pan and volume of the effect or music depending on your game's environment!
     - Use faders to automatically evolve your pan and volume values to your desired settings over a duration of milliseconds
-        - User fader callback chaining to perfectly time more complicated pan and volume changes over a series of actions
+        - Use fader callback chaining to perfectly time more complicated pan and volume changes over a series of actions
 - **DPI**: Supports high/low DPI screens ([devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio))
 - **Fullscreen**: Quickly fullscreen your game
 - **Inputs**: Quickly gives you access to **Gamepad**, **Keyboard**, **Mouse**, and **Touch** via a serialized (FIFO) input queue
@@ -26,7 +26,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 - **Lists**: Provides `List` implementions where `Array` performance faulters
     - Double-Linked-List
     - FIFO Queue (Single-Linked-List without `popEnd()` or `pushStart()`)
-- **Lightweight**: Compiled/minified library is **~25kb**
+- **Lightweight**: Compiled/minified library is **~30kb**
 - **Mobile**: Mobile devices are fully supported
 - **Orientation**: Auto rotate for maximum screen usage or lock it to a specific orientation (Portrait/Landscape)
     - [Screen Orientation](https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock) locking isn't supported by all browsers

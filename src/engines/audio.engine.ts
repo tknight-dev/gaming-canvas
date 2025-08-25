@@ -1,4 +1,4 @@
-import { GamingCanvasDoubleLinkedList, GamingCanvasDoubleLinkedListNode } from '../double-linked-list';
+import { GamingCanvasDoubleLinkedListNode } from '../double-linked-list';
 import { GamingCanvasFIFOQueue } from '../fifo-queue';
 
 /**
@@ -42,7 +42,6 @@ export enum GamingCanvasAudioType {
 
 // Ensures that the callback doesn't block the animationFrame loop
 const faderCallback = (bufferId: number, callback: (bufferId: number) => void, faderInternal: Fader, pan: boolean) => {
-	console.log('faderCallback');
 	if (pan) {
 		faderInternal.panCallback = undefined;
 	} else {
@@ -71,7 +70,7 @@ export class GamingCanvasEngineAudio {
 	private static buffers: Buffer[];
 	private static buffersAvailable: GamingCanvasFIFOQueue<Buffer> = new GamingCanvasFIFOQueue();
 	private static callbackIsPermitted: (state: boolean) => void;
-	private static context: AudioContext = new AudioContext();
+	private static context: AudioContext;
 	private static enabled: boolean = false;
 	private static faders: Fader[];
 	private static fadersActive: Set<number> = new Set();
@@ -125,7 +124,6 @@ export class GamingCanvasEngineAudio {
 
 						if (fader.panSteps === 0) {
 							buffer.panner.pan.setValueAtTime(fader.panRequested, 0);
-							console.log('FINAL: pan');
 							fader.panCallback !== undefined && faderCallback(faderId, fader.panCallback, fader, true);
 						} else {
 							buffer.panner.pan.setValueAtTime(Math.max(-1, Math.min(1, buffer.panner.pan.value + fader.panStepValue)), 0);
@@ -138,7 +136,6 @@ export class GamingCanvasEngineAudio {
 
 						if (fader.volumeSteps === 0) {
 							buffer.audio.volume = fader.volumeRequested;
-							console.log('FINAL: volume');
 							fader.volumeCallback !== undefined && faderCallback(faderId, fader.volumeCallback, fader, false);
 						} else {
 							buffer.audio.volume = Math.max(0, Math.min(1, buffer.audio.volume + fader.volumeStepValue));
@@ -175,6 +172,7 @@ export class GamingCanvasEngineAudio {
 
 				if (pan > panCurrent - 0.01 && pan < panCurrent + 0.01) {
 					// The change request is too small
+					callback && callback(buffer.id);
 					return;
 				}
 				durationInMs = Math.max(0, durationInMs);
@@ -183,7 +181,7 @@ export class GamingCanvasEngineAudio {
 				if (durationInMs > GamingCanvasEngineAudio.goIntervalInMs) {
 					const fader: Fader = GamingCanvasEngineAudio.faders[bufferId];
 
-					// Duration can't be twice as long as the audio source is
+					// Duration can't be more than twice as long as the audio source is
 					durationInMs = Math.min((<HTMLAudioElement>GamingCanvasEngineAudio.assets.get(<number>buffer.assetId)).duration * 2000, durationInMs);
 
 					// Set the fader parameters
@@ -201,6 +199,7 @@ export class GamingCanvasEngineAudio {
 					GamingCanvasEngineAudio.fadersActive.add(buffer.id);
 				} else {
 					buffer.panner.pan.setValueAtTime(pan, 0);
+					callback && callback(buffer.id);
 				}
 			}
 		}
@@ -243,6 +242,11 @@ export class GamingCanvasEngineAudio {
 		positionInS: number = 0,
 		volume: number = 1,
 	): Promise<number | null> {
+		if (GamingCanvasEngineAudio.enabled !== true) {
+			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPlay: audio not enabled [see options]`);
+			return null;
+		}
+
 		const asset: HTMLAudioElement | undefined = GamingCanvasEngineAudio.assets.get(assetId);
 		if (asset === undefined) {
 			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPlay: assetId ${assetId} is invalid`);
@@ -338,12 +342,16 @@ export class GamingCanvasEngineAudio {
 
 				if (volume > volumeCurrent - 0.01 && volume < volumeCurrent + 0.01) {
 					// The change request is too small
+					callback && callback(buffer.id);
 					return;
 				}
 
 				// Don't fade if the request duration is less than the goIntervalInMs
 				if (durationInMs > GamingCanvasEngineAudio.goIntervalInMs) {
 					const fader: Fader = GamingCanvasEngineAudio.faders[bufferId];
+
+					// Duration can't be more than twice as long as the audio source is
+					durationInMs = Math.min((<HTMLAudioElement>GamingCanvasEngineAudio.assets.get(<number>buffer.assetId)).duration * 2000, durationInMs);
 
 					// Set the fader parameters
 					fader.active = true;
@@ -360,12 +368,20 @@ export class GamingCanvasEngineAudio {
 					GamingCanvasEngineAudio.fadersActive.add(buffer.id);
 				} else {
 					buffer.audio.volume = volume;
+					callback && callback(buffer.id);
 				}
 			}
 		}
 	}
 
-	public static initialize(enable: boolean, bufferCount: number): void {
+	public static isContext(): boolean {
+		return GamingCanvasEngineAudio.context !== undefined;
+	}
+
+	public static initialize(enable: boolean, bufferCount: number, audioContext?: AudioContext): void {
+		if (audioContext) {
+			GamingCanvasEngineAudio.context = audioContext;
+		}
 		if (!enable) {
 			GamingCanvasEngineAudio.enabled = false;
 			cancelAnimationFrame(GamingCanvasEngineAudio.request);

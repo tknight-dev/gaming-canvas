@@ -441,7 +441,11 @@ export class GamingCanvas {
 		GamingCanvas.setOptions(options);
 
 		// Engines
-		GamingCanvasEngineAudio.initialize(<boolean>options.audioEnable, <number>options.audioBufferCount);
+		GamingCanvasEngineAudio.initialize(
+			<boolean>options.audioEnable,
+			<number>options.audioBufferCount,
+			GamingCanvasEngineAudio.isContext() ? undefined : new AudioContext(),
+		);
 		options.inputGamepadEnable &&
 			GamingCanvasEngineGamepad.initialize(
 				GamingCanvas.inputQueue,
@@ -1047,6 +1051,10 @@ export class GamingCanvas {
 			GamingCanvas.stateOrientation = <any>undefined;
 			GamingCanvas.go();
 		}
+	}
+
+	public static isLandscape(): boolean {
+		return GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE;
 	}
 
 	public static getReport(): GamingCanvasReport {
