@@ -39,6 +39,8 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 - **Visibility**: Quickly know if your game needs to be paused (browser minimized or switched to new tab)
 - **Wake Lock**: Quickly prevent mobile devices from dimming the screen while you're playing
 
+See the [Documentation](https://app.tknight.dev/docs/gaming-canvas/) section [How To](https://app.tknight.dev/docs/gaming-canvas/category/how-to) to learn how to combine the **GamingCanvas** with your favorite library (like **Three.js**) to really elevate your game!
+
 ## Documentation
 
 Link: [Documentation](https://app.tknight.dev/docs/gaming-canvas/)
