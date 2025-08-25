@@ -14,7 +14,7 @@ export class GamingCanvasFIFOQueue<T> {
 	private limit: number = -1;
 	private overflow: boolean;
 
-	public GamingCanvasFIFOQueue(array?: T[]) {
+	public constructor(array?: T[]) {
 		if (array !== undefined && Array.isArray(array)) {
 			let data: T, node: GamingCanvasFIFOQueueNode<T>;
 
