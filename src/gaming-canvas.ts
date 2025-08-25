@@ -967,16 +967,16 @@ export class GamingCanvas {
 		if (state) {
 			try {
 				await (element || GamingCanvas.elementContainer).requestFullscreen();
+				GamingCanvas.stateFullscreen = state;
 				return true;
 			} catch (error) {
 				return false;
 			}
 		} else {
 			await document.exitFullscreen();
+			GamingCanvas.stateFullscreen = state;
 			return true;
 		}
-
-		GamingCanvas.stateFullscreen = state;
 	}
 
 	// detectmobilebrowsers.com | unlicense | 'This is free and unencumbered software released into the public domain.' [08/23/25]
