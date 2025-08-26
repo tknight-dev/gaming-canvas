@@ -39,7 +39,7 @@ export enum GamingCanvasInputGamepadControllerButtons {
 	Y__SQUARE = 2,
 }
 
-export enum GamingCanvasInputGamepadControllerVender {
+export enum GamingCanvasInputGamepadControllerVendor {
 	MICROSOFT = '045E',
 	SONY = '054C',
 }
@@ -156,7 +156,7 @@ export class GamingCanvasEngineGamepad {
 
 							// Firefox: skip triggers as Chrome treats them as buttons
 							for (i = 0; i < Math.min(4, gamepad.axes.length); i++) {
-								if (firefox && state.idVendor === GamingCanvasInputGamepadControllerVender.MICROSOFT && i > 1) {
+								if (firefox && state.idVendor === GamingCanvasInputGamepadControllerVendor.MICROSOFT && i > 1) {
 									// Fix for Firefox bug of detecting another axes between the left and right stick for xbox controllers
 									value = gamepad.axes[i + 2];
 								} else {

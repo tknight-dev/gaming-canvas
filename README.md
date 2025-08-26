@@ -18,7 +18,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 - **Fullscreen**: Quickly fullscreen your game
 - **Inputs**: Quickly gives you access to **Gamepad**, **Keyboard**, **Mouse**, and **Touch** via a serialized (FIFO) input queue
     - Enable or disable any input type you want
-    - Gamepad: Support currently excludes triggers due to different browser's bugs/implementations of the [Gamepad API](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API)
+    - Gamepad: Support currently excludes triggers due to different browser bugs/implementations of the [Gamepad API](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API)
     - Mouse: Supports left, right, and wheel based inputs
     - Touch: Supports as many individual inputs as your screen can support
 - **Layers**: Specify how many layers you want to optimize your game for. It can generate multiple canvases for background, foreground, overlay-1, etc, etc
