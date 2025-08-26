@@ -75,7 +75,7 @@ export class GamingCanvasEngineTouch {
 		GamingCanvasEngineTouch.el = elCanvas;
 		GamingCanvasEngineTouch.queue = queue;
 
-		elInteractive.addEventListener('touchcancel', (event: TouchEvent) => {
+		const touchActive = (down: boolean, event: TouchEvent, positions?: GamingCanvasInputPosition[]): boolean => {
 			event.preventDefault();
 			event.stopPropagation();
 
@@ -84,31 +84,22 @@ export class GamingCanvasEngineTouch {
 				GamingCanvasEngineTouch.queue.push({
 					propriatary: {
 						action: GamingCanvasInputTouchAction.ACTIVE,
-						down: false,
+						down: down,
+						positions: positions,
 					},
 					type: GamingCanvasInputType.TOUCH,
 				});
 			}
 
 			return false;
+		};
+
+		elInteractive.addEventListener('touchcancel', (event: TouchEvent) => {
+			return touchActive(false, event);
 		});
 
 		elInteractive.addEventListener('touchend', (event: TouchEvent) => {
-			event.preventDefault();
-			event.stopPropagation();
-
-			if (GamingCanvasEngineTouch.active) {
-				clearTimeout(GamingCanvasEngineTouch.timeout);
-				GamingCanvasEngineTouch.queue.push({
-					propriatary: {
-						action: GamingCanvasInputTouchAction.ACTIVE,
-						down: false,
-					},
-					type: GamingCanvasInputType.TOUCH,
-				});
-			}
-
-			return false;
+			return touchActive(false, event);
 		});
 
 		let touchmoveDiff: number, touchmoveNow: number;
@@ -148,22 +139,7 @@ export class GamingCanvasEngineTouch {
 		});
 
 		elInteractive.addEventListener('touchstart', (event: TouchEvent) => {
-			event.preventDefault();
-			event.stopPropagation();
-
-			if (GamingCanvasEngineTouch.active) {
-				clearTimeout(GamingCanvasEngineTouch.timeout);
-				GamingCanvasEngineTouch.queue.push({
-					propriatary: {
-						action: GamingCanvasInputTouchAction.ACTIVE,
-						down: true,
-						positions: GamingCanvasEngineTouch.calc(event),
-					},
-					type: GamingCanvasInputType.TOUCH,
-				});
-			}
-
-			return false;
+			return touchActive(true, event, GamingCanvasEngineTouch.calc(event));
 		});
 	}
 }
