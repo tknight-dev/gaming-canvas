@@ -61,7 +61,7 @@ export class GamingCanvasEngineGamepad {
 	private static scannerRequest: number;
 	private static statesByIndex: { [key: number]: GamingCanvasInputGamepadState } = {};
 
-	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, deadband: number): void {
+	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, deadbandStick: number): void {
 		GamingCanvasEngineGamepad.active = true;
 		GamingCanvasEngineGamepad.queue = queue;
 		GamingCanvasEngineGamepad.quit = false;
@@ -157,13 +157,13 @@ export class GamingCanvasEngineGamepad {
 							// Firefox: skip triggers as Chrome treats them as buttons
 							for (i = 0; i < Math.min(4, gamepad.axes.length); i++) {
 								if (firefox && state.idVendor === GamingCanvasInputGamepadControllerVendor.MICROSOFT && i > 1) {
-									// Fix for Firefox bug of detecting another axes between the left and right stick for xbox controllers
+									// Fix for Firefox bug of detecting another axes [x,y] between the left and right stick for xbox controllers
 									value = gamepad.axes[i + 2];
 								} else {
 									value = gamepad.axes[i];
 								}
 
-								if (value > -deadband && value < deadband) {
+								if (value > -deadbandStick && value < deadbandStick) {
 									value = 0;
 								}
 

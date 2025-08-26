@@ -26,7 +26,7 @@ export class GamingCanvasOptions {
 	elementInteractive?: HTMLElement;
 	elementInjectAsCanvas?: HTMLElement[];
 	elementInjectAsOverlay?: HTMLElement[];
-	inputGamepadDeadband?: number;
+	inputGamepadDeadbandStick?: number;
 	inputGamepadEnable?: boolean;
 	inputKeyboardEnable?: boolean;
 	inputMouseEnable?: boolean;
@@ -458,7 +458,7 @@ export class GamingCanvas {
 			<number>options.audioBufferCount,
 			GamingCanvasEngineAudio.isContext() ? undefined : new AudioContext(),
 		);
-		options.inputGamepadEnable && GamingCanvasEngineGamepad.initialize(GamingCanvas.inputQueue, <number>options.inputGamepadDeadband);
+		options.inputGamepadEnable && GamingCanvasEngineGamepad.initialize(GamingCanvas.inputQueue, <number>options.inputGamepadDeadbandStick);
 		options.inputKeyboardEnable && GamingCanvasEngineKeyboard.initialize(GamingCanvas.inputQueue);
 		options.inputMouseEnable &&
 			GamingCanvasEngineMouse.initialize(
@@ -664,11 +664,12 @@ export class GamingCanvas {
 					alpha: true,
 					antialias: false,
 				}),
-				canvases: HTMLCanvasElement[] = GamingCanvas.elementCanvases;
+				canvases: HTMLCanvasElement[] = GamingCanvas.elementCanvases,
+				report: GamingCanvasReport = GamingCanvas.stateReport;
 
 			// Match dimensions
-			canvasScreenshot.height = canvases[0].height;
-			canvasScreenshot.width = canvases[0].width;
+			canvasScreenshot.height = report.canvasHeight;
+			canvasScreenshot.width = report.canvasWidth;
 
 			// Draw every layer into the screenshot canvas starting with the lowest layer canvases[0]
 			for (let canvas of canvases) {
@@ -1017,7 +1018,8 @@ export class GamingCanvas {
 			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
 		}
 
-		options.inputGamepadDeadband = options.inputGamepadDeadband === undefined ? 0.08 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadband) || 0));
+		options.inputGamepadDeadbandStick =
+			options.inputGamepadDeadbandStick === undefined ? 0.08 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadbandStick) || 0));
 		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? false : options.inputGamepadEnable === true;
 		options.inputKeyboardEnable = options.inputKeyboardEnable === undefined ? false : options.inputKeyboardEnable === true;
 		options.inputMouseEnable = options.inputMouseEnable === undefined ? false : options.inputMouseEnable === true;

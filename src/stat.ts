@@ -36,14 +36,11 @@ export class GamingCanvasStat {
 	 */
 	public add(value: number): void {
 		this.data[this.index++] = value;
+		this.size = Math.min(this.size + 1, this.data.length);
 
+		// Reset array index back to start
 		if (this.index !== 0 && this.index % this.data.length === 0) {
-			// Apply value to the starting element of the array
 			this.index = 0;
-			this.size = this.data.length;
-		} else {
-			// Apply value to the next element of the array
-			this.size++;
 		}
 	}
 
@@ -107,6 +104,20 @@ export class GamingCanvasStat {
 	public clear(): void {
 		this.index = 0;
 		this.size = 0;
+	}
+
+	/**
+	 * Contained data length
+	 */
+	public get length(): number {
+		return this.size;
+	}
+
+	/**
+	 * Contained data length matches the requested sample size
+	 */
+	public isFull(): boolean {
+		return this.size === this.data.length;
 	}
 
 	public getSamples(): number {
