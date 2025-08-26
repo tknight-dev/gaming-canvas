@@ -8,6 +8,7 @@ export enum GamingCanvasStatCalcType {
 	AVERAGE,
 	MAX,
 	MIN,
+	STD_DEV,
 	SUM,
 }
 
@@ -83,6 +84,9 @@ export class GamingCanvasStat {
 						}
 					}
 					return value;
+				case GamingCanvasStatCalcType.STD_DEV:
+					const mean = data.reduce((a, b) => a + b) / data.length;
+					return Math.sqrt(data.map((x) => (x - mean) ** 2).reduce((a, b) => a + b) / data.length);
 				case GamingCanvasStatCalcType.SUM:
 					value = 0;
 					for (let i = 0; i < size; i++) {
