@@ -806,6 +806,7 @@ export class GamingCanvas {
 		_pan: number = 0,
 		_positionInS: number = 0,
 		_volume: number = 1,
+		_callback?: (bufferId: number) => void,
 	): Promise<number | null> {
 		return null;
 	}

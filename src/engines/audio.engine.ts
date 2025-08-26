@@ -13,6 +13,7 @@ interface Buffer {
 	assetId?: number;
 	audio: HTMLAudioElement;
 	available: boolean;
+	callbackDone?: (bufferId: number) => void;
 	id: number;
 	faderNode?: GamingCanvasDoubleLinkedListNode<Fader>;
 	panner: StereoPannerNode;
@@ -29,7 +30,9 @@ interface Fader {
 	panStepValue: number;
 	pause: boolean;
 	volumeCallback?: (bufferId: number) => void;
+	volumeLimit: number;
 	volumeRequested: number;
+	volumeRequestedEff: number;
 	volumeSteps: number;
 	volumeStepValue: number;
 }
@@ -40,7 +43,17 @@ export enum GamingCanvasAudioType {
 	MUSIC,
 }
 
-// Ensures that the callback doesn't block the animationFrame loop
+// Allows for blocking
+const bufferCallbackPromise = async (bufferId: number, callback: (bufferId: number) => void): Promise<void> => {
+	return new Promise((resolve: any) => {
+		setTimeout(() => {
+			resolve();
+			callback(bufferId);
+		});
+	});
+};
+
+// Non-blocking
 const faderCallback = (bufferId: number, callback: (bufferId: number) => void, faderInternal: Fader, pan: boolean) => {
 	if (pan) {
 		faderInternal.panCallback = undefined;
@@ -52,6 +65,21 @@ const faderCallback = (bufferId: number, callback: (bufferId: number) => void, f
 	});
 };
 
+// Allows for blocking
+const faderCallbackPromise = async (bufferId: number, callback: (bufferId: number) => void, faderInternal: Fader, pan: boolean): Promise<void> => {
+	if (pan) {
+		faderInternal.panCallback = undefined;
+	} else {
+		faderInternal.volumeCallback = undefined;
+	}
+	return new Promise((resolve: any) => {
+		setTimeout(() => {
+			resolve();
+			callback(bufferId);
+		});
+	});
+};
+
 const faderReset = (fader: Fader) => {
 	fader.active = false;
 	fader.panCallback = undefined;
@@ -60,7 +88,9 @@ const faderReset = (fader: Fader) => {
 	fader.panStepValue = 0;
 	fader.pause = false;
 	fader.volumeCallback = undefined;
+	fader.volumeLimit = 0;
 	fader.volumeRequested = 0;
+	fader.volumeRequestedEff = 0;
 	fader.volumeSteps = 0;
 	fader.volumeStepValue = 0;
 };
@@ -96,6 +126,7 @@ export class GamingCanvasEngineAudio {
 			faders: Fader[] = GamingCanvasEngineAudio.faders,
 			fadersActive: Set<number> = GamingCanvasEngineAudio.fadersActive,
 			intervalInMs: number = GamingCanvasEngineAudio.goIntervalInMs,
+			limit: number,
 			timestampDelta: number,
 			timestampThen: number = 0;
 
@@ -134,8 +165,24 @@ export class GamingCanvasEngineAudio {
 						changed = true;
 						fader.volumeSteps--;
 
+						if (buffer.type === GamingCanvasAudioType.EFFECT) {
+							limit = GamingCanvasEngineAudio.volumeEffectEff;
+						} else {
+							limit = GamingCanvasEngineAudio.volumeMusicEff;
+						}
+
+						if (fader.volumeLimit !== limit) {
+							fader.volumeLimit = limit;
+							fader.volumeRequestedEff = fader.volumeRequested * limit;
+							fader.volumeStepValue = Math.abs(buffer.audio.volume - fader.volumeRequestedEff) / fader.volumeSteps;
+
+							if (buffer.audio.volume > fader.volumeRequestedEff) {
+								fader.volumeStepValue *= -1;
+							}
+						}
+
 						if (fader.volumeSteps === 0) {
-							buffer.audio.volume = fader.volumeRequested;
+							buffer.audio.volume = fader.volumeRequestedEff;
 							fader.volumeCallback !== undefined && faderCallback(faderId, fader.volumeCallback, fader, false);
 						} else {
 							buffer.audio.volume = Math.max(0, Math.min(1, buffer.audio.volume + fader.volumeStepValue));
@@ -232,6 +279,7 @@ export class GamingCanvasEngineAudio {
 	 * @param pan is -1 left, 0 center, 1 right (default is 0)
 	 * @param positionInS is between 0 and the duration of the audio asset in seconds (default is 0)
 	 * @param volume is between 0 and 1 (default is 1)
+	 * @param callback is triggered when audio is complete
 	 * @return is bufferId, use this to modify the active audio (null on failure)
 	 */
 	public static async controlPlay(
@@ -241,6 +289,7 @@ export class GamingCanvasEngineAudio {
 		pan: number = 0,
 		positionInS: number = 0,
 		volume: number = 1,
+		callback?: (bufferId: number) => void,
 	): Promise<number | null> {
 		if (GamingCanvasEngineAudio.enabled !== true) {
 			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPlay: audio not enabled [see options]`);
@@ -282,7 +331,7 @@ export class GamingCanvasEngineAudio {
 		// Config: Buffer
 		buffer.assetId = assetId;
 		buffer.available = false;
-		buffer.panner.pan.setValueAtTime(pan, 0);
+		((buffer.callbackDone = callback), buffer.panner.pan.setValueAtTime(pan, 0));
 		buffer.type = effect === true ? GamingCanvasAudioType.EFFECT : GamingCanvasAudioType.MUSIC;
 
 		// Config: Fader
@@ -304,18 +353,14 @@ export class GamingCanvasEngineAudio {
 		} else {
 			const buffer: Buffer = GamingCanvasEngineAudio.buffers[bufferId];
 
+			// callbacks triggered by 'audio.onended' event
 			if (!buffer.audio.ended) {
 				// Buffer
 				buffer.audio.loop = false;
 				buffer.audio.currentTime = buffer.audio.duration;
 
 				// Fader
-				const fader: Fader = GamingCanvasEngineAudio.faders[buffer.id];
-
-				fader.panCallback !== undefined && faderCallback(buffer.id, fader.panCallback, fader, true);
-				fader.volumeCallback !== undefined && faderCallback(buffer.id, fader.volumeCallback, fader, false);
 				GamingCanvasEngineAudio.fadersActive.delete(buffer.id);
-				faderReset(fader);
 			}
 		}
 	}
@@ -335,12 +380,14 @@ export class GamingCanvasEngineAudio {
 			const buffer: Buffer = GamingCanvasEngineAudio.buffers[bufferId];
 
 			if (!buffer.audio.ended) {
-				let volumeCurrent: number = buffer.audio.volume;
+				let volumeCurrent: number = buffer.audio.volume,
+					volumeEff: number;
 
 				volume = Math.max(0, Math.min(1, volume));
-				volume *= buffer.type === GamingCanvasAudioType.EFFECT ? GamingCanvasEngineAudio.volumeEffectEff : GamingCanvasEngineAudio.volumeMusicEff;
+				volumeEff =
+					volume * (buffer.type === GamingCanvasAudioType.EFFECT ? GamingCanvasEngineAudio.volumeEffectEff : GamingCanvasEngineAudio.volumeMusicEff);
 
-				if (volume > volumeCurrent - 0.01 && volume < volumeCurrent + 0.01) {
+				if (volumeEff > volumeCurrent - 0.01 && volumeEff < volumeCurrent + 0.01) {
 					// The change request is too small
 					callback && callback(buffer.id);
 					return;
@@ -356,18 +403,20 @@ export class GamingCanvasEngineAudio {
 					// Set the fader parameters
 					fader.active = true;
 					fader.volumeCallback = callback;
+					fader.volumeLimit = GamingCanvasAudioType.EFFECT ? GamingCanvasEngineAudio.volumeEffectEff : GamingCanvasEngineAudio.volumeMusicEff;
 					fader.volumeSteps = ((durationInMs / GamingCanvasEngineAudio.goIntervalInMs) | 0) + 1; // Make sure we at least overshoot the target
-					fader.volumeStepValue = Math.abs(volumeCurrent - volume) / fader.volumeSteps;
+					fader.volumeStepValue = Math.abs(volumeCurrent - volumeEff) / fader.volumeSteps;
 					fader.volumeRequested = volume;
+					fader.volumeRequestedEff = volumeEff;
 
-					if (volumeCurrent > volume) {
+					if (volumeCurrent > volumeEff) {
 						fader.volumeStepValue *= -1;
 					}
 
 					// Done
 					GamingCanvasEngineAudio.fadersActive.add(buffer.id);
 				} else {
-					buffer.audio.volume = volume;
+					buffer.audio.volume = volumeEff;
 					callback && callback(buffer.id);
 				}
 			}
@@ -456,14 +505,15 @@ export class GamingCanvasEngineAudio {
 			faders[fader.id] = fader;
 
 			// OnEnded: Put buffer back in queue
-			buffer.audio.onended = () => {
+			buffer.audio.onended = async () => {
 				// Buffer
+				buffer.callbackDone !== undefined && (await bufferCallbackPromise(buffer.id, buffer.callbackDone));
 				buffer.available = true;
 				buffersAvailable.push(buffer);
 
 				// Fader
-				fader.panCallback !== undefined && faderCallback(buffer.id, fader.panCallback, fader, true);
-				fader.volumeCallback !== undefined && faderCallback(buffer.id, fader.volumeCallback, fader, false);
+				fader.panCallback !== undefined && (await faderCallbackPromise(buffer.id, fader.panCallback, fader, true));
+				fader.volumeCallback !== undefined && (await faderCallbackPromise(buffer.id, fader.volumeCallback, fader, false));
 				GamingCanvasEngineAudio.fadersActive.delete(buffer.id);
 				faderReset(GamingCanvasEngineAudio.faders[buffer.id]);
 			};
@@ -501,7 +551,9 @@ export class GamingCanvasEngineAudio {
 					panSteps: 0,
 					panStepValue: 0,
 					pause: false,
+					volumeLimit: 0,
 					volumeRequested: 0,
+					volumeRequestedEff: 0,
 					volumeSteps: 0,
 					volumeStepValue: 0,
 				},
@@ -588,39 +640,70 @@ export class GamingCanvasEngineAudio {
 	public static volumeGlobal(volume: number, type: GamingCanvasAudioType) {
 		let buffer: Buffer,
 			buffers: Buffer[] = GamingCanvasEngineAudio.buffers,
-			differencePercentage: number;
+			differencePercentage: number = 0;
 
-		// Make sure it's in range
-		volume = Math.max(0, Math.min(1, volume));
+		try {
+			// Make sure it's in range
+			volume = Math.max(0, Math.min(1, volume));
 
-		// Apply to global volumnes
-		switch (type) {
-			case GamingCanvasAudioType.ALL:
-				differencePercentage = volume / GamingCanvasEngineAudio.volumeAll;
+			// Apply to global volumnes
+			switch (type) {
+				case GamingCanvasAudioType.ALL:
+					if (volume === 0) {
+						differencePercentage = 0;
+					} else {
+						differencePercentage = volume / (GamingCanvasEngineAudio.volumeAll || 1);
 
-				GamingCanvasEngineAudio.volumeAll = volume;
-				GamingCanvasEngineAudio.volumeEffectEff = GamingCanvasEngineAudio.volumeEffect * GamingCanvasEngineAudio.volumeAll;
-				GamingCanvasEngineAudio.volumeMusicEff = GamingCanvasEngineAudio.volumeMusic * GamingCanvasEngineAudio.volumeAll;
-				break;
-			case GamingCanvasAudioType.EFFECT:
-				differencePercentage = volume / GamingCanvasEngineAudio.volumeEffect;
+						if (!isFinite(differencePercentage) || differencePercentage < 0.01) {
+							return;
+						}
+					}
 
-				GamingCanvasEngineAudio.volumeEffect = volume;
-				GamingCanvasEngineAudio.volumeEffectEff = GamingCanvasEngineAudio.volumeEffect * GamingCanvasEngineAudio.volumeAll;
-				break;
-			case GamingCanvasAudioType.MUSIC:
-				differencePercentage = volume / GamingCanvasEngineAudio.volumeMusic;
+					GamingCanvasEngineAudio.volumeAll = volume;
+					GamingCanvasEngineAudio.volumeEffectEff = GamingCanvasEngineAudio.volumeEffect * GamingCanvasEngineAudio.volumeAll;
+					GamingCanvasEngineAudio.volumeMusicEff = GamingCanvasEngineAudio.volumeMusic * GamingCanvasEngineAudio.volumeAll;
+					break;
+				case GamingCanvasAudioType.EFFECT:
+					if (volume === 0) {
+						differencePercentage = 0;
+					} else {
+						differencePercentage = volume / (GamingCanvasEngineAudio.volumeEffect || 1);
 
-				GamingCanvasEngineAudio.volumeMusic = volume;
-				GamingCanvasEngineAudio.volumeMusicEff = GamingCanvasEngineAudio.volumeMusic * GamingCanvasEngineAudio.volumeAll;
-				break;
-		}
+						if (!isFinite(differencePercentage) || differencePercentage < 0.01) {
+							return;
+						}
+					}
 
-		// Apply volume difference to buffers, as required
-		for (buffer of buffers) {
-			if (type === GamingCanvasAudioType.ALL || buffer.type === type) {
-				buffer.audio.volume *= differencePercentage;
+					GamingCanvasEngineAudio.volumeEffect = volume;
+					GamingCanvasEngineAudio.volumeEffectEff = GamingCanvasEngineAudio.volumeEffect * GamingCanvasEngineAudio.volumeAll;
+					break;
+				case GamingCanvasAudioType.MUSIC:
+					if (volume === 0) {
+						differencePercentage = 0;
+					} else {
+						differencePercentage = volume / (GamingCanvasEngineAudio.volumeMusic || 1);
+
+						if (!isFinite(differencePercentage) || differencePercentage < 0.01) {
+							return;
+						}
+					}
+
+					GamingCanvasEngineAudio.volumeMusic = volume;
+					GamingCanvasEngineAudio.volumeMusicEff = GamingCanvasEngineAudio.volumeMusic * GamingCanvasEngineAudio.volumeAll;
+					break;
+				default:
+					console.error(`GamingCanvas > GamingCanvasEngineAudio > volumeGlobal: type ${type} is invalid`);
+					return;
 			}
+
+			// Apply volume difference to buffers, as required
+			for (buffer of buffers) {
+				if (type === GamingCanvasAudioType.ALL || buffer.type === type) {
+					buffer.audio.volume = Math.max(0, Math.min(1, buffer.audio.volume * differencePercentage));
+				}
+			}
+		} catch (error) {
+			console.error(differencePercentage, volume, GamingCanvasEngineAudio.volumeAll, error);
 		}
 	}
 
