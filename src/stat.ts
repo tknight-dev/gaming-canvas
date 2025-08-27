@@ -5,11 +5,20 @@
  */
 
 export enum GamingCanvasStatCalcType {
-	AVERAGE,
+	AVERAGE, //Median
 	MAX,
 	MIN,
+	QUARTILE,
 	STD_DEV,
 	SUM,
+}
+
+export interface GamingCanvasStatQuartile {
+	q0: number;
+	q1: number;
+	q2: number;
+	q3: number;
+	q4: number;
 }
 
 /**
@@ -22,14 +31,27 @@ export class GamingCanvasStat {
 	private timer: number;
 
 	/**
-	 * Default sample size is 5
+	 * Samples determines how many values can be stored at one time: the more samples, the more cpu/memory, and the more accurate the measurement
 	 *
-	 * @param samples determines how many timing durations can be stored at one time: the more samples, the more cpu/memory, and the more accurate the measurement
+	 * @param samplesOrSize can be an array of data (also sets sample size to array length) or the number of samples you want the stat to contain
+	 * @param data optional parameter to fill initial data set
 	 */
-	constructor(samples: number = 5) {
-		this.data = new Array(Math.max(1, samples));
+	constructor(samplesOrSize?: number | number[]) {
+		let array: boolean = false,
+			samples: number = 5;
+
+		if (samplesOrSize !== undefined) {
+			if (Array.isArray(samplesOrSize)) {
+				array = true;
+				samples = samplesOrSize.length;
+			} else {
+				samples = samplesOrSize;
+			}
+		}
+
+		this.data = array ? (<number[]>samplesOrSize).slice(0) : new Array(samples);
 		this.index = 0;
-		this.size = 0;
+		this.size = array ? (<number[]>samplesOrSize).length : 0;
 	}
 
 	/**
@@ -54,7 +76,7 @@ export class GamingCanvasStat {
 	 *
 	 * @return is 0 on no data available
 	 */
-	public static calc(stat: GamingCanvasStat, type: GamingCanvasStatCalcType = GamingCanvasStatCalcType.AVERAGE): number {
+	public static calc(stat: GamingCanvasStat, type: GamingCanvasStatCalcType = GamingCanvasStatCalcType.AVERAGE): number | GamingCanvasStatQuartile {
 		const data: number[] = stat.data,
 			size: number = Math.min(data.length, stat.size);
 
@@ -62,7 +84,7 @@ export class GamingCanvasStat {
 			let value: number;
 
 			switch (type) {
-				case GamingCanvasStatCalcType.AVERAGE:
+				case GamingCanvasStatCalcType.AVERAGE: // median
 					value = 0;
 					for (let i = 0; i < size; i++) {
 						value += data[i];
@@ -84,6 +106,28 @@ export class GamingCanvasStat {
 						}
 					}
 					return value;
+				case GamingCanvasStatCalcType.QUARTILE:
+					const dataAscending: number[] = data.sort((a, b) => a - b);
+					let base: number, position: number;
+
+					const calc = (quintile: number) => {
+						position = (dataAscending.length - 1) * quintile;
+						base = position | 0;
+
+						if (dataAscending[base + 1] !== undefined) {
+							return dataAscending[base] + (position - base) * (dataAscending[base + 1] - dataAscending[base]);
+						} else {
+							return dataAscending[base];
+						}
+					};
+
+					return {
+						q0: calc(0),
+						q1: calc(0.25),
+						q2: calc(0.5),
+						q3: calc(0.75),
+						q4: calc(1),
+					};
 				case GamingCanvasStatCalcType.STD_DEV:
 					const mean: number = data.reduce((a, b) => a + b) / data.length;
 					return Math.sqrt(data.map((x) => (x - mean) ** 2).reduce((a, b) => a + b) / data.length);
@@ -98,7 +142,17 @@ export class GamingCanvasStat {
 					return 0;
 			}
 		} else {
-			return 0;
+			if (type === GamingCanvasStatCalcType.QUARTILE) {
+				return {
+					q0: 0,
+					q1: 0,
+					q2: 0,
+					q3: 0,
+					q4: 0,
+				};
+			} else {
+				return 0;
+			}
 		}
 	}
 
