@@ -6,9 +6,7 @@ Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
 
 ## Why This Library?
 
-See it in action with my game: [Life](https://app.tknight.dev/game/life/index.html?perf=true). Its a multithreaded Conway's Game of Life for Desktop and Mobile devices (supports Gamepad, Keyboard, Mouse, and Touch based inputs) [[GitHub](https://github.com/tknight-dev/life)]!
-
-**GamingCanvas** takes care of all the low level stuff that gets in the way of you just coding a game! It provides the following:
+**GamingCanvas** is for the game developer that wants to write their own game, their own way, rather than usings solutions like [PixiJs](https://pixijs.com/) and [Phaser](https://phaser.io/). It provides the following to get you up and running:
 
 - **Audio**: The built in audio system provides buffers which allow you play multiple audio files at the same time (even the same audio file)
     - Quickly update the pan and volume of the effect or music depending on your game's environment!
@@ -39,7 +37,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 - **Visibility**: Quickly know if your game needs to be paused (browser minimized or switched to new tab)
 - **Wake Lock**: Quickly prevent mobile devices from dimming the screen while you're playing
 
-See the [Documentation](https://gaming-canvas.org/) section [How To](https://gaming-canvas.org/category/how-to) to learn how to combine the **GamingCanvas** with your favorite library (like **three.js**) to really elevate your engine or game!
+See it in action with my game: [Life](https://app.tknight.dev/game/life/index.html?perf=true). Its a multithreaded Conway's Game of Life for Desktop and Mobile devices (supports Gamepad, Keyboard, Mouse, and Touch based inputs) [[GitHub](https://github.com/tknight-dev/life)]!
 
 ## Documentation
 
