@@ -408,7 +408,7 @@ export class GamingCanvas {
 			count: number = <number>options.canvasCount;
 
 		GamingCanvas.elementCanvases = new Array();
-		while (count--) {
+		for (let i = 0; i < count; i++) {
 			canvas = document.createElement('canvas');
 			canvas.height = 0;
 			canvas.id = `gaming-canvas-canvas${count + 1}`;
