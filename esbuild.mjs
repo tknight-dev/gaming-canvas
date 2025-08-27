@@ -11,7 +11,9 @@ esbuild.build({
 	},
 	loader: {},
 	format: 'esm',
-	metafile: false,
+	mangleProps: /^[_#]/,
+	mangleQuoted: true,
+	metafile: true,
 	minify: true,
 	outdir: 'dist',
 	outExtension: {
@@ -20,4 +22,5 @@ esbuild.build({
 	platform: 'node',
 	plugins: [], // Don't set plugins here
 	sourcemap: true,
+	treeShaking: true,
 });
