@@ -26,7 +26,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 - **Lists**: Provides `List` implementions where `Array` performance faulters
     - Double-Linked-List
     - FIFO Queue (Single-Linked-List without `popEnd()` or `pushStart()`)
-- **Lightweight**: Compiled/minified library is **~30kb**
+- **Lightweight**: This entire library is **~40kb**
 - **Mobile**: Mobile devices are fully supported
 - **Orientation**: Auto rotate for maximum screen usage or lock it to a specific orientation (Portrait/Landscape)
     - [Screen Orientation](https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock) locking isn't supported by all browsers
@@ -39,7 +39,7 @@ See it in action with my game: [Life](https://app.tknight.dev/game/life/index.ht
 - **Visibility**: Quickly know if your game needs to be paused (browser minimized or switched to new tab)
 - **Wake Lock**: Quickly prevent mobile devices from dimming the screen while you're playing
 
-See the [Documentation](https://gaming-canvas.org/) section [How To](https://gaming-canvas.org/category/how-to) to learn how to combine the **GamingCanvas** with your favorite library (like **Three.js**) to really elevate your game!
+See the [Documentation](https://gaming-canvas.org/) section [How To](https://gaming-canvas.org/category/how-to) to learn how to combine the **GamingCanvas** with your favorite library (like **three.js**) to really elevate your engine or game!
 
 ## Documentation
 
