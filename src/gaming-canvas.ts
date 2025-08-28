@@ -76,14 +76,6 @@ export const GamingCanvasScale = (value: number, fromMin: number, fromMax: numbe
 	return ((value - fromMin) * (toMax - toMin)) / (fromMax - fromMin) + toMin;
 };
 
-/**
- * Update the dimensions of the canvas element via the report. This will clear the canvas.
- */
-export const GamingCanvasSetSize = (canvas: HTMLCanvasElement, report: GamingCanvasReport = GamingCanvas.getReport()) => {
-	canvas.height = (report.canvasHeight * report.devicePixelRatio) | 0;
-	canvas.width = (report.canvasWidth * report.devicePixelRatio) | 0;
-};
-
 export class GamingCanvas {
 	private static callbackFullscreen: (state: boolean) => void;
 	private static callbackReport: (report: GamingCanvasReport) => void;
@@ -1030,7 +1022,7 @@ export class GamingCanvas {
 		options.callbackReportLimitPerMs = Math.max(0, Number(options.callbackReportLimitPerMs) || 8);
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
 		options.debug = options.debug === undefined ? false : options.debug === true;
-		options.dpiSupportEnable = options.dpiSupportEnable === undefined ? true : options.dpiSupportEnable === true;
+		options.dpiSupportEnable = options.dpiSupportEnable === undefined ? false : options.dpiSupportEnable === true;
 
 		if (GamingCanvas.elementCanvases) {
 			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
