@@ -76,14 +76,6 @@ export const GamingCanvasScale = (value: number, fromMin: number, fromMax: numbe
 	return ((value - fromMin) * (toMax - toMin)) / (fromMax - fromMin) + toMin;
 };
 
-/**
- * Update the dimensions of the canvas element via the report. This will clear the canvas.
- */
-export const GamingCanvasSetSize = (canvas: HTMLCanvasElement, report: GamingCanvasReport = GamingCanvas.getReport()) => {
-	canvas.height = (report.canvasHeight * report.devicePixelRatio) | 0;
-	canvas.width = (report.canvasWidth * report.devicePixelRatio) | 0;
-};
-
 export class GamingCanvas {
 	private static callbackFullscreen: (state: boolean) => void;
 	private static callbackReport: (report: GamingCanvasReport) => void;
