@@ -1022,7 +1022,7 @@ export class GamingCanvas {
 		options.callbackReportLimitPerMs = Math.max(0, Number(options.callbackReportLimitPerMs) || 8);
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
 		options.debug = options.debug === undefined ? false : options.debug === true;
-		options.dpiSupportEnable = options.dpiSupportEnable === undefined ? true : options.dpiSupportEnable === true;
+		options.dpiSupportEnable = options.dpiSupportEnable === undefined ? false : options.dpiSupportEnable === true;
 
 		if (GamingCanvas.elementCanvases) {
 			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
