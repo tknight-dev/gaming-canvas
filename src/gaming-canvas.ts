@@ -23,6 +23,7 @@ export class GamingCanvasOptions {
 	callbackReportLimitPerMs?: number;
 	canvasCount?: number;
 	debug?: boolean;
+	dpiSupportEnable?: boolean;
 	elementInteractive?: HTMLElement;
 	elementInjectAsCanvas?: HTMLElement[];
 	elementInjectAsOverlay?: HTMLElement[];
@@ -48,8 +49,10 @@ export enum GamingCanvasOrientation {
 
 export interface GamingCanvasReport {
 	canvasHeight: number;
+	canvasHeightDPI: number;
 	canvasHeightScaled: number;
 	canvasWidth: number;
+	canvasWidthDPI: number;
 	canvasWidthScaled: number;
 	devicePixelRatio: number;
 	orientation: GamingCanvasOrientation;
@@ -182,8 +185,8 @@ export class GamingCanvas {
 			 * Size and Scale
 			 */
 			aspectRatio = <number>options.aspectRatio;
-			devicePixelRatio = window.devicePixelRatio;
-			devicePixelRatioEff = 1 / window.devicePixelRatio;
+			devicePixelRatio = options.dpiSupportEnable === true ? window.devicePixelRatio : 1;
+			devicePixelRatioEff = options.dpiSupportEnable === true ? 1 / window.devicePixelRatio : 1;
 			heightContainer = (GamingCanvas.elementRotator2.clientWidth / aspectRatio) | 0;
 			heightResolution = (options.resolutionWidthPx ? options.resolutionWidthPx / aspectRatio : heightContainer) | 0;
 			report = <GamingCanvasReport>{
@@ -214,7 +217,9 @@ export class GamingCanvas {
 			} else {
 				scaler = devicePixelRatioEff;
 			}
+			report.canvasHeightDPI = (report.canvasHeight * devicePixelRatio) | 0;
 			report.canvasHeightScaled = (report.canvasHeight * scaler) | 0;
+			report.canvasWidthDPI = (report.canvasWidth * devicePixelRatio) | 0;
 			report.canvasWidthScaled = (report.canvasWidth * scaler) | 0;
 			report.scaler = scaler;
 			GamingCanvas.elementContainerCanvas.style.transform = styleTransform.replace(
@@ -1025,6 +1030,7 @@ export class GamingCanvas {
 		options.callbackReportLimitPerMs = Math.max(0, Number(options.callbackReportLimitPerMs) || 8);
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
 		options.debug = options.debug === undefined ? false : options.debug === true;
+		options.dpiSupportEnable = options.dpiSupportEnable === undefined ? true : options.dpiSupportEnable === true;
 
 		if (GamingCanvas.elementCanvases) {
 			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
