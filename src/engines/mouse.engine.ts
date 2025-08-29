@@ -41,19 +41,22 @@ export class GamingCanvasEngineMouse {
 	}
 
 	private static calc__funcForward(): void {
-		let domRect: DOMRect, xEff: number, yEff: number;
+		let domRect: DOMRect, domRectHeight: number, domRectWidth: number, xEff: number, yEff: number;
 
 		const calc = (event: MouseEvent) => {
 			domRect = GamingCanvasEngineMouse.el.getBoundingClientRect();
-			xEff = Math.max(0, Math.min(domRect.width, event.clientX - domRect.x)) | 0;
-			yEff = Math.max(0, Math.min(domRect.height, event.clientY - domRect.y)) | 0;
+			domRectHeight = domRect.height | 0;
+			domRectWidth = domRect.width | 0;
+
+			xEff = Math.max(0, Math.min(domRectWidth, event.clientX - domRect.x)) | 0;
+			yEff = Math.max(0, Math.min(domRectHeight, event.clientY - domRect.y)) | 0;
 
 			return {
-				out: xEff === 0 || yEff === 0 || xEff === domRect.width || yEff === domRect.height,
+				out: xEff === 0 || yEff === 0 || xEff === domRectWidth || yEff === domRectHeight,
 				x: xEff,
-				xRelative: xEff / domRect.width,
+				xRelative: xEff / domRectWidth,
 				y: yEff,
-				yRelative: yEff / domRect.height,
+				yRelative: yEff / domRectHeight,
 			};
 		};
 		GamingCanvasEngineMouse.calc = calc;
@@ -61,7 +64,7 @@ export class GamingCanvasEngineMouse {
 
 	public static initialize(
 		elCanvas: HTMLCanvasElement,
-		elInteractive: HTMLElement,
+		elInteractive: HTMLElement | undefined,
 		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
 		preventContextMenu: boolean,
 	): void {
@@ -70,7 +73,7 @@ export class GamingCanvasEngineMouse {
 		GamingCanvasEngineMouse.queue = queue;
 
 		if (preventContextMenu) {
-			elInteractive.addEventListener('contextmenu', (event: MouseEvent) => {
+			(elInteractive || document.body).addEventListener('contextmenu', (event: MouseEvent) => {
 				event.preventDefault();
 				event.stopPropagation();
 				return false;
@@ -78,7 +81,7 @@ export class GamingCanvasEngineMouse {
 		}
 
 		let clickAction: GamingCanvasInputMouseAction;
-		elInteractive.addEventListener('click', (event: MouseEvent) => {
+		(elInteractive || document.body).addEventListener('click', (event: MouseEvent) => {
 			if (GamingCanvasEngineMouse.active && event.button < 3) {
 				if (event.button === 0) {
 					clickAction = GamingCanvasInputMouseAction.LEFT_CLICK;
@@ -99,7 +102,7 @@ export class GamingCanvasEngineMouse {
 		});
 
 		let mousedownAction: GamingCanvasInputMouseAction;
-		elInteractive.addEventListener('mousedown', (event: MouseEvent) => {
+		(elInteractive || document.body).addEventListener('mousedown', (event: MouseEvent) => {
 			if (GamingCanvasEngineMouse.active && event.button < 3) {
 				if (event.button === 0) {
 					mousedownAction = GamingCanvasInputMouseAction.LEFT;
@@ -120,7 +123,7 @@ export class GamingCanvasEngineMouse {
 			}
 		});
 
-		elInteractive.addEventListener('mousemove', (event: MouseEvent) => {
+		(elInteractive || document.body).addEventListener('mousemove', (event: MouseEvent) => {
 			if (GamingCanvasEngineMouse.active) {
 				GamingCanvasEngineMouse.queue.push({
 					propriatary: {
@@ -133,7 +136,7 @@ export class GamingCanvasEngineMouse {
 		});
 
 		let mouseupAction: GamingCanvasInputMouseAction;
-		elInteractive.addEventListener('mouseup', (event: MouseEvent) => {
+		(elInteractive || document.body).addEventListener('mouseup', (event: MouseEvent) => {
 			if (GamingCanvasEngineMouse.active && event.button < 3) {
 				if (event.button === 0) {
 					mouseupAction = GamingCanvasInputMouseAction.LEFT;
@@ -153,7 +156,7 @@ export class GamingCanvasEngineMouse {
 				});
 			}
 		});
-		elInteractive.addEventListener('wheel', (event: any) => {
+		(elInteractive || document.body).addEventListener('wheel', (event: any) => {
 			if (GamingCanvasEngineMouse.active) {
 				GamingCanvasEngineMouse.queue.push({
 					propriatary: {

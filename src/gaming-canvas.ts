@@ -1023,11 +1023,6 @@ export class GamingCanvas {
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
 		options.debug = options.debug === undefined ? false : options.debug === true;
 		options.dpiSupportEnable = options.dpiSupportEnable === undefined ? false : options.dpiSupportEnable === true;
-
-		if (GamingCanvas.elementCanvases) {
-			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
-		}
-
 		options.inputGamepadDeadbandStick =
 			options.inputGamepadDeadbandStick === undefined ? 0.08 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadbandStick) || 0));
 		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? false : options.inputGamepadEnable === true;

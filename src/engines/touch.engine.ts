@@ -37,10 +37,20 @@ export class GamingCanvasEngineTouch {
 	}
 
 	private static calc__funcForward(): void {
-		let domRect: DOMRect, touch: Touch, touchLength: number, touchList: TouchList, touchPositions: GamingCanvasInputPosition[], xEff: number, yEff: number;
+		let domRect: DOMRect,
+			domRectHeight: number,
+			domRectWidth: number,
+			touch: Touch,
+			touchLength: number,
+			touchList: TouchList,
+			touchPositions: GamingCanvasInputPosition[],
+			xEff: number,
+			yEff: number;
 
 		const calc = (event: TouchEvent) => {
 			domRect = GamingCanvasEngineTouch.el.getBoundingClientRect();
+			domRectHeight = domRect.height | 0;
+			domRectWidth = domRect.width | 0;
 			touchLength = event.touches.length;
 			touchList = event.touches;
 			touchPositions = [];
@@ -48,15 +58,15 @@ export class GamingCanvasEngineTouch {
 			for (let i = 0; i < touchLength; i++) {
 				touch = touchList[i];
 
-				xEff = Math.max(0, Math.min(domRect.width, touch.clientX - domRect.x)) | 0;
-				yEff = Math.max(0, Math.min(domRect.height, touch.clientY - domRect.y)) | 0;
+				xEff = Math.max(0, Math.min(domRectWidth, touch.clientX - domRect.x)) | 0;
+				yEff = Math.max(0, Math.min(domRectHeight, touch.clientY - domRect.y)) | 0;
 
 				touchPositions.push({
-					out: xEff === 0 || yEff === 0 || xEff === domRect.width || yEff === domRect.height,
+					out: xEff === 0 || yEff === 0 || xEff === domRectWidth || yEff === domRectHeight,
 					x: xEff,
-					xRelative: xEff / domRect.width,
+					xRelative: xEff / domRectWidth,
 					y: yEff,
-					yRelative: yEff / domRect.height,
+					yRelative: yEff / domRectHeight,
 				});
 			}
 
@@ -67,7 +77,7 @@ export class GamingCanvasEngineTouch {
 
 	public static initialize(
 		elCanvas: HTMLCanvasElement,
-		elInteractive: HTMLElement,
+		elInteractive: HTMLElement | undefined,
 		inputLimitPerMs: number,
 		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
 	): void {
@@ -94,16 +104,16 @@ export class GamingCanvasEngineTouch {
 			return false;
 		};
 
-		elInteractive.addEventListener('touchcancel', (event: TouchEvent) => {
+		(elInteractive || document.body).addEventListener('touchcancel', (event: TouchEvent) => {
 			return touchActive(false, event);
 		});
 
-		elInteractive.addEventListener('touchend', (event: TouchEvent) => {
+		(elInteractive || document.body).addEventListener('touchend', (event: TouchEvent) => {
 			return touchActive(false, event);
 		});
 
 		let touchmoveDiff: number, touchmoveNow: number;
-		elInteractive.addEventListener('touchmove', (event: TouchEvent) => {
+		(elInteractive || document.body).addEventListener('touchmove', (event: TouchEvent) => {
 			event.preventDefault();
 			event.stopPropagation();
 
@@ -138,7 +148,7 @@ export class GamingCanvasEngineTouch {
 			return false;
 		});
 
-		elInteractive.addEventListener('touchstart', (event: TouchEvent) => {
+		(elInteractive || document.body).addEventListener('touchstart', (event: TouchEvent) => {
 			return touchActive(true, event, GamingCanvasEngineTouch.calc(event));
 		});
 	}
