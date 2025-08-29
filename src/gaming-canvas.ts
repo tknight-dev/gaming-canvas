@@ -541,16 +541,16 @@ export class GamingCanvas {
 	/**
 	 * Moves canvas elements back into GamingCanvas's canvas container
 	 */
-	public static recontainerizeCanvases(): void {
-		let canvas: HTMLCanvasElement,
-			canvases: HTMLCanvasElement[] = GamingCanvas.elementCanvases,
-			containerCanvas: HTMLElement = GamingCanvas.elementContainerCanvas;
+	// public static recontainerizeCanvases(): void {
+	// 	let canvas: HTMLCanvasElement,
+	// 		canvases: HTMLCanvasElement[] = GamingCanvas.elementCanvases,
+	// 		containerCanvas: HTMLElement = GamingCanvas.elementContainerCanvas;
 
-		for (canvas of canvases) {
-			canvas.parentElement?.removeChild(canvas);
-			containerCanvas.appendChild(canvas);
-		}
-	}
+	// 	for (canvas of canvases) {
+	// 		canvas.parentElement?.removeChild(canvas);
+	// 		containerCanvas.appendChild(canvas);
+	// 	}
+	// }
 
 	/**
 	 * Inputs are relative to the overlay container, but this will convert it to be relative to the canvas container
@@ -1023,11 +1023,6 @@ export class GamingCanvas {
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
 		options.debug = options.debug === undefined ? false : options.debug === true;
 		options.dpiSupportEnable = options.dpiSupportEnable === undefined ? false : options.dpiSupportEnable === true;
-
-		if (GamingCanvas.elementCanvases) {
-			options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
-		}
-
 		options.inputGamepadDeadbandStick =
 			options.inputGamepadDeadbandStick === undefined ? 0.08 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadbandStick) || 0));
 		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? false : options.inputGamepadEnable === true;
@@ -1050,7 +1045,12 @@ export class GamingCanvas {
 	}
 
 	/**
-	 * This cannot update inject requests that were set during initialization. You have to re-initialize for that.
+	 * Options not mutabile after initialization:
+	 * 	- audio*
+	 *  - canvasCount
+	 * 	- elementInjectAsCanvas
+	 * 	- elementInjectAsOverlay
+	 *  - input*
 	 */
 	public static setOptions(options: GamingCanvasOptions): void {
 		if (!GamingCanvas.elementParent) {
