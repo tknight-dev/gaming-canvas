@@ -55,6 +55,7 @@ export interface GamingCanvasReport {
 	canvasWidthScaled: number;
 	devicePixelRatio: number;
 	orientation: GamingCanvasOrientation;
+	orientationCanvasRotated: boolean;
 	scaler: number;
 }
 
@@ -182,6 +183,8 @@ export class GamingCanvas {
 			heightResolution = (options.resolutionWidthPx ? options.resolutionWidthPx / aspectRatio : heightContainer) | 0;
 			report = <GamingCanvasReport>{
 				orientation: GamingCanvas.stateOrientation,
+				orientationCanvasRotated:
+					GamingCanvas.stateOrientation !== GamingCanvasOrientation.LANDSCAPE && GamingCanvas.options.orientationCanvasRotateEnable !== false,
 			};
 			styleTransform = GamingCanvas.elementContainerCanvas.style.transform;
 			widthContainer = GamingCanvas.elementRotator2.clientWidth | 0;
