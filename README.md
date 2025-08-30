@@ -6,7 +6,7 @@ Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
 
 ## Why This Library?
 
-**GamingCanvas** is for the game developer that wants to write their own game, their own way, rather than usings solutions like [PixiJs](https://pixijs.com/) and [Phaser](https://phaser.io/). It provides the following to get you up and running:
+**GamingCanvas** is for the game developer that wants to write their own game or engine, their own way, rather than usings solutions like [PixiJs](https://pixijs.com/) and [Phaser](https://phaser.io/). It provides the following to get you up and running:
 
 - **Audio**: The built in audio system provides buffers which allow you play multiple audio files at the same time (even the same audio file)
     - Quickly update the pan and volume of the effect or music depending on your game's environment!
@@ -14,7 +14,7 @@ Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
         - Use fader callback chaining to perfectly time more complicated pan and volume changes over a series of actions
 - **DPI**: Supports high/low DPI screens ([devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio))
 - **Fullscreen**: Quickly fullscreen your game
-- **Inputs**: Quickly gives you access to **Gamepad**, **Keyboard**, **Mouse**, and **Touch** via a serialized (FIFO) input queue
+- **Inputs**: Quickly gives you access to **Gamepad**, **Keyboard**, **Mouse**, and **Touch** via a serialized (FIFO) input queues
     - Enable or disable any input type you want
     - Gamepad: Support currently excludes triggers due to different browser bugs/implementations of the [Gamepad API](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API)
     - Mouse: Supports left, right, and wheel based inputs
