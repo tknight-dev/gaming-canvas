@@ -64,18 +64,6 @@ export enum GamingCanvasResolutionScaleType {
 	PIXELATED,
 }
 
-/**
- * Scale value between two ranges
- *
- * EG: value = 8
- * 		fromMin = 0, fromMax = 10
- * 		  toMin = 0,   toMax = 100
- * 		return is 80
- */
-export const GamingCanvasScale = (value: number, fromMin: number, fromMax: number, toMin: number, toMax: number) => {
-	return ((value - fromMin) * (toMax - toMin)) / (fromMax - fromMin) + toMin;
-};
-
 export class GamingCanvas {
 	private static callbackFullscreen: (state: boolean) => void;
 	private static callbackReport: (report: GamingCanvasReport) => void;
