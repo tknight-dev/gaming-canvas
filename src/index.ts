@@ -8,3 +8,4 @@ export * from './fifo-queue';
 export * from './input';
 export * from './gaming-canvas';
 export * from './stat';
+export * from './util';
