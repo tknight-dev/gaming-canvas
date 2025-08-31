@@ -15,16 +15,26 @@ export interface GamingCanvasInputPosition {
 	yRelative: number;
 }
 
+export const GamingCanvasInputPositionClone = (position: GamingCanvasInputPosition) => {
+	return {
+		out: position.out,
+		x: position.x,
+		xRelative: position.xRelative,
+		y: position.y,
+		yRelative: position.yRelative,
+	};
+};
+
 export const GamingCanvasInputPositionDistance = (a: GamingCanvasInputPosition, b: GamingCanvasInputPosition) => {
 	const x = a.x - b.x,
 		y = a.y - b.y;
-	return Math.sqrt(x * x + y * y);
+	return (x * x + y * y) ** 0.5;
 };
 
 export const GamingCanvasInputPositionDistanceRelative = (a: GamingCanvasInputPosition, b: GamingCanvasInputPosition) => {
 	const x = a.xRelative - b.xRelative,
 		y = a.yRelative - b.yRelative;
-	return Math.sqrt(x * x + y * y);
+	return (x * x + y * y) ** 0.5;
 };
 
 export enum GamingCanvasInputType {

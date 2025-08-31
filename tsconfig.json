@@ -4,8 +4,10 @@
         "declarationMap": true,
         "emitDeclarationOnly": true,
         "lib": ["dom", "ESNext"],
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
         "outDir": "./dist",
-        "target": "ESNext"
+        "target": "es2015"
     },
     "include": ["src/**/*.ts"],
     "exclude": ["node_modules"]

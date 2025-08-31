@@ -1,5 +1,5 @@
-import { GamingCanvasFIFOQueue } from '../fifo-queue';
-import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from '../input';
+import { GamingCanvasFIFOQueue } from '../fifo-queue.js';
+import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from '../inputs.js';
 
 /**
  * @author tknight-dev
