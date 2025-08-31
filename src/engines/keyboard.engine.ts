@@ -1,5 +1,5 @@
 import { GamingCanvasFIFOQueue } from '../fifo-queue.js';
-import { GamingCanvasInput, GamingCanvasInputType } from '../input.js';
+import { GamingCanvasInput, GamingCanvasInputType } from '../inputs.js';
 
 /**
  * Repeating keys (key held down) are filtered out

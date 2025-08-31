@@ -5,7 +5,7 @@ export { GamingCanvasInputKeyboardAction, GamingCanvasInputKeyboard } from './en
 export { GamingCanvasInputMouseAction, GamingCanvasInputMouse } from './engines/mouse.engine.js';
 export { GamingCanvasInputTouchAction, GamingCanvasInputTouch } from './engines/touch.engine.js';
 export * from './fifo-queue.js';
-export * from './input.js';
+export * from './inputs.js';
 export * from './gaming-canvas.js';
 export * from './models.js';
 export * from './stat.js';

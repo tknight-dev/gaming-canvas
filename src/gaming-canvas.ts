@@ -1,5 +1,5 @@
 import { GamingCanvasFIFOQueue } from './fifo-queue.js';
-import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from './input.js';
+import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from './inputs.js';
 import { GamingCanvasOptions, GamingCanvasOrientation, GamingCanvasReport, GamingCanvasResolutionScaleType } from './models.js';
 import { GamingCanvasAudioType, GamingCanvasEngineAudio } from './engines/audio.engine.js';
 import { GamingCanvasEngineGamepad, GamingCanvasInputGamepadState } from './engines/gamepad.engine.js';

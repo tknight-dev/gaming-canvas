@@ -1,10 +1,8 @@
+import { GamingCanvasInputPosition } from './inputs.js';
 import { GamingCanvasOrientation, GamingCanvasReport } from './models.js';
-import { GamingCanvasUtilScale } from './util.js';
 
 /**
- * Grids are still an experimental concept within the GamingCanvas
- *
- * All (x,y) cooridnates are in terms of cells/tiles unless noted other by comment of 'px' (pixels)
+ * All (x,y) cooridnates are in terms of cells/tiles unless noted otherwise via the postfix 'px' (pixels)
  *
  * All grids are square
  *
@@ -37,7 +35,7 @@ abstract class GamingCanvasGrid<GamingCanvasGridType> {
 		}
 	}
 
-	public set(value: number, x: number, y: number): boolean {
+	public set(x: number, y: number, value: number): boolean {
 		const index: number = (x | 0) * this.sideLength + (y | 0);
 
 		if (index >= 0 && index < this.size) {
@@ -60,12 +58,13 @@ export class GamingCanvasGridUint8Array extends GamingCanvasGrid<Uint8Array> {
 		}
 	}
 
-	public clone(): Uint8Array {
-		return Uint8Array.from(this.data);
+	public clone(): GamingCanvasGridUint8Array {
+		return GamingCanvasGridUint8Array.from(this.data, true);
 	}
 
-	constructor(sideLength: number) {
+	constructor(sideLength: number, fill?: number) {
 		super(new Uint8Array(sideLength * sideLength), 'GamingCanvasGridUint8Array', sideLength);
+		fill !== undefined && this.data.fill(fill);
 	}
 
 	/**
@@ -91,12 +90,13 @@ export class GamingCanvasGridUint8ClampedArray extends GamingCanvasGrid<Uint8Cla
 		}
 	}
 
-	public clone(): Uint8ClampedArray {
-		return Uint8ClampedArray.from(this.data);
+	public clone(): GamingCanvasGridUint8ClampedArray {
+		return GamingCanvasGridUint8ClampedArray.from(this.data, true);
 	}
 
-	public constructor(sideLength: number) {
+	public constructor(sideLength: number, fill?: number) {
 		super(new Uint8ClampedArray(sideLength * sideLength), 'GamingCanvasGridUint8ClampedArray', sideLength);
+		fill !== undefined && this.data.fill(fill);
 	}
 
 	/**
@@ -113,10 +113,6 @@ export class GamingCanvasGridUint8ClampedArray extends GamingCanvasGrid<Uint8Cla
 }
 
 export class GamingCanvasGridUint16Array extends GamingCanvasGrid<Uint16Array> {
-	public constructor(sideLength: number) {
-		super(new Uint16Array(sideLength * sideLength), 'GamingCanvasGridUint16Array', sideLength);
-	}
-
 	public apply(data: Uint16Array): void {
 		const _data = this.data,
 			length: number = Math.min(_data.length, data.length);
@@ -126,8 +122,13 @@ export class GamingCanvasGridUint16Array extends GamingCanvasGrid<Uint16Array> {
 		}
 	}
 
-	public clone(): Uint16Array {
-		return Uint16Array.from(this.data);
+	public clone(): GamingCanvasGridUint16Array {
+		return GamingCanvasGridUint16Array.from(this.data, true);
+	}
+
+	public constructor(sideLength: number, fill?: number) {
+		super(new Uint16Array(sideLength * sideLength), 'GamingCanvasGridUint16Array', sideLength);
+		fill !== undefined && this.data.fill(fill);
 	}
 
 	/**
@@ -153,12 +154,13 @@ export class GamingCanvasGridUint32Array extends GamingCanvasGrid<Uint32Array> {
 		}
 	}
 
-	public constructor(sideLength: number) {
-		super(new Uint32Array(sideLength * sideLength), 'GamingCanvasGridUint32Array', sideLength);
+	public clone(): GamingCanvasGridUint32Array {
+		return GamingCanvasGridUint32Array.from(this.data, true);
 	}
 
-	public clone(): Uint32Array {
-		return Uint32Array.from(this.data);
+	public constructor(sideLength: number, fill?: number) {
+		super(new Uint32Array(sideLength * sideLength), 'GamingCanvasGridUint32Array', sideLength);
+		fill !== undefined && this.data.fill(fill);
 	}
 
 	/**
@@ -199,8 +201,40 @@ export class GamingCanvasGridCamera {
 		return this;
 	}
 
+	public static decodeMultiple(cameras: GamingCanvasGridCamera[], data: Float32Array): GamingCanvasGridCamera[] {
+		let camera: GamingCanvasGridCamera,
+			length: number = Math.min(cameras.length, (data.length / 4) | 0);
+
+		for (let i = 0, j = 0; i < length; i++, j += 4) {
+			camera = cameras[i];
+
+			camera.r = data[j];
+			camera.x = data[j + 1];
+			camera.y = data[j + 2];
+			camera.z = data[j + 3];
+		}
+
+		return cameras;
+	}
+
 	public encode(): Float32Array {
 		return Float32Array.from([this.r, this.x, this.y, this.z]);
+	}
+
+	public static encodeMultiple(cameras: GamingCanvasGridCamera[]): Float32Array {
+		let camera: GamingCanvasGridCamera,
+			data: Float32Array = new Float32Array(cameras.length * 4);
+
+		for (let i = 0, j = 0; i < cameras.length; i++, j += 4) {
+			camera = cameras[i];
+
+			data[j] = camera.r;
+			data[j + 1] = camera.x;
+			data[j + 2] = camera.y;
+			data[j + 3] = camera.z;
+		}
+
+		return data;
 	}
 
 	/**
@@ -209,13 +243,25 @@ export class GamingCanvasGridCamera {
 	public static from(data: Float32Array): GamingCanvasGridCamera {
 		return new GamingCanvasGridCamera().decode(data);
 	}
+
+	/**
+	 * Create a new instances from encoded GridCameras
+	 */
+	public static fromMultiple(data: Float32Array): GamingCanvasGridCamera[] {
+		const cameras: GamingCanvasGridCamera[] = new Array((data.length / 4) | 0);
+
+		for (let i = 0, j = 0; i < cameras.length; i++, j += 4) {
+			cameras[i] = new GamingCanvasGridCamera(data[j], data[j + 1], data[j + 2], data[j + 3]);
+		}
+
+		return cameras;
+	}
 }
 
 /**
  * Viewport is a reduced view of the overall data grid. Use this when moving the camera or zooming in and out.
  */
 export class GamingCanvasGridViewport {
-	public cameraZScaleMax: number; // float
 	public cellSizePx: number; // float
 	public gridSideLength: number; // int
 	public height: number; // float
@@ -231,13 +277,12 @@ export class GamingCanvasGridViewport {
 	public widthStop: number; // float
 	public widthStopPx: number; // float
 
-	public constructor(cameraZScaleMax: number, sideLength: number) {
-		this.cameraZScaleMax = cameraZScaleMax;
+	public constructor(sideLength: number) {
 		this.gridSideLength = sideLength;
 	}
 
 	/**
-	 * @param cameraFitToView if true, modifies the camera object as required to fit within the viewport
+	 * @param cameraFitToView if true, modifies the camera object as required to fit the Viewport within the Grid
 	 */
 	public apply(camera: GamingCanvasGridCamera, cameraFitToView?: boolean): void {
 		// Viewport: height + position bounded
@@ -303,11 +348,18 @@ export class GamingCanvasGridViewport {
 		}
 	}
 
+	/**
+	 * Will round camera.z down to 4 points of precision (EG: 0.12345678... => 0.1234) to fix issues JavaScript issue with 1.0000000001 instead of 1
+	 *
+	 * cellSizePx minimum is 1 as subpixel sizes are not supported by JavaScript
+	 */
 	public applyZ(camera: GamingCanvasGridCamera, report: GamingCanvasReport): void {
+		camera.z = ((camera.z * 10000) | 0) / 10000;
+
 		if (report.orientation === GamingCanvasOrientation.LANDSCAPE || report.orientationCanvasRotated === true) {
-			this.cellSizePx = Math.max(1, (report.canvasWidth / this.gridSideLength) * GamingCanvasUtilScale(camera.z, 1, 100, 0.25, 2));
+			this.cellSizePx = Math.max(1, (report.canvasWidth / this.gridSideLength) * camera.z);
 		} else {
-			this.cellSizePx = Math.max(1, (report.canvasHeight / this.gridSideLength) * GamingCanvasUtilScale(camera.z, 1, 100, 0.25, 2));
+			this.cellSizePx = Math.max(1, (report.canvasHeight / this.gridSideLength) * camera.z);
 		}
 		this.height = report.canvasHeight / this.cellSizePx;
 		this.heightPx = report.canvasHeight;
@@ -316,28 +368,26 @@ export class GamingCanvasGridViewport {
 	}
 
 	public decode(data: Float32Array): GamingCanvasGridViewport {
-		this.cameraZScaleMax = data[0];
-		this.gridSideLength = data[1] | 0;
-		this.cellSizePx = data[2];
-		this.height = data[3];
-		this.heightPx = data[4] | 0;
-		this.heightStart = data[5];
-		this.heightStartPx = data[6];
-		this.heightStop = data[7];
-		this.heightStopPx = data[8];
-		this.width = data[9];
-		this.widthPx = data[10];
-		this.widthStart = data[11];
-		this.widthStartPx = data[12];
-		this.widthStop = data[13];
-		this.widthStopPx = data[14];
+		this.gridSideLength = data[0] | 0;
+		this.cellSizePx = data[1];
+		this.height = data[2];
+		this.heightPx = data[3] | 0;
+		this.heightStart = data[4];
+		this.heightStartPx = data[5];
+		this.heightStop = data[6];
+		this.heightStopPx = data[7];
+		this.width = data[8];
+		this.widthPx = data[9];
+		this.widthStart = data[10];
+		this.widthStartPx = data[11];
+		this.widthStop = data[12];
+		this.widthStopPx = data[13];
 
 		return this;
 	}
 
 	public encode(): Float32Array {
 		return Float32Array.from([
-			this.cameraZScaleMax,
 			this.gridSideLength,
 			this.cellSizePx,
 			this.height,
@@ -356,20 +406,25 @@ export class GamingCanvasGridViewport {
 	}
 
 	public static from(data: Float32Array): GamingCanvasGridViewport {
-		return new GamingCanvasGridViewport(0, 0).decode(data);
+		return new GamingCanvasGridViewport(0).decode(data);
 	}
 
-	public updateConfig(
-		camera: GamingCanvasGridCamera,
-		cameraFitToView: boolean,
-		cameraZScaleMax: number,
-		report: GamingCanvasReport,
-		sideLength: number,
-	): void {
-		this.cameraZScaleMax = cameraZScaleMax;
+	public updateConfig(camera: GamingCanvasGridCamera, cameraFitToView: boolean, report: GamingCanvasReport, sideLength: number): void {
 		this.gridSideLength = sideLength;
 
 		this.applyZ(camera, report);
 		this.apply(camera, cameraFitToView);
 	}
 }
+
+/**
+ * Get the top left of the active grid cell (input overlay position in cell) in px (pixels)
+ *
+ * @return [left, top]
+ */
+export const GamingCanvasGridInputOverlaySnapPxTopLeft = (position: GamingCanvasInputPosition, viewport: GamingCanvasGridViewport): number[] => {
+	return [
+		(position.xRelative * viewport.width - ((position.xRelative * viewport.width + viewport.widthStart) % 1)) * viewport.cellSizePx,
+		(position.yRelative * viewport.height - ((position.yRelative * viewport.height + viewport.heightStart) % 1)) * viewport.cellSizePx,
+	];
+};
