@@ -7,11 +7,12 @@ esbuild = require('esbuild');
 esbuild.build({
 	bundle: true,
 	entryPoints: {
+		grid: 'src/grid.ts',
 		index: 'src/index.ts',
 	},
 	loader: {},
 	format: 'cjs',
-	mangleProps: /^[_#]/,
+	// mangleProps: /^[_#]/, // Breaks property references when sending between WebWorkers
 	mangleQuoted: true,
 	metafile: true,
 	minify: true,

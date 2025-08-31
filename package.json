@@ -9,13 +9,25 @@
     },
     "description": "A better/faster way to start writing games in JS",
     "exports": {
-        "import": {
-            "import": "./dist/index.mjs",
-            "types": "./dist/index.d.ts"
+        ".": {
+            "import": {
+                "import": "./dist/index.mjs",
+                "types": "./dist/index.d.ts"
+            },
+            "require": {
+                "require": "./dist/index.cjs",
+                "types": "./dist/index.d.ts"
+            }
         },
-        "require": {
-            "require": "./dist/index.cjs",
-            "types": "./dist/index.d.ts"
+        "./grid": {
+            "import": {
+                "import": "./dist/grid.mjs",
+                "types": "./dist/grid.d.ts"
+            },
+            "require": {
+                "require": "./dist/grid.cjs",
+                "types": "./dist/grid.d.ts"
+            }
         }
     },
     "files": [

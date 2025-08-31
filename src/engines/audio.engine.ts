@@ -1,5 +1,5 @@
-import { GamingCanvasDoubleLinkedListNode } from '../double-linked-list';
-import { GamingCanvasFIFOQueue } from '../fifo-queue';
+import { GamingCanvasDoubleLinkedListNode } from '../double-linked-list.js';
+import { GamingCanvasFIFOQueue } from '../fifo-queue.js';
 
 /**
  * The user must interact with the page before the browser will allow the audio to play

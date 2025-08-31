@@ -1,10 +1,11 @@
-import { GamingCanvasFIFOQueue } from './fifo-queue';
-import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from './input';
-import { GamingCanvasAudioType, GamingCanvasEngineAudio } from './engines/audio.engine';
-import { GamingCanvasEngineGamepad, GamingCanvasInputGamepadState } from './engines/gamepad.engine';
-import { GamingCanvasEngineKeyboard } from './engines/keyboard.engine';
-import { GamingCanvasEngineMouse } from './engines/mouse.engine';
-import { GamingCanvasEngineTouch } from './engines/touch.engine';
+import { GamingCanvasFIFOQueue } from './fifo-queue.js';
+import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from './input.js';
+import { GamingCanvasOptions, GamingCanvasOrientation, GamingCanvasReport, GamingCanvasResolutionScaleType } from './models.js';
+import { GamingCanvasAudioType, GamingCanvasEngineAudio } from './engines/audio.engine.js';
+import { GamingCanvasEngineGamepad, GamingCanvasInputGamepadState } from './engines/gamepad.engine.js';
+import { GamingCanvasEngineKeyboard } from './engines/keyboard.engine.js';
+import { GamingCanvasEngineMouse } from './engines/mouse.engine.js';
+import { GamingCanvasEngineTouch } from './engines/touch.engine.js';
 
 /**
  * Canvas:
@@ -15,54 +16,6 @@ import { GamingCanvasEngineTouch } from './engines/touch.engine';
  *
  * @author tknight-dev
  */
-
-export class GamingCanvasOptions {
-	aspectRatio?: number;
-	audioBufferCount?: number;
-	audioEnable?: boolean;
-	callbackReportLimitPerMs?: number;
-	canvasCount?: number;
-	debug?: boolean;
-	dpiSupportEnable?: boolean;
-	elementInteractive?: HTMLElement;
-	elementInjectAsCanvas?: HTMLElement[];
-	elementInjectAsOverlay?: HTMLElement[];
-	inputGamepadDeadbandStick?: number;
-	inputGamepadEnable?: boolean;
-	inputKeyboardEnable?: boolean;
-	inputMouseEnable?: boolean;
-	inputMousePreventContextMenu?: boolean;
-	inputTouchEnable?: boolean;
-	inputLimitPerMs?: number;
-	orientation?: GamingCanvasOrientation;
-	orientationCanvasRotateEnable?: boolean;
-	orientationCanvasPortaitRotateLeft?: boolean;
-	resolutionScaleToFit?: boolean;
-	resolutionScaleType?: GamingCanvasResolutionScaleType;
-	resolutionWidthPx?: null | number;
-}
-
-export enum GamingCanvasOrientation {
-	AUTO,
-	LANDSCAPE,
-	PORTRAIT,
-}
-
-export interface GamingCanvasReport {
-	canvasHeight: number;
-	canvasHeightScaled: number;
-	canvasWidth: number;
-	canvasWidthScaled: number;
-	devicePixelRatio: number;
-	orientation: GamingCanvasOrientation;
-	orientationCanvasRotated: boolean;
-	scaler: number;
-}
-
-export enum GamingCanvasResolutionScaleType {
-	ANTIALIAS,
-	PIXELATED,
-}
 
 export class GamingCanvas {
 	private static callbackFullscreen: (state: boolean) => void;

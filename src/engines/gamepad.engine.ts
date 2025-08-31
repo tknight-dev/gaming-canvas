@@ -1,5 +1,5 @@
-import { GamingCanvasFIFOQueue } from '../fifo-queue';
-import { GamingCanvasInput, GamingCanvasInputType } from '../input';
+import { GamingCanvasFIFOQueue } from '../fifo-queue.js';
+import { GamingCanvasInput, GamingCanvasInputType } from '../input.js';
 
 /**
  * Triggers are axes in Firefox and buttons in Chrome
