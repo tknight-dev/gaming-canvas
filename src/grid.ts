@@ -9,15 +9,110 @@ import { GamingCanvasOrientation, GamingCanvasReport } from './models.js';
  * @author tknight-dev
  */
 
-type GamingCanvasGridType = Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array;
+/**
+ * Camera
+ */
 
-abstract class GamingCanvasGrid<GamingCanvasGridType> {
-	public readonly data: GamingCanvasGridType;
+export interface GamingCanvasGridICamera {
+	r: number; // float: rotation in radians
+	x: number; // float
+	y: number; // float
+	z: number; // float: zoom
+}
+
+export class GamingCanvasGridCamera implements GamingCanvasGridICamera {
+	public r: number; // float: rotation in radians
+	public x: number; // float
+	public y: number; // float
+	public z: number; // float: zoom
+
+	public constructor(r: number = (90 * Math.PI) / 180, x: number = 0, y: number = 0, z: number = 1) {
+		this.r = r;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+
+	public decode(data: Float32Array): GamingCanvasGridCamera {
+		this.r = data[0];
+		this.x = data[1];
+		this.y = data[2];
+		this.z = data[3];
+
+		return this;
+	}
+
+	public static decodeMultiple(cameras: GamingCanvasGridCamera[], data: Float32Array): GamingCanvasGridCamera[] {
+		let camera: GamingCanvasGridCamera,
+			length: number = Math.min(cameras.length, (data.length / 4) | 0);
+
+		for (let i = 0, j = 0; i < length; i++, j += 4) {
+			camera = cameras[i];
+
+			camera.r = data[j];
+			camera.x = data[j + 1];
+			camera.y = data[j + 2];
+			camera.z = data[j + 3];
+		}
+
+		return cameras;
+	}
+
+	public encode(): Float32Array {
+		return Float32Array.from([this.r, this.x, this.y, this.z]);
+	}
+
+	public static encodeMultiple(cameras: GamingCanvasGridCamera[]): Float32Array {
+		let camera: GamingCanvasGridCamera,
+			data: Float32Array = new Float32Array(cameras.length * 4);
+
+		for (let i = 0, j = 0; i < cameras.length; i++, j += 4) {
+			camera = cameras[i];
+
+			data[j] = camera.r;
+			data[j + 1] = camera.x;
+			data[j + 2] = camera.y;
+			data[j + 3] = camera.z;
+		}
+
+		return data;
+	}
+
+	/**
+	 * Create a new instance from an encoded GridCamera
+	 */
+	public static from(data: Float32Array): GamingCanvasGridCamera {
+		return new GamingCanvasGridCamera().decode(data);
+	}
+
+	/**
+	 * Create a new instances from encoded GridCameras
+	 */
+	public static fromMultiple(data: Float32Array): GamingCanvasGridCamera[] {
+		const cameras: GamingCanvasGridCamera[] = new Array((data.length / 4) | 0);
+
+		for (let i = 0, j = 0; i < cameras.length; i++, j += 4) {
+			cameras[i] = new GamingCanvasGridCamera(data[j], data[j + 1], data[j + 2], data[j + 3]);
+		}
+
+		return cameras;
+	}
+}
+
+/**
+ * Grid
+ */
+
+type GamingCanvasGridType = GamingCanvasGridUint8Array | GamingCanvasGridUint8ClampedArray | GamingCanvasGridUint16Array | GamingCanvasGridUint32Array;
+type GamingCanvasGridTyped = Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array;
+
+abstract class GamingCanvasGrid<GamingCanvasGridTyped> {
+	public readonly data: GamingCanvasGridTyped;
 	private readonly prefix: string;
 	public readonly size: number;
 	public readonly sideLength: number;
 
-	constructor(data: GamingCanvasGridType, prefix: string, sideLength: number) {
+	constructor(data: GamingCanvasGridTyped, prefix: string, sideLength: number) {
 		this.data = data;
 		this.prefix = prefix;
 		this.sideLength = sideLength;
@@ -27,7 +122,7 @@ abstract class GamingCanvasGrid<GamingCanvasGridType> {
 	public get(x: number, y: number): number | undefined {
 		const index: number = (x | 0) * this.sideLength + (y | 0);
 
-		if (index >= 0 && index < this.size) {
+		if (index < this.size && index >= 0) {
 			return this.data[index];
 		} else {
 			console.error(`${this.prefix} > get: x (${x}) and y (${y}) not within grid [sideLength=${this.sideLength}]`);
@@ -38,7 +133,7 @@ abstract class GamingCanvasGrid<GamingCanvasGridType> {
 	public set(x: number, y: number, value: number): boolean {
 		const index: number = (x | 0) * this.sideLength + (y | 0);
 
-		if (index >= 0 && index < this.size) {
+		if (index < this.size && index >= 0) {
 			this.data[index] = value;
 			return true;
 		} else {
@@ -177,86 +272,153 @@ export class GamingCanvasGridUint32Array extends GamingCanvasGrid<Uint32Array> {
 }
 
 /**
- * Camera is a pointer with coordinates, rotation, and zoom
+ * Raycast
  */
-export class GamingCanvasGridCamera {
-	public r: number; // float: rotation in radians
-	public x: number; // float
-	public y: number; // float
-	public z: number; // float: zoom
 
-	public constructor(r: number = (90 * Math.PI) / 180, x: number = 0, y: number = 0, z: number = 1) {
-		this.r = r;
-		this.x = x;
-		this.y = y;
-		this.z = z;
-	}
-
-	public decode(data: Float32Array): GamingCanvasGridCamera {
-		this.r = data[0];
-		this.x = data[1];
-		this.y = data[2];
-		this.z = data[3];
-
-		return this;
-	}
-
-	public static decodeMultiple(cameras: GamingCanvasGridCamera[], data: Float32Array): GamingCanvasGridCamera[] {
-		let camera: GamingCanvasGridCamera,
-			length: number = Math.min(cameras.length, (data.length / 4) | 0);
-
-		for (let i = 0, j = 0; i < length; i++, j += 4) {
-			camera = cameras[i];
-
-			camera.r = data[j];
-			camera.x = data[j + 1];
-			camera.y = data[j + 2];
-			camera.z = data[j + 3];
-		}
-
-		return cameras;
-	}
-
-	public encode(): Float32Array {
-		return Float32Array.from([this.r, this.x, this.y, this.z]);
-	}
-
-	public static encodeMultiple(cameras: GamingCanvasGridCamera[]): Float32Array {
-		let camera: GamingCanvasGridCamera,
-			data: Float32Array = new Float32Array(cameras.length * 4);
-
-		for (let i = 0, j = 0; i < cameras.length; i++, j += 4) {
-			camera = cameras[i];
-
-			data[j] = camera.r;
-			data[j + 1] = camera.x;
-			data[j + 2] = camera.y;
-			data[j + 3] = camera.z;
-		}
-
-		return data;
-	}
-
-	/**
-	 * Create a new instance from an encoded GridCamera
-	 */
-	public static from(data: Float32Array): GamingCanvasGridCamera {
-		return new GamingCanvasGridCamera().decode(data);
-	}
-
-	/**
-	 * Create a new instances from encoded GridCameras
-	 */
-	public static fromMultiple(data: Float32Array): GamingCanvasGridCamera[] {
-		const cameras: GamingCanvasGridCamera[] = new Array((data.length / 4) | 0);
-
-		for (let i = 0, j = 0; i < cameras.length; i++, j += 4) {
-			cameras[i] = new GamingCanvasGridCamera(data[j], data[j + 1], data[j + 2], data[j + 3]);
-		}
-
-		return cameras;
-	}
+export interface GamingCanvasGridRaycastOptions {
+	fov?: number; // radians
+	fovRayCount?: number;
+	skipCells?: boolean;
+	skipRays?: boolean;
 }
+
+export interface GamingCanvasGridRaycastResult {
+	cells?: Set<number>; // to be Uint*Array typed with in the actual canvas project with types available
+	rays?: Float32Array;
+}
+
+/**
+ * If either `fovInDegrees` or `fovPixels` is undefiend then only one ray is cast
+ *
+ * @param blockingMask `grid.data[index] & blockingMask = valueForTesting`
+ * @param blockingValue `if valueForTesting === blockingValue then grid.data[index] is blocked`
+ * @return .cells are indexes for each cell touched by a ray | .rays are the (x,y) coordinates, from the camera postion, that form a ray (line)
+ */
+export const GamingCanvasGridRaycast = (
+	camera: GamingCanvasGridICamera,
+	grid: GamingCanvasGridType,
+	blockingMask: number,
+	blockingValue: number,
+	options?: GamingCanvasGridRaycastOptions,
+): GamingCanvasGridRaycastResult => {
+	let cells: Set<number> | undefined,
+		distance: number,
+		fov: number = camera.r,
+		fovStep: number = 1,
+		gridData: GamingCanvasGridTyped = grid.data,
+		gridIndex: number,
+		gridSideLength: number = grid.sideLength,
+		gridSize: number = gridSideLength * gridSideLength,
+		i: number = 0,
+		j: number,
+		length: number = 1, // Iterate once by default
+		rayIndex: number = 0,
+		rays: Float32Array | undefined,
+		x: number = camera.x,
+		xAngle: number,
+		xIndex: number,
+		xRayLength: number,
+		xStep: number,
+		xStepRay: number,
+		y: number = camera.y,
+		yAngle: number,
+		yIndex: number,
+		yRayLength: number,
+		yStep: number,
+		yStepRay: number;
+
+	if (options !== undefined) {
+		if (options.fov !== undefined && options.fovRayCount !== undefined) {
+			length = Math.max(1, options.fovRayCount) | 0;
+
+			if (length !== 1) {
+				fov = camera.r - options.fov / 2;
+				fovStep = options.fov / (length - 1);
+			}
+		}
+
+		if (options.skipCells !== true) {
+			cells = new Set();
+			cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
+		}
+
+		if (options.skipRays !== true) {
+			rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
+		}
+
+		if (cells === undefined && rays === undefined) {
+			return {};
+		}
+	} else {
+		cells = new Set();
+		cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
+
+		rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
+	}
+
+	for (; i < length; i++, fov += fovStep, rayIndex += 2) {
+		// Initial angle
+		xAngle = Math.sin(fov);
+		yAngle = Math.cos(fov);
+
+		// Initial index
+		xIndex = x | 0;
+		yIndex = y | 0;
+
+		// Step size to next cell
+		xStep = Math.sign(xAngle);
+		xStepRay = (1 + (yAngle / xAngle) * (yAngle / xAngle)) ** 0.5;
+		yStep = Math.sign(yAngle);
+		yStepRay = (1 + (xAngle / yAngle) * (xAngle / yAngle)) ** 0.5;
+
+		// Offset ray length by current position within cell
+		xRayLength = (xAngle < 0 ? x - xIndex : 1 - (x - xIndex)) * xStepRay;
+		yRayLength = (yAngle < 0 ? y - yIndex : 1 - (y - yIndex)) * yStepRay;
+
+		// Increment ray cell by cell
+		for (j = 0; j < gridSideLength; j++) {
+			// Next cell
+			if (xRayLength < yRayLength) {
+				distance = xRayLength;
+				xIndex += xStep;
+				xRayLength += xStepRay;
+			} else {
+				distance = yRayLength;
+				yIndex += yStep;
+				yRayLength += yStepRay;
+			}
+
+			// Convert to grid index
+			gridIndex = xIndex * gridSideLength + yIndex;
+
+			// Within grid?
+			if (gridIndex < 0 || gridIndex >= gridSize) {
+				break;
+			}
+
+			// Is terminated?
+			if ((gridData[gridIndex] & blockingMask) === blockingValue) {
+				if (rays !== undefined) {
+					rays[rayIndex] = x + xAngle * distance;
+					rays[rayIndex + 1] = y + yAngle * distance;
+				}
+				break;
+			} else if (cells !== undefined) {
+				cells.add(gridIndex);
+			}
+		}
+	}
+
+	// Done
+	return {
+		cells: cells,
+		rays: rays,
+	};
+};
+
+/**
+ * Viewport
+ */
 
 /**
  * Viewport is a reduced view of the overall data grid. Use this when moving the camera or zooming in and out.
@@ -310,8 +472,6 @@ export class GamingCanvasGridViewport {
 				this.heightStopPx = this.heightStop * this.cellSizePx;
 			}
 		} else {
-			camera.y = Math.max(-this.height * 2, Math.min(this.height * 2, camera.y));
-
 			this.heightStartPx = this.heightStart * this.cellSizePx;
 			this.heightStop = this.heightStart + this.height;
 			this.heightStopPx = this.heightStop * this.cellSizePx;

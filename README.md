@@ -25,6 +25,8 @@ Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
     - Double-Linked-List
     - FIFO Queue (Single-Linked-List without `popEnd()` or `pushStart()`)
 - **Lightweight**: This entire library is **~40kb**
+- **Modules**
+    - **Grids**: Includes _Grid_, _Camera_, and _Viewport_ implementations (including _Raycasting_!). See [How To > Module: Grids](https://gaming-canvas.org/how-to/module-grids) for all the features and details
 - **Mobile**: Mobile devices are fully supported
 - **Orientation**: Auto rotate for maximum screen usage or lock it to a specific orientation (Portrait/Landscape)
     - [Screen Orientation](https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock) locking isn't supported by all browsers
