@@ -20,6 +20,8 @@ export interface GamingCanvasInputMouse extends GamingCanvasInput {
 	propriatary: {
 		action: GamingCanvasInputMouseAction;
 		down?: boolean;
+		movementX?: number;
+		movementY?: number;
 		position: GamingCanvasInputPosition;
 	};
 }
@@ -27,6 +29,9 @@ export interface GamingCanvasInputMouse extends GamingCanvasInput {
 export class GamingCanvasEngineMouse {
 	public static active: boolean = true;
 	private static el: HTMLCanvasElement;
+	private static elInteractive: HTMLElement | undefined;
+	private static locked: boolean;
+	private static lockHooked: boolean;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 
 	/**
@@ -128,6 +133,8 @@ export class GamingCanvasEngineMouse {
 				GamingCanvasEngineMouse.queue.push({
 					propriatary: {
 						action: GamingCanvasInputMouseAction.MOVE,
+						movementX: event.movementX,
+						movementY: event.movementY,
 						position: GamingCanvasEngineMouse.calc(event),
 					},
 					type: GamingCanvasInputType.MOUSE,
@@ -156,6 +163,15 @@ export class GamingCanvasEngineMouse {
 				});
 			}
 		});
+
+		if (GamingCanvasEngineMouse.lockHooked !== true) {
+			GamingCanvasEngineMouse.lockHooked = true;
+
+			document.addEventListener('pointerlockchange', () => {
+				GamingCanvasEngineMouse.locked = document.pointerLockElement === (GamingCanvasEngineMouse.elInteractive || document.body);
+			});
+		}
+
 		(elInteractive || document.body).addEventListener('wheel', (event: any) => {
 			if (GamingCanvasEngineMouse.active) {
 				GamingCanvasEngineMouse.queue.push({
@@ -168,5 +184,24 @@ export class GamingCanvasEngineMouse {
 				});
 			}
 		});
+	}
+
+	/**
+	 * @param unadjustedMovement when true, disables OS-level mouse acceleration and access raw mouse input
+	 */
+	public static async lock(unadjustedMovement?: boolean): Promise<boolean> {
+		try {
+			await (GamingCanvasEngineMouse.elInteractive || document.body).requestPointerLock({
+				unadjustedMovement: unadjustedMovement,
+			});
+			return true;
+		} catch (error) {
+			console.error('GamingCanvas > GamingCanvasEngineMouse > lock: unable to aquire due to', error.name);
+			return false;
+		}
+	}
+
+	public static isLocked(): boolean {
+		return GamingCanvasEngineMouse.locked;
 	}
 }

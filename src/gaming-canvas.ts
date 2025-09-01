@@ -65,6 +65,10 @@ export class GamingCanvas {
 
 		// Function Forward: Engine Gamepad
 		GamingCanvas.getGamepads = GamingCanvasEngineGamepad.getGamepads;
+
+		// Function Forward: Engine Mouse
+		GamingCanvas.mouseLock = GamingCanvasEngineMouse.lock;
+		GamingCanvas.isMouseLocked = GamingCanvasEngineMouse.isLocked;
 	}
 
 	/**
@@ -962,6 +966,17 @@ export class GamingCanvas {
 				check = true;
 		})(navigator.userAgent || (<any>window).vendor || (<any>window).opera);
 		return check;
+	}
+
+	/**
+	 * @param unadjustedMovement when true, disables OS-level mouse acceleration and access raw mouse input
+	 */
+	public static async mouseLock(_unadjustedMovement?: boolean): Promise<boolean> {
+		return false;
+	}
+
+	public static isMouseLocked(): boolean {
+		return false;
 	}
 
 	private static formatOptions(options: GamingCanvasOptions): GamingCanvasOptions {
