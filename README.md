@@ -24,7 +24,7 @@ Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
 - **Lists**: Provides `List` implementions where `Array` performance faulters
     - Double-Linked-List
     - FIFO Queue (Single-Linked-List without `popEnd()` or `pushStart()`)
-- **Lightweight**: This entire library is **~40kb**
+- **Lightweight**: Core library is **~40kb**
 - **Modules**
     - **Grids**: Includes _Grid_, _Camera_, and _Viewport_ implementations (including _Raycasting_!). See [How-To > Module: Grids](https://gaming-canvas.org/how-to/module-grids) for all the features and details
 - **Mobile**: Mobile devices are fully supported
