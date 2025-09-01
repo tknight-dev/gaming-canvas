@@ -207,6 +207,9 @@ export class GamingCanvasGridUint8ClampedArray extends GamingCanvasGrid<Uint8Cla
 		return GamingCanvasGridUint8ClampedArray.from(this.data, true);
 	}
 
+	/**
+	 * @param fill of 0 is not necessary as the array values are already 0 by the nature of an Uint8ClampedArray
+	 */
 	public constructor(sideLength: number, fill?: number) {
 		super(new Uint8ClampedArray(sideLength * sideLength), 'GamingCanvasGridUint8ClampedArray', sideLength);
 		fill !== undefined && this.data.fill(fill);
@@ -395,7 +398,7 @@ export const GamingCanvasGridRaycast = (
 				length = Math.max(1, options.rayCount) | 0;
 
 				if (length !== 1) {
-					fov = camera.r - options.rayFOV / 2;
+					fov = camera.r + options.rayFOV / 2;
 					fovStep = options.rayFOV / (length - 1);
 				}
 			}
@@ -415,7 +418,7 @@ export const GamingCanvasGridRaycast = (
 		rays = new Float32Array(length * 4);
 	}
 
-	for (; i < length; i++, fov += fovStep, rayIndex += 4) {
+	for (; i < length; i++, fov -= fovStep, rayIndex += 4) {
 		// Initial angle
 		xAngle = Math.sin(fov);
 		yAngle = Math.cos(fov);
