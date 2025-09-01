@@ -103,7 +103,6 @@ export class GamingCanvasGridCamera implements GamingCanvasGridICamera {
  * Grid
  */
 
-type GamingCanvasGridType = GamingCanvasGridUint8Array | GamingCanvasGridUint8ClampedArray | GamingCanvasGridUint16Array | GamingCanvasGridUint32Array;
 type GamingCanvasGridTyped = Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array;
 
 abstract class GamingCanvasGrid<GamingCanvasGridTyped> {
@@ -143,7 +142,13 @@ abstract class GamingCanvasGrid<GamingCanvasGridTyped> {
 	}
 }
 
-export class GamingCanvasGridUint8Array extends GamingCanvasGrid<Uint8Array> {
+interface GamingCanvasGridIArray<T> {
+	createDataInstance: () => T;
+}
+
+type GamingCanvasGridType = GamingCanvasGridUint8Array | GamingCanvasGridUint8ClampedArray | GamingCanvasGridUint16Array | GamingCanvasGridUint32Array;
+
+export class GamingCanvasGridUint8Array extends GamingCanvasGrid<Uint8Array> implements GamingCanvasGridIArray<Uint8Array> {
 	public apply(data: Uint8Array): void {
 		const _data = this.data,
 			length: number = Math.min(_data.length, data.length);
@@ -163,6 +168,19 @@ export class GamingCanvasGridUint8Array extends GamingCanvasGrid<Uint8Array> {
 	}
 
 	/**
+	 * Creates new typed array instance based on the current class type
+	 */
+	public createDataInstance(value?: number | number[] | Set<number>): Uint8Array {
+		if (value === undefined) {
+			return new Uint8Array();
+		} else if (typeof value === 'number') {
+			return new Uint8Array(value);
+		} else {
+			return Uint8Array.from(value);
+		}
+	}
+
+	/**
 	 * @param cloneData true and the interal data object will be a clone. False and it will be the passed in data object.
 	 */
 	public static from(data: Uint8Array, cloneData?: boolean): GamingCanvasGridUint8Array {
@@ -175,7 +193,7 @@ export class GamingCanvasGridUint8Array extends GamingCanvasGrid<Uint8Array> {
 	}
 }
 
-export class GamingCanvasGridUint8ClampedArray extends GamingCanvasGrid<Uint8ClampedArray> {
+export class GamingCanvasGridUint8ClampedArray extends GamingCanvasGrid<Uint8ClampedArray> implements GamingCanvasGridIArray<Uint8ClampedArray> {
 	public apply(data: Uint8ClampedArray): void {
 		const _data = this.data,
 			length: number = Math.min(_data.length, data.length);
@@ -195,6 +213,19 @@ export class GamingCanvasGridUint8ClampedArray extends GamingCanvasGrid<Uint8Cla
 	}
 
 	/**
+	 * Creates new typed array instance based on the current class type
+	 */
+	public createDataInstance(value?: number | number[] | Set<number>): Uint8ClampedArray {
+		if (value === undefined) {
+			return new Uint8ClampedArray();
+		} else if (typeof value === 'number') {
+			return new Uint8ClampedArray(value);
+		} else {
+			return Uint8ClampedArray.from(value);
+		}
+	}
+
+	/**
 	 * @param cloneData true and the interal data object will be a clone. False and it will be the passed in data object.
 	 */
 	public static from(data: Uint8ClampedArray, cloneData?: boolean): GamingCanvasGridUint8ClampedArray {
@@ -207,7 +238,7 @@ export class GamingCanvasGridUint8ClampedArray extends GamingCanvasGrid<Uint8Cla
 	}
 }
 
-export class GamingCanvasGridUint16Array extends GamingCanvasGrid<Uint16Array> {
+export class GamingCanvasGridUint16Array extends GamingCanvasGrid<Uint16Array> implements GamingCanvasGridIArray<Uint16Array> {
 	public apply(data: Uint16Array): void {
 		const _data = this.data,
 			length: number = Math.min(_data.length, data.length);
@@ -227,6 +258,19 @@ export class GamingCanvasGridUint16Array extends GamingCanvasGrid<Uint16Array> {
 	}
 
 	/**
+	 * Creates new typed array instance based on the current class type
+	 */
+	public createDataInstance(value?: number | number[] | Set<number>): Uint16Array {
+		if (value === undefined) {
+			return new Uint16Array();
+		} else if (typeof value === 'number') {
+			return new Uint16Array(value);
+		} else {
+			return Uint16Array.from(value);
+		}
+	}
+
+	/**
 	 * @param cloneData true and the interal data object will be a clone. False and it will be the passed in data object.
 	 */
 	public static from(data: Uint16Array, cloneData?: boolean): GamingCanvasGridUint16Array {
@@ -239,7 +283,7 @@ export class GamingCanvasGridUint16Array extends GamingCanvasGrid<Uint16Array> {
 	}
 }
 
-export class GamingCanvasGridUint32Array extends GamingCanvasGrid<Uint32Array> {
+export class GamingCanvasGridUint32Array extends GamingCanvasGrid<Uint32Array> implements GamingCanvasGridIArray<Uint32Array> {
 	public apply(data: Uint8Array): void {
 		const _data = this.data,
 			length: number = Math.min(_data.length, data.length);
@@ -259,6 +303,19 @@ export class GamingCanvasGridUint32Array extends GamingCanvasGrid<Uint32Array> {
 	}
 
 	/**
+	 * Creates new typed array instance based on the current class type
+	 */
+	public createDataInstance(value?: number | number[] | Set<number>): Uint32Array {
+		if (value === undefined) {
+			return new Uint32Array();
+		} else if (typeof value === 'number') {
+			return new Uint32Array(value);
+		} else {
+			return Uint32Array.from(value);
+		}
+	}
+
+	/**
 	 * @param cloneData true and the interal data object will be a clone. False and it will be the passed in data object.
 	 */
 	public static from(data: Uint32Array, cloneData?: boolean): GamingCanvasGridUint32Array {
@@ -275,21 +332,26 @@ export class GamingCanvasGridUint32Array extends GamingCanvasGrid<Uint32Array> {
  * Raycast
  */
 
+/**
+ * If either `rayFOV` or `rayCount` is undefiend then only one ray is cast from the original camera.r value
+ */
 export interface GamingCanvasGridRaycastOptions {
-	fov?: number; // radians
-	fovRayCount?: number;
-	skipCells?: boolean;
-	skipRays?: boolean;
+	cellEnable?: boolean; // Defaults to true
+	rayCount?: number;
+	rayEnable?: boolean;
+	rayFOV?: number; // radians
 }
 
+/**
+ * @property cells each value is a Grid data index (encoded (x,y) coordinates)
+ * @property rays follow the pattern [ray1-x, ray1-y, ray1-distance, ray1-cellRelative, ..., rayN-x, rayN-y, rayN-distance, rayN-cellRelative]
+ */
 export interface GamingCanvasGridRaycastResult {
-	cells?: Set<number>; // to be Uint*Array typed with in the actual canvas project with types available
+	cells?: Set<number>;
 	rays?: Float32Array;
 }
 
 /**
- * If either `fovInDegrees` or `fovPixels` is undefiend then only one ray is cast
- *
  * @param blockingMask `grid.data[index] & blockingMask = valueForTesting`
  * @param blockingValue `if valueForTesting === blockingValue then grid.data[index] is blocked`
  * @return .cells are indexes for each cell touched by a ray | .rays are the (x,y) coordinates, from the camera postion, that form a ray (line)
@@ -328,35 +390,32 @@ export const GamingCanvasGridRaycast = (
 		yStepRay: number;
 
 	if (options !== undefined) {
-		if (options.fov !== undefined && options.fovRayCount !== undefined) {
-			length = Math.max(1, options.fovRayCount) | 0;
+		if (options.rayEnable !== true) {
+			if (options.rayFOV !== undefined && options.rayCount !== undefined) {
+				length = Math.max(1, options.rayCount) | 0;
 
-			if (length !== 1) {
-				fov = camera.r - options.fov / 2;
-				fovStep = options.fov / (length - 1);
+				if (length !== 1) {
+					fov = camera.r - options.rayFOV / 2;
+					fovStep = options.rayFOV / (length - 1);
+				}
 			}
+
+			rays = new Float32Array(length * 4);
 		}
 
-		if (options.skipCells !== true) {
+		if (options.cellEnable === true) {
 			cells = new Set();
 			cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
-		}
-
-		if (options.skipRays !== true) {
-			rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
 		}
 
 		if (cells === undefined && rays === undefined) {
 			return {};
 		}
 	} else {
-		cells = new Set();
-		cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
-
-		rays = new Float32Array(length * 2); // [x1-ray, y1-ray, x2-ray, y2-ray, ... ]
+		rays = new Float32Array(length * 4);
 	}
 
-	for (; i < length; i++, fov += fovStep, rayIndex += 2) {
+	for (; i < length; i++, fov += fovStep, rayIndex += 4) {
 		// Initial angle
 		xAngle = Math.sin(fov);
 		yAngle = Math.cos(fov);
@@ -401,6 +460,8 @@ export const GamingCanvasGridRaycast = (
 				if (rays !== undefined) {
 					rays[rayIndex] = x + xAngle * distance;
 					rays[rayIndex + 1] = y + yAngle * distance;
+					rays[rayIndex + 2] = distance;
+					rays[rayIndex + 3] = (rays[rayIndex] + rays[rayIndex + 1]) % 1;
 				}
 				break;
 			} else if (cells !== undefined) {
