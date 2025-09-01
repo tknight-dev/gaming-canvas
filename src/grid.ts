@@ -481,6 +481,38 @@ export const GamingCanvasGridRaycast = (
 };
 
 /**
+ * @param imageSize creates a square image with the length equal to the imageSize
+ */
+export const GamingCanvasGridRaycast3DProjectionTestImageCreate = (imageSize: number): OffscreenCanvas => {
+	imageSize = imageSize | 0;
+
+	const canvas: OffscreenCanvas = new OffscreenCanvas(imageSize, imageSize),
+		context: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>canvas.getContext('2d'),
+		imageSizeHalf: number = (imageSize / 2) | 0;
+
+	canvas.height = imageSize;
+	canvas.width = imageSize;
+
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.fillStyle = 'rgb(224,224,224)';
+	context.fillRect(0, 0, imageSize, imageSize);
+
+	context.fillStyle = 'red';
+	context.fillRect(0, 0, imageSizeHalf, imageSizeHalf);
+
+	context.fillStyle = 'blue';
+	context.fillRect(imageSizeHalf, imageSizeHalf, imageSizeHalf, imageSizeHalf);
+
+	context.fillStyle = 'green';
+	context.beginPath();
+	context.arc(imageSizeHalf, imageSizeHalf, imageSizeHalf / 2, 0, 2 * Math.PI);
+	context.closePath();
+	context.fill();
+
+	return canvas;
+};
+
+/**
  * Viewport
  */
 
@@ -578,7 +610,7 @@ export class GamingCanvasGridViewport {
 	 * cellSizePx minimum is 1 as subpixel sizes are not supported by JavaScript
 	 */
 	public applyZ(camera: GamingCanvasGridCamera, report: GamingCanvasReport): void {
-		camera.z = ((camera.z * 10000) | 0) / 10000;
+		// camera.z = ((camera.z * 10000) | 0) / 10000;
 
 		if (report.orientation === GamingCanvasOrientation.LANDSCAPE || report.orientationCanvasRotated === true) {
 			this.cellSizePx = Math.max(1, (report.canvasWidth / this.gridSideLength) * camera.z);
