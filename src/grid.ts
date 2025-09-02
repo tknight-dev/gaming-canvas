@@ -156,13 +156,13 @@ export const GamingCanvasGridCharacterControl = (
 		options = {
 			clip: true,
 			factorPosition: 0.005,
-			factorRotation: 0.003,
+			factorRotation: 0.00225,
 			style: GamingCanvasGridCharacterControlStyle.STRAFE,
 		};
 	} else {
 		options.clip = options.clip === undefined ? false : options.clip === true;
 		options.factorPosition = options.factorPosition || 0.005;
-		options.factorRotation = options.factorRotation || 0.003;
+		options.factorRotation = options.factorRotation || 0.00255;
 		options.style = options.style || GamingCanvasGridCharacterControlStyle.STRAFE;
 	}
 
