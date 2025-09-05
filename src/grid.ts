@@ -495,9 +495,11 @@ export enum GamingCanvasGridRaycastCellSide {
  */
 export interface GamingCanvasGridRaycastOptions {
 	cellEnable?: boolean; // Defaults to true
+	cellReuse?: Set<number>; // Previous result set
 	rayCount?: number;
 	rayEnable?: boolean;
 	rayFOV?: number; // radians
+	rayReuse?: Float32Array; // Previous result array
 }
 
 /**
@@ -558,11 +560,28 @@ export const GamingCanvasGridRaycast = (
 				}
 			}
 
-			rays = new Float32Array(length * 5);
+			if (options.rayReuse !== undefined) {
+				if (options.rayReuse.length === length * 6) {
+					rays = options.rayReuse;
+				} else {
+					console.error(
+						`GamingCanvas > GamingCanvasGridRaycast: re-use array length (${options.rayReuse.length}) does not match required length ${length * 6}`,
+					);
+					rays = new Float32Array(length * 6);
+				}
+			} else {
+				rays = new Float32Array(length * 6);
+			}
 		}
 
 		if (options.cellEnable === true) {
-			cells = new Set();
+			if (options.cellReuse !== undefined) {
+				cells = options.cellReuse;
+				cells.clear();
+			} else {
+				cells = new Set();
+			}
+
 			cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
 		}
 
@@ -570,10 +589,10 @@ export const GamingCanvasGridRaycast = (
 			return {};
 		}
 	} else {
-		rays = new Float32Array(length * 5);
+		rays = new Float32Array(length * 6);
 	}
 
-	for (; i < length; i++, fov -= fovStep, rayIndex += 5) {
+	for (; i < length; i++, fov -= fovStep, rayIndex += 6) {
 		// Initial angle
 		xAngle = Math.sin(fov);
 		yAngle = Math.cos(fov);
@@ -619,21 +638,21 @@ export const GamingCanvasGridRaycast = (
 					rays[rayIndex] = x + xAngle * distance; // x
 					rays[rayIndex + 1] = y + yAngle * distance; // y
 					rays[rayIndex + 2] = distance; // Distance
-					rays[rayIndex + 3] = (rays[rayIndex] + rays[rayIndex + 1]) % 1; // cellRelative
-					rays[rayIndex + 4] = 0;
+					rays[rayIndex + 3] = gridIndex; // cellIndex
+					rays[rayIndex + 4] = (rays[rayIndex] + rays[rayIndex + 1]) % 1; // cellRelative
 
 					// cellSide
 					if (rays[rayIndex] % 1 === 0) {
 						if (rays[rayIndex] < x) {
-							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.EAST;
+							rays[rayIndex + 5] = GamingCanvasGridRaycastCellSide.EAST;
 						} else {
-							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.WEST;
+							rays[rayIndex + 5] = GamingCanvasGridRaycastCellSide.WEST;
 						}
 					} else {
 						if (rays[rayIndex + 1] < y) {
-							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.SOUTH;
+							rays[rayIndex + 5] = GamingCanvasGridRaycastCellSide.SOUTH;
 						} else {
-							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.NORTH;
+							rays[rayIndex + 5] = GamingCanvasGridRaycastCellSide.NORTH;
 						}
 					}
 				}

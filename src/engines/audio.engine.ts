@@ -562,7 +562,7 @@ export class GamingCanvasEngineAudio {
 	}
 
 	/**
-	 * @param assets Map<identifing number, Blob/DataURL/URL>
+	 * @param assets Map<identifing number, DataURL/URL>
 	 */
 	public static async load(assets: Map<number, string>): Promise<void> {
 		let id: number,
