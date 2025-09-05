@@ -495,9 +495,11 @@ export enum GamingCanvasGridRaycastCellSide {
  */
 export interface GamingCanvasGridRaycastOptions {
 	cellEnable?: boolean; // Defaults to true
+	cellReuse?: Set<Number>; // Previous result set
 	rayCount?: number;
 	rayEnable?: boolean;
 	rayFOV?: number; // radians
+	rayReuse?: Float32Array; // Previous result array
 }
 
 /**
@@ -558,11 +560,28 @@ export const GamingCanvasGridRaycast = (
 				}
 			}
 
-			rays = new Float32Array(length * 5);
+			if (options.rayReuse !== undefined) {
+				if (options.rayReuse.length === length * 5) {
+					rays = options.rayReuse;
+				} else {
+					console.error(
+						`GamingCanvas > GamingCanvasGridRaycast: re-use array length (${options.rayReuse.length}) does not match required length ${length * 5}`,
+					);
+					rays = new Float32Array(length * 5);
+				}
+			} else {
+				rays = new Float32Array(length * 5);
+			}
 		}
 
 		if (options.cellEnable === true) {
-			cells = new Set();
+			if (options.cellReuse !== undefined) {
+				cells = options.cellReuse;
+				cells.clear();
+			} else {
+				cells = new Set();
+			}
+
 			cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
 		}
 
