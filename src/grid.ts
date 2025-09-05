@@ -495,7 +495,7 @@ export enum GamingCanvasGridRaycastCellSide {
  */
 export interface GamingCanvasGridRaycastOptions {
 	cellEnable?: boolean; // Defaults to true
-	cellReuse?: Set<Number>; // Previous result set
+	cellReuse?: Set<number>; // Previous result set
 	rayCount?: number;
 	rayEnable?: boolean;
 	rayFOV?: number; // radians
