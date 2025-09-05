@@ -85,8 +85,12 @@ export class GamingCanvasGridCamera implements GamingCanvasGridICamera {
 	/**
 	 * Create a new instance from an encoded GridCamera
 	 */
-	public static from(data: Float32Array): GamingCanvasGridCamera {
-		return new GamingCanvasGridCamera().decode(data);
+	public static from(data: Float32Array | GamingCanvasGridICamera): GamingCanvasGridCamera {
+		if (data instanceof Float32Array) {
+			return new GamingCanvasGridCamera().decode(data);
+		} else {
+			return new GamingCanvasGridCamera(data.r, data.x, data.y, data.z);
+		}
 	}
 
 	/**
@@ -155,13 +159,13 @@ export const GamingCanvasGridCharacterControl = (
 	if (options === undefined) {
 		options = {
 			clip: true,
-			factorPosition: 0.005,
+			factorPosition: 0.00425,
 			factorRotation: 0.00225,
 			style: GamingCanvasGridCharacterControlStyle.STRAFE,
 		};
 	} else {
 		options.clip = options.clip === undefined ? false : options.clip === true;
-		options.factorPosition = options.factorPosition || 0.005;
+		options.factorPosition = options.factorPosition || 0.00425;
 		options.factorRotation = options.factorRotation || 0.00255;
 		options.style = options.style || GamingCanvasGridCharacterControlStyle.STRAFE;
 	}
@@ -479,6 +483,13 @@ export class GamingCanvasGridUint32Array extends GamingCanvasGrid<Uint32Array> i
  * Raycast
  */
 
+export enum GamingCanvasGridRaycastCellSide {
+	EAST,
+	NORTH,
+	SOUTH,
+	WEST,
+}
+
 /**
  * If either `rayFOV` or `rayCount` is undefiend then only one ray is cast from the original camera.r value
  */
@@ -491,7 +502,7 @@ export interface GamingCanvasGridRaycastOptions {
 
 /**
  * @property cells each value is a Grid data index (encoded (x,y) coordinates)
- * @property rays follow the pattern [ray1-x, ray1-y, ray1-distance, ray1-cellRelative, ..., rayN-x, rayN-y, rayN-distance, rayN-cellRelative]
+ * @property rays follow the pattern [ray1-x, ray1-y, ray1-distance, ray1-cellRelative, ray1-cellSide, ..., rayN-x, rayN-y, rayN-distance, rayN-cellRelative, rayN-cellSide]
  */
 export interface GamingCanvasGridRaycastResult {
 	cells?: Set<number>;
@@ -547,7 +558,7 @@ export const GamingCanvasGridRaycast = (
 				}
 			}
 
-			rays = new Float32Array(length * 4);
+			rays = new Float32Array(length * 5);
 		}
 
 		if (options.cellEnable === true) {
@@ -559,10 +570,10 @@ export const GamingCanvasGridRaycast = (
 			return {};
 		}
 	} else {
-		rays = new Float32Array(length * 4);
+		rays = new Float32Array(length * 5);
 	}
 
-	for (; i < length; i++, fov -= fovStep, rayIndex += 4) {
+	for (; i < length; i++, fov -= fovStep, rayIndex += 5) {
 		// Initial angle
 		xAngle = Math.sin(fov);
 		yAngle = Math.cos(fov);
@@ -605,10 +616,26 @@ export const GamingCanvasGridRaycast = (
 			// Is terminated?
 			if ((gridData[gridIndex] & blockingMask) === blockingValue) {
 				if (rays !== undefined) {
-					rays[rayIndex] = x + xAngle * distance;
-					rays[rayIndex + 1] = y + yAngle * distance;
-					rays[rayIndex + 2] = distance;
-					rays[rayIndex + 3] = (rays[rayIndex] + rays[rayIndex + 1]) % 1;
+					rays[rayIndex] = x + xAngle * distance; // x
+					rays[rayIndex + 1] = y + yAngle * distance; // y
+					rays[rayIndex + 2] = distance; // Distance
+					rays[rayIndex + 3] = (rays[rayIndex] + rays[rayIndex + 1]) % 1; // cellRelative
+					rays[rayIndex + 4] = 0;
+
+					// cellSide
+					if (rays[rayIndex] % 1 === 0) {
+						if (rays[rayIndex] < x) {
+							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.EAST;
+						} else {
+							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.WEST;
+						}
+					} else {
+						if (rays[rayIndex + 1] < y) {
+							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.SOUTH;
+						} else {
+							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.NORTH;
+						}
+					}
 				}
 				break;
 			} else if (cells !== undefined) {
