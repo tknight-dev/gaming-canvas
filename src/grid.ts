@@ -484,10 +484,10 @@ export class GamingCanvasGridUint32Array extends GamingCanvasGrid<Uint32Array> i
  */
 
 export enum GamingCanvasGridRaycastCellSide {
-	EAST = 2, // 1 << 1
-	NORTH = 4, // 1 << 2
-	SOUTH = 8, // 1 << 3
-	WEST = 16, // 1 << 4
+	EAST,
+	NORTH,
+	SOUTH,
+	WEST,
 }
 
 /**
@@ -625,15 +625,15 @@ export const GamingCanvasGridRaycast = (
 					// cellSide
 					if (rays[rayIndex] % 1 === 0) {
 						if (rays[rayIndex] < x) {
-							rays[rayIndex + 4] |= GamingCanvasGridRaycastCellSide.EAST;
+							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.EAST;
 						} else {
-							rays[rayIndex + 4] |= GamingCanvasGridRaycastCellSide.WEST;
+							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.WEST;
 						}
 					} else {
 						if (rays[rayIndex + 1] < y) {
-							rays[rayIndex + 4] |= GamingCanvasGridRaycastCellSide.SOUTH;
+							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.SOUTH;
 						} else {
-							rays[rayIndex + 4] |= GamingCanvasGridRaycastCellSide.NORTH;
+							rays[rayIndex + 4] = GamingCanvasGridRaycastCellSide.NORTH;
 						}
 					}
 				}
