@@ -10,6 +10,11 @@ import { GamingCanvasOrientation, GamingCanvasReport } from './models.js';
  */
 
 /**
+ * All
+ */
+const PI2: number = 2 * Math.PI;
+
+/**
  * Camera
  */
 
@@ -199,6 +204,13 @@ export const GamingCanvasGridCharacterControl = (
 	// Set: R
 	if (input.r !== 0) {
 		camera.r -= input.r * options.factorRotation * timestampDelta;
+
+		if (camera.r < 0) {
+			camera.r = PI2 + camera.r;
+		} else if (camera.r > PI2) {
+			camera.r -= PI2;
+		}
+
 		changed = true;
 	}
 
