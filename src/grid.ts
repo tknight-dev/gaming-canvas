@@ -1,3 +1,6 @@
+export * from './const.js';
+
+import { GamingCanvasConstPIDouble } from './const.js';
 import { GamingCanvasInputPosition } from './inputs.js';
 import { GamingCanvasOrientation, GamingCanvasReport } from './models.js';
 
@@ -8,11 +11,6 @@ import { GamingCanvasOrientation, GamingCanvasReport } from './models.js';
  *
  * @author tknight-dev
  */
-
-/**
- * All
- */
-const PI2: number = 2 * Math.PI;
 
 /**
  * Camera
@@ -206,9 +204,9 @@ export const GamingCanvasGridCharacterControl = (
 		camera.r -= input.r * options.factorRotation * timestampDelta;
 
 		if (camera.r < 0) {
-			camera.r = PI2 + camera.r;
-		} else if (camera.r > PI2) {
-			camera.r -= PI2;
+			camera.r += GamingCanvasConstPIDouble;
+		} else if (camera.r > GamingCanvasConstPIDouble) {
+			camera.r -= GamingCanvasConstPIDouble;
 		}
 
 		changed = true;
