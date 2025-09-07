@@ -36,7 +36,7 @@ export class GamingCanvasGridCamera implements GamingCanvasGridICamera {
 		this.z = z;
 	}
 
-	public decode(data: Float32Array): GamingCanvasGridCamera {
+	public decode(data: Float64Array): GamingCanvasGridCamera {
 		this.r = data[0];
 		this.x = data[1];
 		this.y = data[2];
@@ -45,7 +45,7 @@ export class GamingCanvasGridCamera implements GamingCanvasGridICamera {
 		return this;
 	}
 
-	public static decodeMultiple(cameras: GamingCanvasGridICamera[], data: Float32Array): GamingCanvasGridICamera[] {
+	public static decodeMultiple(cameras: GamingCanvasGridICamera[], data: Float64Array): GamingCanvasGridICamera[] {
 		let camera: GamingCanvasGridICamera,
 			length: number = Math.min(cameras.length, (data.length / 4) | 0);
 
@@ -61,17 +61,17 @@ export class GamingCanvasGridCamera implements GamingCanvasGridICamera {
 		return cameras;
 	}
 
-	public encode(): Float32Array {
-		return Float32Array.from([this.r, this.x, this.y, this.z]);
+	public encode(): Float64Array {
+		return Float64Array.from([this.r, this.x, this.y, this.z]);
 	}
 
-	public static encodeSingle(camera: GamingCanvasGridICamera): Float32Array {
-		return Float32Array.from([camera.r, camera.x, camera.y, camera.z]);
+	public static encodeSingle(camera: GamingCanvasGridICamera): Float64Array {
+		return Float64Array.from([camera.r, camera.x, camera.y, camera.z]);
 	}
 
-	public static encodeMultiple(cameras: GamingCanvasGridICamera[]): Float32Array {
+	public static encodeMultiple(cameras: GamingCanvasGridICamera[]): Float64Array {
 		let camera: GamingCanvasGridICamera,
-			data: Float32Array = new Float32Array(cameras.length * 4);
+			data: Float64Array = new Float64Array(cameras.length * 4);
 
 		for (let i = 0, j = 0; i < cameras.length; i++, j += 4) {
 			camera = cameras[i];
@@ -88,8 +88,8 @@ export class GamingCanvasGridCamera implements GamingCanvasGridICamera {
 	/**
 	 * Create a new instance from an encoded GridCamera
 	 */
-	public static from(data: Float32Array | GamingCanvasGridICamera): GamingCanvasGridCamera {
-		if (data instanceof Float32Array) {
+	public static from(data: Float64Array | GamingCanvasGridICamera): GamingCanvasGridCamera {
+		if (data instanceof Float64Array) {
 			return new GamingCanvasGridCamera().decode(data);
 		} else {
 			return new GamingCanvasGridCamera(data.r, data.x, data.y, data.z);
@@ -99,7 +99,7 @@ export class GamingCanvasGridCamera implements GamingCanvasGridICamera {
 	/**
 	 * Create a new instances from encoded GridCameras
 	 */
-	public static fromMultiple(data: Float32Array): GamingCanvasGridCamera[] {
+	public static fromMultiple(data: Float64Array): GamingCanvasGridCamera[] {
 		const cameras: GamingCanvasGridCamera[] = new Array((data.length / 4) | 0);
 
 		for (let i = 0, j = 0; i < cameras.length; i++, j += 4) {
@@ -505,11 +505,11 @@ export enum GamingCanvasGridRaycastCellSide {
  */
 export interface GamingCanvasGridRaycastOptions {
 	cellEnable?: boolean; // Defaults to true
-	cellReuse?: Set<number>; // Previous result set
+	distanceMapEnable?: boolean; // Default to false
 	rayCount?: number;
 	rayEnable?: boolean;
 	rayFOV?: number; // radians
-	rayReuse?: Float32Array; // Previous result array
+	rayReuse?: Float64Array; // Previous result array
 }
 
 /**
@@ -518,7 +518,14 @@ export interface GamingCanvasGridRaycastOptions {
  */
 export interface GamingCanvasGridRaycastResult {
 	cells?: Set<number>;
-	rays?: Float32Array;
+	distanceMap?: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>; // <distance, GamingCanvasGridRaycastResultDistanceMapInstance>
+	distanceMapKeysSorted?: Float64Array; // distance[]
+	rays?: Float64Array;
+}
+
+export interface GamingCanvasGridRaycastResultDistanceMapInstance {
+	cell?: number; // GridIndex
+	ray?: number; // RayIndex
 }
 
 /**
@@ -535,6 +542,9 @@ export const GamingCanvasGridRaycast = (
 ): GamingCanvasGridRaycastResult => {
 	let cells: Set<number> | undefined,
 		distance: number,
+		distanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
+		distanceMapCells: Map<number, number>,
+		distanceMapInstance: GamingCanvasGridRaycastResultDistanceMapInstance,
 		fov: number = camera.r,
 		fovStep: number = 1,
 		gridData: GamingCanvasGridTyped = grid.data,
@@ -545,7 +555,7 @@ export const GamingCanvasGridRaycast = (
 		j: number,
 		length: number = 1, // Iterate once by default
 		rayIndex: number = 0,
-		rays: Float32Array | undefined,
+		rays: Float64Array | undefined,
 		x: number = camera.x,
 		xAngle: number,
 		xIndex: number,
@@ -560,7 +570,23 @@ export const GamingCanvasGridRaycast = (
 		yStepRay: number;
 
 	if (options !== undefined) {
+		if (options.cellEnable === true) {
+			cells = new Set();
+			cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
+
+			if (options.distanceMapEnable === true) {
+				distanceMap = new Map();
+				distanceMapCells = new Map();
+
+				distanceMapCells.set(0, (x | 0) * gridSideLength + (y | 0)); // Add the origin cell
+			}
+		}
+
 		if (options.rayEnable !== true) {
+			if (options.distanceMapEnable === true && distanceMap === undefined) {
+				distanceMap = new Map();
+			}
+
 			if (options.rayFOV !== undefined && options.rayCount !== undefined) {
 				length = Math.max(1, options.rayCount) | 0;
 
@@ -577,29 +603,18 @@ export const GamingCanvasGridRaycast = (
 					console.error(
 						`GamingCanvas > GamingCanvasGridRaycast: re-use array length (${options.rayReuse.length}) does not match required length ${length * 6}`,
 					);
-					rays = new Float32Array(length * 6);
+					rays = new Float64Array(length * 6);
 				}
 			} else {
-				rays = new Float32Array(length * 6);
+				rays = new Float64Array(length * 6);
 			}
-		}
-
-		if (options.cellEnable === true) {
-			if (options.cellReuse !== undefined) {
-				cells = options.cellReuse;
-				cells.clear();
-			} else {
-				cells = new Set();
-			}
-
-			cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
 		}
 
 		if (cells === undefined && rays === undefined) {
 			return {};
 		}
 	} else {
-		rays = new Float32Array(length * 6);
+		rays = new Float64Array(length * 6);
 	}
 
 	for (; i < length; i++, fov -= fovStep, rayIndex += 6) {
@@ -665,17 +680,46 @@ export const GamingCanvasGridRaycast = (
 							rays[rayIndex + 5] = GamingCanvasGridRaycastCellSide.NORTH;
 						}
 					}
+
+					// Distance Map
+					if (distanceMap !== undefined) {
+						distanceMap.set(distance, {
+							ray: rayIndex,
+						});
+					}
 				}
 				break;
 			} else if (cells !== undefined) {
 				cells.add(gridIndex);
+
+				// Distance Map
+				if (distanceMapCells !== undefined) {
+					if (distanceMapCells.has(gridIndex)) {
+						if (distance > distanceMapCells.get(gridIndex)) {
+							distanceMapCells.set(gridIndex, distance);
+						}
+					} else {
+						distanceMapCells.set(gridIndex, distance);
+					}
+				}
 			}
+		}
+	}
+
+	// distanceMapCells to <distance, { cells: gridIndex[], ... }>
+	if (distanceMapCells !== undefined) {
+		for ([gridIndex, distance] of distanceMapCells) {
+			distanceMap.set(distance, {
+				cell: gridIndex,
+			});
 		}
 	}
 
 	// Done
 	return {
 		cells: cells,
+		distanceMap: distanceMap,
+		distanceMapKeysSorted: distanceMap === undefined ? undefined : Float64Array.from(distanceMap.keys()).sort().reverse(),
 		rays: rays,
 	};
 };
@@ -823,7 +867,7 @@ export class GamingCanvasGridViewport {
 		this.widthPx = report.canvasWidth;
 	}
 
-	public decode(data: Float32Array): GamingCanvasGridViewport {
+	public decode(data: Float64Array): GamingCanvasGridViewport {
 		this.gridSideLength = data[0] | 0;
 		this.cellSizePx = data[1];
 		this.height = data[2];
@@ -842,8 +886,8 @@ export class GamingCanvasGridViewport {
 		return this;
 	}
 
-	public encode(): Float32Array {
-		return Float32Array.from([
+	public encode(): Float64Array {
+		return Float64Array.from([
 			this.gridSideLength,
 			this.cellSizePx,
 			this.height,
@@ -861,7 +905,7 @@ export class GamingCanvasGridViewport {
 		]);
 	}
 
-	public static from(data: Float32Array): GamingCanvasGridViewport {
+	public static from(data: Float64Array): GamingCanvasGridViewport {
 		return new GamingCanvasGridViewport(0).decode(data);
 	}
 
