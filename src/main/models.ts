@@ -8,6 +8,8 @@ export class GamingCanvasOptions {
 	audioEnable?: boolean;
 	callbackReportLimitPerMs?: number;
 	canvasCount?: number;
+	canvasSplit?: number[];
+	canvasSplitLandscapeVertical?: boolean;
 	debug?: boolean;
 	dpiSupportEnable?: boolean;
 	elementInteractive?: HTMLElement;
@@ -36,9 +38,9 @@ export enum GamingCanvasOrientation {
 
 export interface GamingCanvasReport {
 	canvasHeight: number;
-	canvasHeightScaled: number;
+	canvasHeightSplit: number;
 	canvasWidth: number;
-	canvasWidthScaled: number;
+	canvasWidthSplit: number;
 	devicePixelRatio: number;
 	orientation: GamingCanvasOrientation;
 	orientationCanvasRotated: boolean;
