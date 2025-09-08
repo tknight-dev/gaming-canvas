@@ -1,3 +1,4 @@
+import { GamingCanvasConstPIDouble } from '../../main/const.js';
 import { GamingCanvasGridICamera } from './camera.js';
 import { GamingCanvasGridType, GamingCanvasGridTyped } from './grid.js';
 
@@ -240,29 +241,32 @@ export const GamingCanvasGridRaycast = (
 /**
  * @param imageSize creates a square image with the length equal to the imageSize
  */
-export const GamingCanvasGridRaycast3DProjectionTestImageCreate = (imageSize: number): OffscreenCanvas => {
-	imageSize = imageSize | 0;
+export const GamingCanvasGridRaycastTestImageCreate = (height: number, width?: number): OffscreenCanvas => {
+	height = height | 0;
+	width = width === undefined ? height : width | 0;
 
-	const canvas: OffscreenCanvas = new OffscreenCanvas(imageSize, imageSize),
+	const canvas: OffscreenCanvas = new OffscreenCanvas(width, height),
 		context: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>canvas.getContext('2d'),
-		imageSizeHalf: number = (imageSize / 2) | 0;
+		heightHalf: number = (height / 2) | 0,
+		minHalf: number = (Math.min(height, width) / 2) | 0,
+		widthHalf: number = (width / 2) | 0;
 
-	canvas.height = imageSize;
-	canvas.width = imageSize;
+	canvas.height = height;
+	canvas.width = width;
 
 	context.clearRect(0, 0, canvas.width, canvas.height);
 	context.fillStyle = 'rgb(224,224,224)';
-	context.fillRect(0, 0, imageSize, imageSize);
+	context.fillRect(0, 0, width, height);
 
 	context.fillStyle = 'red';
-	context.fillRect(0, 0, imageSizeHalf, imageSizeHalf);
+	context.fillRect(0, 0, minHalf, minHalf);
 
 	context.fillStyle = 'blue';
-	context.fillRect(imageSizeHalf, imageSizeHalf, imageSizeHalf, imageSizeHalf);
+	context.fillRect(width - minHalf, height - minHalf, minHalf, minHalf);
 
 	context.fillStyle = 'green';
 	context.beginPath();
-	context.arc(imageSizeHalf, imageSizeHalf, imageSizeHalf / 2, 0, 2 * Math.PI);
+	context.arc(widthHalf, heightHalf, minHalf / 2, 0, GamingCanvasConstPIDouble);
 	context.closePath();
 	context.fill();
 
