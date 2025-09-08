@@ -12,15 +12,13 @@ interface GamingCanvasGridIArray<T> {
 
 export type GamingCanvasGridType = GamingCanvasGridUint8Array | GamingCanvasGridUint8ClampedArray | GamingCanvasGridUint16Array | GamingCanvasGridUint32Array;
 
-export type GamingCanvasGridTyped = Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array;
-
 abstract class GamingCanvasGrid<GamingCanvasGridTyped> {
-	public readonly data: GamingCanvasGridTyped;
+	public readonly data: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array;
 	private readonly prefix: string;
 	public readonly size: number;
 	public readonly sideLength: number;
 
-	constructor(data: GamingCanvasGridTyped, prefix: string, sideLength: number) {
+	constructor(data: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array, prefix: string, sideLength: number) {
 		this.data = data;
 		this.prefix = prefix;
 		this.sideLength = sideLength;
@@ -62,7 +60,7 @@ export class GamingCanvasGridUint8Array extends GamingCanvasGrid<Uint8Array> imp
 	}
 
 	public clone(): GamingCanvasGridUint8Array {
-		return GamingCanvasGridUint8Array.from(this.data, true);
+		return GamingCanvasGridUint8Array.from(<Uint8Array>this.data, true);
 	}
 
 	constructor(sideLength: number, fill?: number) {
@@ -107,7 +105,7 @@ export class GamingCanvasGridUint8ClampedArray extends GamingCanvasGrid<Uint8Cla
 	}
 
 	public clone(): GamingCanvasGridUint8ClampedArray {
-		return GamingCanvasGridUint8ClampedArray.from(this.data, true);
+		return GamingCanvasGridUint8ClampedArray.from(<Uint8ClampedArray>this.data, true);
 	}
 
 	/**
@@ -155,7 +153,7 @@ export class GamingCanvasGridUint16Array extends GamingCanvasGrid<Uint16Array> i
 	}
 
 	public clone(): GamingCanvasGridUint16Array {
-		return GamingCanvasGridUint16Array.from(this.data, true);
+		return GamingCanvasGridUint16Array.from(<Uint16Array>this.data, true);
 	}
 
 	public constructor(sideLength: number, fill?: number) {
@@ -200,7 +198,7 @@ export class GamingCanvasGridUint32Array extends GamingCanvasGrid<Uint32Array> i
 	}
 
 	public clone(): GamingCanvasGridUint32Array {
-		return GamingCanvasGridUint32Array.from(this.data, true);
+		return GamingCanvasGridUint32Array.from(<Uint32Array>this.data, true);
 	}
 
 	public constructor(sideLength: number, fill?: number) {

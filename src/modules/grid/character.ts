@@ -95,7 +95,7 @@ export const GamingCanvasGridCharacterControl = (
 
 	// Set: R
 	if (input.r !== 0) {
-		camera.r -= input.r * options.factorRotation * timestampDelta;
+		camera.r -= input.r * <number>options.factorRotation * timestampDelta;
 
 		if (camera.r < 0) {
 			camera.r += GamingCanvasConstPIDouble;
@@ -109,9 +109,9 @@ export const GamingCanvasGridCharacterControl = (
 	if (input.x !== 0 || input.y !== 0) {
 		// Set: X
 		if (options.style === GamingCanvasGridCharacterControlStyle.STRAFE) {
-			controlEff = (Math.cos(camera.r) * -input.x + Math.sin(camera.r) * -input.y) * options.factorPosition * timestampDelta;
+			controlEff = (Math.cos(camera.r) * -input.x + Math.sin(camera.r) * -input.y) * <number>options.factorPosition * timestampDelta;
 		} else {
-			controlEff = input.x * options.factorPosition * timestampDelta;
+			controlEff = input.x * <number>options.factorPosition * timestampDelta;
 		}
 
 		if (options.clip === true) {
@@ -128,9 +128,9 @@ export const GamingCanvasGridCharacterControl = (
 
 		// Set: Y
 		if (options.style === GamingCanvasGridCharacterControlStyle.STRAFE) {
-			controlEff = (Math.sin(camera.r) * input.x + Math.cos(camera.r) * -input.y) * options.factorPosition * timestampDelta;
+			controlEff = (Math.sin(camera.r) * input.x + Math.cos(camera.r) * -input.y) * <number>options.factorPosition * timestampDelta;
 		} else {
-			controlEff = input.y * options.factorPosition * timestampDelta;
+			controlEff = input.y * <number>options.factorPosition * timestampDelta;
 		}
 
 		if (options.clip === true) {

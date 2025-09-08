@@ -25,6 +25,8 @@ export const GamingCanvasUtilArrayExpand = (array: any[], increaseBy: number, fi
 				GamingCanvasUtilArrayExpand(array, Math.min(reducer, increaseBy));
 				increaseBy -= reducer;
 			}
+
+			return array;
 		}
 	} else {
 		return array;

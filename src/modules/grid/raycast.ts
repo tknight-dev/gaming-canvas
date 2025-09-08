@@ -1,6 +1,6 @@
 import { GamingCanvasConstPIDouble } from '../../main/const.js';
 import { GamingCanvasGridICamera } from './camera.js';
-import { GamingCanvasGridType, GamingCanvasGridTyped } from './grid.js';
+import { GamingCanvasGridType } from './grid.js';
 
 /**
  * All (x,y) cooridnates are in terms of cells/tiles unless noted otherwise via the postfix 'px' (pixels)
@@ -57,11 +57,11 @@ export const GamingCanvasGridRaycast = (
 ): GamingCanvasGridRaycastResult => {
 	let cells: Set<number> | undefined,
 		distance: number,
-		distanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance>,
-		distanceMapCells: Map<number, number>,
+		distanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> | undefined,
+		distanceMapCells: Map<number, number> | undefined,
 		fov: number = camera.r,
 		fovStep: number = 1,
-		gridData: GamingCanvasGridTyped = grid.data,
+		gridData: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array = grid.data,
 		gridIndex: number,
 		gridSideLength: number = grid.sideLength,
 		gridSize: number = gridSideLength * gridSideLength,
@@ -209,7 +209,7 @@ export const GamingCanvasGridRaycast = (
 				// Distance Map
 				if (distanceMapCells !== undefined) {
 					if (distanceMapCells.has(gridIndex)) {
-						if (distance > distanceMapCells.get(gridIndex)) {
+						if (distance > (distanceMapCells.get(gridIndex) || 0)) {
 							distanceMapCells.set(gridIndex, distance);
 						}
 					} else {
@@ -221,7 +221,7 @@ export const GamingCanvasGridRaycast = (
 	}
 
 	// distanceMapCells to <distance, { cells: gridIndex[], ... }>
-	if (distanceMapCells !== undefined) {
+	if (distanceMap !== undefined && distanceMapCells !== undefined) {
 		for ([gridIndex, distance] of distanceMapCells) {
 			distanceMap.set(distance, {
 				cell: gridIndex,

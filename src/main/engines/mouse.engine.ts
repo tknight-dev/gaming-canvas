@@ -196,7 +196,7 @@ export class GamingCanvasEngineMouse {
 			});
 			return true;
 		} catch (error) {
-			console.error('GamingCanvas > GamingCanvasEngineMouse > lock: unable to aquire due to', error.name);
+			console.error('GamingCanvas > GamingCanvasEngineMouse > lock: unable to aquire due to', (<any>error).name);
 			return false;
 		}
 	}
