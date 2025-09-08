@@ -24,8 +24,10 @@ export class GamingCanvas {
 	private static callbackReportTimeout: ReturnType<typeof setTimeout>;
 	private static callbackVisibility: (state: boolean) => void;
 	private static elementCanvases: HTMLCanvasElement[];
+	private static elementCanvasesSplit: HTMLCanvasElement[];
 	private static elementContainer: HTMLElement;
 	private static elementContainerCanvas: HTMLDivElement;
+	private static elementContainerCanvasInputs: HTMLDivElement;
 	private static elementContainerOverlay: HTMLDivElement;
 	private static elementContainerOverlayWrapper: HTMLDivElement;
 	private static elementParent: HTMLElement;
@@ -79,6 +81,7 @@ export class GamingCanvas {
 	}
 	private static go__funcForward(): void {
 		let aspectRatio: number,
+			canvas: HTMLCanvasElement,
 			changed: boolean,
 			devicePixelRatio: number,
 			devicePixelRatioEff: number,
@@ -92,6 +95,7 @@ export class GamingCanvas {
 			options: GamingCanvasOptions,
 			report: GamingCanvasReport,
 			scaler: number,
+			splitRotateSpecial: boolean | undefined,
 			styleTransform: string,
 			value: number,
 			widthContainer: number,
@@ -159,8 +163,6 @@ export class GamingCanvas {
 			} else {
 				scaler = devicePixelRatioEff;
 			}
-			report.canvasHeightScaled = (report.canvasHeight * scaler) | 0;
-			report.canvasWidthScaled = (report.canvasWidth * scaler) | 0;
 			report.scaler = scaler;
 			GamingCanvas.elementContainerCanvas.style.transform = styleTransform.replace(
 				`scale(${(GamingCanvas.regExpScale.exec(styleTransform) || [''])[0]})`,
@@ -169,13 +171,8 @@ export class GamingCanvas {
 
 			// Rotate
 			if (GamingCanvas.stateOrientation !== GamingCanvasOrientation.LANDSCAPE && GamingCanvas.options.orientationCanvasRotateEnable !== true) {
-				value = report.canvasHeight;
-				report.canvasHeight = report.canvasWidth;
-				report.canvasWidth = value;
-
-				value = report.canvasHeightScaled;
-				report.canvasHeightScaled = report.canvasWidthScaled;
-				report.canvasWidthScaled = value;
+				report.canvasHeight = widthResolution;
+				report.canvasWidth = heightResolution;
 			}
 
 			// Set the container canvas size
@@ -189,6 +186,58 @@ export class GamingCanvas {
 			} else {
 				GamingCanvas.elementContainerOverlay.style.height = ((devicePixelRatio * report.canvasWidth * scaler) | 0) + 'px';
 				GamingCanvas.elementContainerOverlay.style.width = ((devicePixelRatio * report.canvasHeight * scaler) | 0) + 'px';
+			}
+
+			// Set split size
+			if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE && options.canvasSplitLandscapeVertical === true) {
+				report.canvasHeightSplit = report.canvasHeight;
+				report.canvasWidthSplit = (report.canvasWidth / 2) | 0;
+			} else {
+				report.canvasHeightSplit = (report.canvasHeight / 2) | 0;
+				report.canvasWidthSplit = report.canvasWidth;
+			}
+
+			// Set split swap for specific rotation case
+			if (GamingCanvas.elementCanvasesSplit !== undefined) {
+				if (
+					GamingCanvas.stateOrientation === GamingCanvasOrientation.PORTRAIT &&
+					options.orientationCanvasRotateEnable === true &&
+					options.orientationCanvasPortaitRotateLeft !== true
+				) {
+					if (splitRotateSpecial !== true) {
+						splitRotateSpecial = true;
+
+						for (canvas of GamingCanvas.elementCanvasesSplit) {
+							if (canvas.id.endsWith('a')) {
+								canvas.style.bottom = '0';
+								canvas.style.left = 'auto';
+								canvas.style.right = '0';
+								canvas.style.top = 'auto';
+							} else {
+								canvas.style.bottom = 'auto';
+								canvas.style.left = '0';
+								canvas.style.right = 'auto';
+								canvas.style.top = '0';
+							}
+						}
+					}
+				} else if (splitRotateSpecial === true) {
+					splitRotateSpecial = false;
+
+					for (canvas of GamingCanvas.elementCanvasesSplit) {
+						if (canvas.id.endsWith('a')) {
+							canvas.style.bottom = 'auto';
+							canvas.style.left = '0';
+							canvas.style.right = 'auto';
+							canvas.style.top = '0';
+						} else {
+							canvas.style.bottom = '0';
+							canvas.style.left = 'auto';
+							canvas.style.right = '0';
+							canvas.style.top = 'auto';
+						}
+					}
+				}
 			}
 
 			/*
@@ -349,23 +398,67 @@ export class GamingCanvas {
 		GamingCanvas.elementContainerCanvas.style.zIndex = '1';
 		GamingCanvas.elementRotator2.appendChild(GamingCanvas.elementContainerCanvas);
 
+		// Element: Canvas Input Relativer
+		GamingCanvas.elementContainerCanvasInputs = document.createElement('div');
+		GamingCanvas.elementContainerCanvasInputs.id = 'gaming-canvas-container-canvas-inputs';
+		GamingCanvas.elementContainerCanvasInputs.style.bottom = '0';
+		GamingCanvas.elementContainerCanvasInputs.style.left = '0';
+		GamingCanvas.elementContainerCanvasInputs.style.pointerEvents = 'none';
+		GamingCanvas.elementContainerCanvasInputs.style.position = 'absolute';
+		GamingCanvas.elementContainerCanvasInputs.style.right = '0';
+		GamingCanvas.elementContainerCanvasInputs.style.top = '0';
+		GamingCanvas.elementContainerCanvasInputs.style.touchAction = 'none';
+		GamingCanvas.elementContainerCanvasInputs.style.zIndex = '0';
+		GamingCanvas.elementContainerCanvas.appendChild(GamingCanvas.elementContainerCanvasInputs);
+
 		// Element: Canvas
 		let canvas: HTMLCanvasElement,
 			count: number = <number>options.canvasCount;
 
 		GamingCanvas.elementCanvases = new Array();
-		for (let i = 0; i < count; i++) {
-			canvas = document.createElement('canvas');
-			canvas.height = 0;
-			canvas.id = `gaming-canvas-canvas${i + 1}`;
-			canvas.width = 0;
-			canvas.style.left = '0';
-			canvas.style.position = 'absolute';
-			canvas.style.top = '0';
-			canvas.style.zIndex = String((i + 1) * 10);
+		GamingCanvas.elementCanvasesSplit = new Array();
+		for (let i = 1; i <= count; i++) {
+			if ((<number[]>options.canvasSplit).includes(i)) {
+				// Split: A
+				canvas = document.createElement('canvas');
+				canvas.height = 0;
+				canvas.id = `gaming-canvas-canvas${i}a`;
+				canvas.width = 0;
+				canvas.style.left = '0';
+				canvas.style.position = 'absolute';
+				canvas.style.top = '0';
+				canvas.style.zIndex = String(i * 10);
 
-			GamingCanvas.elementCanvases.push(canvas);
-			GamingCanvas.elementContainerCanvas.appendChild(canvas);
+				GamingCanvas.elementCanvases.push(canvas);
+				GamingCanvas.elementCanvasesSplit.push(canvas);
+				GamingCanvas.elementContainerCanvas.appendChild(canvas);
+
+				// Split: B
+				canvas = document.createElement('canvas');
+				canvas.height = 0;
+				canvas.id = `gaming-canvas-canvas${i}b`;
+				canvas.width = 0;
+				canvas.style.bottom = '0';
+				canvas.style.position = 'absolute';
+				canvas.style.right = '0';
+				canvas.style.zIndex = String(i * 10);
+
+				GamingCanvas.elementCanvases.push(canvas);
+				GamingCanvas.elementCanvasesSplit.push(canvas);
+				GamingCanvas.elementContainerCanvas.appendChild(canvas);
+			} else {
+				canvas = document.createElement('canvas');
+				canvas.height = 0;
+				canvas.id = `gaming-canvas-canvas${i}`;
+				canvas.width = 0;
+				canvas.style.left = '0';
+				canvas.style.position = 'absolute';
+				canvas.style.top = '0';
+				canvas.style.zIndex = String(i * 10);
+
+				GamingCanvas.elementCanvases.push(canvas);
+				GamingCanvas.elementContainerCanvas.appendChild(canvas);
+			}
 		}
 		options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
 
@@ -420,14 +513,14 @@ export class GamingCanvas {
 		options.inputKeyboardEnable && GamingCanvasEngineKeyboard.initialize(GamingCanvas.inputQueue);
 		options.inputMouseEnable &&
 			GamingCanvasEngineMouse.initialize(
-				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1], // Use the top most canvas
+				GamingCanvas.elementContainerCanvasInputs,
 				<HTMLElement>options.elementInteractive,
 				GamingCanvas.inputQueue,
 				<boolean>options.inputMousePreventContextMenu,
 			);
 		options.inputTouchEnable &&
 			GamingCanvasEngineTouch.initialize(
-				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1], // Use the top most canvas
+				GamingCanvas.elementContainerCanvasInputs,
 				<HTMLElement>options.elementInteractive,
 				<number>options.inputLimitPerMs,
 				GamingCanvas.inputQueue,
@@ -626,7 +719,11 @@ export class GamingCanvas {
 					alpha: true,
 					antialias: false,
 				}),
+				canvasSplitLandscapeVertical: boolean = GamingCanvas.options.canvasSplitLandscapeVertical === true,
 				canvases: HTMLCanvasElement[] = GamingCanvas.elementCanvases,
+				orientationCanvasRotateEnable: boolean = GamingCanvas.options.orientationCanvasRotateEnable === true,
+				orientationCanvasPortaitRotateLeft: boolean = GamingCanvas.options.orientationCanvasPortaitRotateLeft === true,
+				orientationLandscape: boolean = GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE,
 				report: GamingCanvasReport = GamingCanvas.stateReport;
 
 			// Match dimensions
@@ -635,7 +732,42 @@ export class GamingCanvas {
 
 			// Draw every layer into the screenshot canvas starting with the lowest layer canvases[0]
 			for (let canvas of canvases) {
-				canvasScreenshotContext.drawImage(canvas, 0, 0);
+				if (canvas.id.endsWith('a') === true || canvas.id.endsWith('b') === true) {
+					// Split Screen
+					if (orientationLandscape !== true && orientationCanvasRotateEnable === true && orientationCanvasPortaitRotateLeft !== true) {
+						// Special case
+						if (canvas.id.endsWith('a') === true) {
+							canvasScreenshotContext.drawImage(canvas, 0, 0);
+						} else {
+							canvasScreenshotContext.drawImage(canvas, (canvasScreenshot.width / 2) | 0, 0);
+						}
+					} else {
+						// Regular
+						if (canvas.id.endsWith('b') === true) {
+							if (orientationLandscape === true && canvasSplitLandscapeVertical === true) {
+								canvasScreenshotContext.drawImage(canvas, (canvasScreenshot.width / 2) | 0, 0);
+							} else {
+								canvasScreenshotContext.drawImage(canvas, 0, (canvasScreenshot.height / 2) | 0);
+							}
+						}
+					}
+				} else {
+					// Whole Screen
+					canvasScreenshotContext.drawImage(canvas, 0, 0);
+				}
+
+				if (orientationLandscape !== true && orientationCanvasRotateEnable === true && orientationCanvasPortaitRotateLeft !== true) {
+				} else {
+					if (canvas.id.endsWith('b') === true) {
+						if (orientationLandscape === true && canvasSplitLandscapeVertical === true) {
+							canvasScreenshotContext.drawImage(canvas, (canvasScreenshot.width / 2) | 0, 0);
+						} else {
+							canvasScreenshotContext.drawImage(canvas, 0, (canvasScreenshot.height / 2) | 0);
+						}
+					} else {
+						canvasScreenshotContext.drawImage(canvas, 0, 0);
+					}
+				}
 			}
 
 			// Convert screnshot canvas into PNG blob
@@ -865,15 +997,19 @@ export class GamingCanvas {
 
 			GamingCanvas.elementRotator2.style.backgroundColor = 'rgba(192,192,192,0.5)';
 
-			GamingCanvas.elementCanvases[0].style.backgroundColor = 'rgba(255,0,255,0.5)';
-			GamingCanvas.elementCanvases[0].style.boxShadow = 'inset -8px 8px 4px 4px rgb(0,255,0)';
+			for (const canvas of GamingCanvas.elementCanvases) {
+				canvas.style.backgroundColor = 'rgba(255,0,255,0.5)';
+				canvas.style.boxShadow = 'inset -8px 8px 4px 4px rgb(0,255,0)';
+			}
 		} else {
 			GamingCanvas.elementRotator1.style.background = 'unset';
 
 			GamingCanvas.elementRotator2.style.backgroundColor = 'transparent';
 
-			GamingCanvas.elementCanvases[0].style.backgroundColor = 'transparent';
-			GamingCanvas.elementCanvases[0].style.boxShadow = 'none';
+			for (const canvas of GamingCanvas.elementCanvases) {
+				canvas.style.backgroundColor = 'transparent';
+				canvas.style.boxShadow = 'none';
+			}
 		}
 	}
 
@@ -985,6 +1121,8 @@ export class GamingCanvas {
 		options.audioEnable = options.audioEnable === undefined ? false : options.audioEnable === true;
 		options.callbackReportLimitPerMs = Math.max(0, Number(options.callbackReportLimitPerMs) || 8);
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);
+		options.canvasSplit = options.canvasSplit === undefined ? [] : options.canvasSplit;
+		options.canvasSplitLandscapeVertical = options.canvasSplitLandscapeVertical === undefined ? false : options.canvasSplitLandscapeVertical === true;
 		options.debug = options.debug === undefined ? false : options.debug === true;
 		options.dpiSupportEnable = options.dpiSupportEnable === undefined ? false : options.dpiSupportEnable === true;
 		options.inputGamepadDeadbandStick =

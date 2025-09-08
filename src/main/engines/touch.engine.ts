@@ -20,7 +20,7 @@ export interface GamingCanvasInputTouch extends GamingCanvasInput {
 
 export class GamingCanvasEngineTouch {
 	public static active: boolean = true;
-	private static el: HTMLCanvasElement;
+	private static el: HTMLElement;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 	private static timeout: ReturnType<typeof setTimeout>;
 	private static timestamp: number = -2025;
@@ -76,13 +76,13 @@ export class GamingCanvasEngineTouch {
 	}
 
 	public static initialize(
-		elCanvas: HTMLCanvasElement,
+		elInputs: HTMLElement,
 		elInteractive: HTMLElement | undefined,
 		inputLimitPerMs: number,
 		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
 	): void {
 		GamingCanvasEngineTouch.active = true;
-		GamingCanvasEngineTouch.el = elCanvas;
+		GamingCanvasEngineTouch.el = elInputs;
 		GamingCanvasEngineTouch.queue = queue;
 
 		const touchActive = (down: boolean, event: TouchEvent, positions?: GamingCanvasInputPosition[]): boolean => {

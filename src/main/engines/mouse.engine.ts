@@ -28,7 +28,7 @@ export interface GamingCanvasInputMouse extends GamingCanvasInput {
 
 export class GamingCanvasEngineMouse {
 	public static active: boolean = true;
-	private static el: HTMLCanvasElement;
+	private static el: HTMLElement;
 	private static elInteractive: HTMLElement | undefined;
 	private static locked: boolean;
 	private static lockHooked: boolean;
@@ -68,13 +68,13 @@ export class GamingCanvasEngineMouse {
 	}
 
 	public static initialize(
-		elCanvas: HTMLCanvasElement,
+		elInputs: HTMLElement,
 		elInteractive: HTMLElement | undefined,
 		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
 		preventContextMenu: boolean,
 	): void {
 		GamingCanvasEngineMouse.active = true;
-		GamingCanvasEngineMouse.el = elCanvas;
+		GamingCanvasEngineMouse.el = elInputs;
 		GamingCanvasEngineMouse.queue = queue;
 
 		if (preventContextMenu) {
@@ -196,7 +196,7 @@ export class GamingCanvasEngineMouse {
 			});
 			return true;
 		} catch (error) {
-			console.error('GamingCanvas > GamingCanvasEngineMouse > lock: unable to aquire due to', error.name);
+			console.error('GamingCanvas > GamingCanvasEngineMouse > lock: unable to aquire due to', (<any>error).name);
 			return false;
 		}
 	}
