@@ -26,6 +26,7 @@ export class GamingCanvas {
 	private static elementCanvases: HTMLCanvasElement[];
 	private static elementContainer: HTMLElement;
 	private static elementContainerCanvas: HTMLDivElement;
+	private static elementContainerCanvasInputs: HTMLDivElement;
 	private static elementContainerOverlay: HTMLDivElement;
 	private static elementContainerOverlayWrapper: HTMLDivElement;
 	private static elementParent: HTMLElement;
@@ -349,6 +350,19 @@ export class GamingCanvas {
 		GamingCanvas.elementContainerCanvas.style.zIndex = '1';
 		GamingCanvas.elementRotator2.appendChild(GamingCanvas.elementContainerCanvas);
 
+		// Element: Canvas Input Relativer
+		GamingCanvas.elementContainerCanvasInputs = document.createElement('div');
+		GamingCanvas.elementContainerCanvasInputs.id = 'gaming-canvas-container-canvas-inputs';
+		GamingCanvas.elementContainerCanvasInputs.style.bottom = '0';
+		GamingCanvas.elementContainerCanvasInputs.style.left = '0';
+		GamingCanvas.elementContainerCanvasInputs.style.pointerEvents = 'none';
+		GamingCanvas.elementContainerCanvasInputs.style.position = 'absolute';
+		GamingCanvas.elementContainerCanvasInputs.style.right = '0';
+		GamingCanvas.elementContainerCanvasInputs.style.top = '0';
+		GamingCanvas.elementContainerCanvasInputs.style.touchAction = 'none';
+		GamingCanvas.elementContainerCanvasInputs.style.zIndex = '0';
+		GamingCanvas.elementContainerCanvas.appendChild(GamingCanvas.elementContainerCanvasInputs);
+
 		// Element: Canvas
 		let canvas: HTMLCanvasElement,
 			count: number = <number>options.canvasCount;
@@ -420,14 +434,14 @@ export class GamingCanvas {
 		options.inputKeyboardEnable && GamingCanvasEngineKeyboard.initialize(GamingCanvas.inputQueue);
 		options.inputMouseEnable &&
 			GamingCanvasEngineMouse.initialize(
-				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1], // Use the top most canvas
+				GamingCanvas.elementContainerCanvasInputs, // Use the top most canvas
 				<HTMLElement>options.elementInteractive,
 				GamingCanvas.inputQueue,
 				<boolean>options.inputMousePreventContextMenu,
 			);
 		options.inputTouchEnable &&
 			GamingCanvasEngineTouch.initialize(
-				GamingCanvas.elementCanvases[GamingCanvas.elementCanvases.length - 1], // Use the top most canvas
+				GamingCanvas.elementContainerCanvasInputs, // Use the top most canvas
 				<HTMLElement>options.elementInteractive,
 				<number>options.inputLimitPerMs,
 				GamingCanvas.inputQueue,
