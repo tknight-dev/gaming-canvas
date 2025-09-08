@@ -7,8 +7,8 @@ esbuild = require('esbuild');
 esbuild.build({
 	bundle: true,
 	entryPoints: {
-		grid: 'src/grid.ts',
-		index: 'src/index.ts',
+		'module-grid-index': 'src/modules/grid/index.ts',
+		index: 'src/main/index.ts',
 	},
 	loader: {},
 	format: 'cjs',
