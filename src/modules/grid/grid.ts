@@ -12,13 +12,13 @@ interface GamingCanvasGridIArray<T> {
 
 export type GamingCanvasGridType = GamingCanvasGridUint8Array | GamingCanvasGridUint8ClampedArray | GamingCanvasGridUint16Array | GamingCanvasGridUint32Array;
 
-abstract class GamingCanvasGrid<GamingCanvasGridTyped> {
-	public readonly data: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array;
+abstract class GamingCanvasGrid<T> {
+	public readonly data: T;
 	private readonly prefix: string;
 	public readonly size: number;
 	public readonly sideLength: number;
 
-	constructor(data: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array, prefix: string, sideLength: number) {
+	constructor(data: T, prefix: string, sideLength: number) {
 		this.data = data;
 		this.prefix = prefix;
 		this.sideLength = sideLength;
