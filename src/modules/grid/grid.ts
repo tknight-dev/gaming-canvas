@@ -1,3 +1,5 @@
+import { GamingCanvasInputPositionBasic } from '../../main/inputs.js';
+
 /**
  * All (x,y) cooridnates are in terms of cells/tiles unless noted otherwise via the postfix 'px' (pixels)
  *
@@ -36,6 +38,17 @@ abstract class GamingCanvasGrid<T> {
 		}
 	}
 
+	public getBasic(position: GamingCanvasInputPositionBasic): number | undefined {
+		const index: number = (position.x | 0) * this.sideLength + (position.y | 0);
+
+		if (index < this.size && index >= 0) {
+			return this.data[index];
+		} else {
+			console.error(`${this.prefix} > getBasic: x (${position.x}) and y (${position.y}) not within grid [sideLength=${this.sideLength}]`);
+			return undefined;
+		}
+	}
+
 	public set(x: number, y: number, value: number): boolean {
 		const index: number = (x | 0) * this.sideLength + (y | 0);
 
@@ -44,6 +57,18 @@ abstract class GamingCanvasGrid<T> {
 			return true;
 		} else {
 			console.error(`${this.prefix} > set: x (${x}) and y (${y}) not within grid [sideLength=${this.sideLength}]`);
+			return false;
+		}
+	}
+
+	public setBasic(position: GamingCanvasInputPositionBasic, value: number): boolean {
+		const index: number = (position.x | 0) * this.sideLength + (position.y | 0);
+
+		if (index < this.size && index >= 0) {
+			this.data[index] = value;
+			return true;
+		} else {
+			console.error(`${this.prefix} > setBasic: x (${position.x}) and y (${position.y}) not within grid [sideLength=${this.sideLength}]`);
 			return false;
 		}
 	}

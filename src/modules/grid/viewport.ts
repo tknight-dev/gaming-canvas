@@ -1,6 +1,6 @@
 import { GamingCanvasGridICamera } from './camera.js';
 import { GamingCanvasOrientation, GamingCanvasReport } from '../../main/models.js';
-import { GamingCanvasInputPosition } from '../../main/inputs.js';
+import { GamingCanvasInputPosition, GamingCanvasInputPositionBasic } from '../../main/inputs.js';
 
 /**
  * All (x,y) cooridnates are in terms of cells/tiles unless noted otherwise via the postfix 'px' (pixels)
@@ -188,6 +188,9 @@ export const GamingCanvasGridInputOverlaySnapPxTopLeft = (
  * @position must be relative to canvas
  * @return [x, y]
  */
-export const GamingCanvasGridInputToCoordinate = (position: GamingCanvasInputPosition, viewport: GamingCanvasGridViewport): number[] => {
-	return [(position.xRelative * viewport.width + viewport.widthStart) | 0, (position.yRelative * viewport.height + viewport.heightStart) | 0];
+export const GamingCanvasGridInputToCoordinate = (position: GamingCanvasInputPosition, viewport: GamingCanvasGridViewport): GamingCanvasInputPositionBasic => {
+	return {
+		x: (position.xRelative * viewport.width + viewport.widthStart) | 0,
+		y: (position.yRelative * viewport.height + viewport.heightStart) | 0,
+	};
 };
