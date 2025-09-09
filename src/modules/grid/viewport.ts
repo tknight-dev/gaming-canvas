@@ -167,6 +167,7 @@ export class GamingCanvasGridViewport {
 /**
  * Get the top left of the active grid cell (input overlay position in cell) in px (pixels)
  *
+ * @position must not be relative to canvas
  * @return [cellSizePx, left, top]
  */
 export const GamingCanvasGridInputOverlaySnapPxTopLeft = (
@@ -179,4 +180,14 @@ export const GamingCanvasGridInputOverlaySnapPxTopLeft = (
 		(position.xRelative * viewport.width - ((position.xRelative * viewport.width + viewport.widthStart) % 1)) * viewport.cellSizePx * report.scaler,
 		(position.yRelative * viewport.height - ((position.yRelative * viewport.height + viewport.heightStart) % 1)) * viewport.cellSizePx * report.scaler,
 	];
+};
+
+/**
+ * Get Grid cooridnate from the position
+ *
+ * @position must be relative to canvas
+ * @return [x, y]
+ */
+export const GamingCanvasGridInputToCoordinate = (position: GamingCanvasInputPosition, viewport: GamingCanvasGridViewport): number[] => {
+	return [(position.xRelative * viewport.width + viewport.widthStart) | 0, (position.yRelative * viewport.height + viewport.heightStart) | 0];
 };
