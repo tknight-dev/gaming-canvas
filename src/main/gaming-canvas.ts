@@ -1075,14 +1075,12 @@ export class GamingCanvas {
 		if (state) {
 			try {
 				await (element || GamingCanvas.elementContainer).requestFullscreen();
-				GamingCanvas.stateFullscreen = state;
 				return true;
 			} catch (error) {
 				return false;
 			}
 		} else {
 			await document.exitFullscreen();
-			GamingCanvas.stateFullscreen = state;
 			return true;
 		}
 	}
