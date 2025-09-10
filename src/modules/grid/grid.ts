@@ -27,6 +27,15 @@ abstract class GamingCanvasGrid<T> {
 		this.size = sideLength * sideLength;
 	}
 
+	toJSON() {
+		return {
+			data: Array.from(<Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array>this.data),
+			prefix: this.prefix,
+			size: this.size,
+			sideLength: this.sideLength,
+		};
+	}
+
 	public get(x: number, y: number): number | undefined {
 		const index: number = (x | 0) * this.sideLength + (y | 0);
 
