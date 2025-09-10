@@ -209,7 +209,7 @@ export class GamingCanvasEngineAudio {
 	 */
 	public static controlPan(bufferId: number, pan: number, durationInMs: number = 0, callback?: (bufferId: number) => void): void {
 		if (bufferId < 0 || bufferId >= GamingCanvasEngineAudio.buffers.length) {
-			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlVolume: buffer id ${bufferId} is invalid`);
+			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPan: buffer id ${bufferId} is invalid`);
 		} else {
 			const buffer: Buffer = GamingCanvasEngineAudio.buffers[bufferId];
 

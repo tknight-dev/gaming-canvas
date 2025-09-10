@@ -301,7 +301,7 @@ export class GamingCanvas {
 	 * @param options are default on undefined | null
 	 */
 	public static initialize(elementParent: HTMLElement = document.body, options: GamingCanvasOptions = {}): HTMLCanvasElement[] {
-		if (!GamingCanvas.elementContainer) {
+		if (GamingCanvas.elementContainer === undefined) {
 			// First time being initialized
 
 			GamingCanvas.stateFullscreen = document.fullscreenElement !== null;
@@ -1011,6 +1011,10 @@ export class GamingCanvas {
 				canvas.style.boxShadow = 'none';
 			}
 		}
+	}
+
+	public static isInitialized(): boolean {
+		return GamingCanvas.elementContainer !== undefined;
 	}
 
 	public static getInputLimitPerMs(): number {
