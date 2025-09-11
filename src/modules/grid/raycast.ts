@@ -181,7 +181,7 @@ export const GamingCanvasGridRaycast = (
 					rays[rayIndex + 4] = (rays[rayIndex] + rays[rayIndex + 1]) % 1; // cellRelative
 
 					// cellSide
-					if (rays[rayIndex] % 1 === 0) {
+					if (rays[rayIndex] % 1 < 0.0001 || rays[rayIndex] % 1 > 0.9999) {
 						if (rays[rayIndex] < x) {
 							rays[rayIndex + 5] = GamingCanvasGridRaycastCellSide.EAST;
 						} else {

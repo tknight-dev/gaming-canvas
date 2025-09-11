@@ -1,6 +1,6 @@
 import { GamingCanvasGridICamera } from './camera.js';
 import { GamingCanvasOrientation, GamingCanvasReport } from '../../main/models.js';
-import { GamingCanvasInputPosition } from '../../main/inputs.js';
+import { GamingCanvasInputPosition, GamingCanvasInputPositionBasic, GamingCanvasInputPositionOverlay } from '../../main/inputs.js';
 
 /**
  * All (x,y) cooridnates are in terms of cells/tiles unless noted otherwise via the postfix 'px' (pixels)
@@ -167,16 +167,50 @@ export class GamingCanvasGridViewport {
 /**
  * Get the top left of the active grid cell (input overlay position in cell) in px (pixels)
  *
- * @return [cellSizePx, left, top]
+ * @param position must not be relative to canvas
+ * @param fill use this to save on garbage collection
  */
 export const GamingCanvasGridInputOverlaySnapPxTopLeft = (
 	position: GamingCanvasInputPosition,
 	report: GamingCanvasReport,
 	viewport: GamingCanvasGridViewport,
-): number[] => {
-	return [
-		viewport.cellSizePx * report.scaler,
-		(position.xRelative * viewport.width - ((position.xRelative * viewport.width + viewport.widthStart) % 1)) * viewport.cellSizePx * report.scaler,
-		(position.yRelative * viewport.height - ((position.yRelative * viewport.height + viewport.heightStart) % 1)) * viewport.cellSizePx * report.scaler,
-	];
+	fill?: GamingCanvasInputPositionOverlay,
+): GamingCanvasInputPositionOverlay => {
+	if (fill !== undefined) {
+		fill.cellSizePx = viewport.cellSizePx * report.scaler;
+		fill.left =
+			(position.xRelative * viewport.width - ((position.xRelative * viewport.width + viewport.widthStart) % 1)) * viewport.cellSizePx * report.scaler;
+		fill.top =
+			(position.yRelative * viewport.height - ((position.yRelative * viewport.height + viewport.heightStart) % 1)) * viewport.cellSizePx * report.scaler;
+		return fill;
+	}
+
+	return {
+		cellSizePx: viewport.cellSizePx * report.scaler,
+		left: (position.xRelative * viewport.width - ((position.xRelative * viewport.width + viewport.widthStart) % 1)) * viewport.cellSizePx * report.scaler,
+		top: (position.yRelative * viewport.height - ((position.yRelative * viewport.height + viewport.heightStart) % 1)) * viewport.cellSizePx * report.scaler,
+	};
+};
+
+/**
+ * Get Grid cooridnate from the position
+ *
+ * @param position must be relative to canvas
+ * @param fill use this to save on garbage collection
+ */
+export const GamingCanvasGridInputToCoordinate = (
+	position: GamingCanvasInputPosition,
+	viewport: GamingCanvasGridViewport,
+	fill?: GamingCanvasInputPositionBasic,
+): GamingCanvasInputPositionBasic => {
+	if (fill !== undefined) {
+		fill.x = (position.xRelative * viewport.width + viewport.widthStart) | 0;
+		fill.y = (position.yRelative * viewport.height + viewport.heightStart) | 0;
+		return fill;
+	}
+
+	return {
+		x: (position.xRelative * viewport.width + viewport.widthStart) | 0,
+		y: (position.yRelative * viewport.height + viewport.heightStart) | 0,
+	};
 };

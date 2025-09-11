@@ -301,7 +301,7 @@ export class GamingCanvas {
 	 * @param options are default on undefined | null
 	 */
 	public static initialize(elementParent: HTMLElement = document.body, options: GamingCanvasOptions = {}): HTMLCanvasElement[] {
-		if (!GamingCanvas.elementContainer) {
+		if (GamingCanvas.elementContainer === undefined) {
 			// First time being initialized
 
 			GamingCanvas.stateFullscreen = document.fullscreenElement !== null;
@@ -1013,6 +1013,10 @@ export class GamingCanvas {
 		}
 	}
 
+	public static isInitialized(): boolean {
+		return GamingCanvas.elementContainer !== undefined;
+	}
+
 	public static getInputLimitPerMs(): number {
 		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > getInputLimitPerMs: not initialized yet');
@@ -1075,14 +1079,12 @@ export class GamingCanvas {
 		if (state) {
 			try {
 				await (element || GamingCanvas.elementContainer).requestFullscreen();
-				GamingCanvas.stateFullscreen = state;
 				return true;
 			} catch (error) {
 				return false;
 			}
 		} else {
 			await document.exitFullscreen();
-			GamingCanvas.stateFullscreen = state;
 			return true;
 		}
 	}
