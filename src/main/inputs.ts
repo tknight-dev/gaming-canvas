@@ -18,6 +18,12 @@ export interface GamingCanvasInputPositionBasic {
 	y: number;
 }
 
+export interface GamingCanvasInputPositionOverlay {
+	cellSizePx: number;
+	left: number;
+	top: number;
+}
+
 export const GamingCanvasInputPositionClone = (position: GamingCanvasInputPosition) => {
 	return {
 		out: position.out,
