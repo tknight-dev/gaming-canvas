@@ -15,6 +15,7 @@ interface Buffer {
 	available: boolean;
 	callbackDone?: (bufferId: number) => void;
 	id: number;
+	instance: number;
 	faderNode?: GamingCanvasDoubleLinkedListNode<Fader>;
 	panner: StereoPannerNode;
 	source: MediaElementAudioSourceNode;
@@ -44,29 +45,29 @@ export enum GamingCanvasAudioType {
 }
 
 // Allows for blocking
-const bufferCallbackPromise = async (bufferId: number, callback: (bufferId: number) => void): Promise<void> => {
+const bufferCallbackPromise = async (instance: number, callback: (bufferId: number) => void): Promise<void> => {
 	return new Promise((resolve: any) => {
 		setTimeout(() => {
 			resolve();
-			callback(bufferId);
+			callback(instance);
 		});
 	});
 };
 
 // Non-blocking
-const faderCallback = (bufferId: number, callback: (bufferId: number) => void, faderInternal: Fader, pan: boolean) => {
+const faderCallback = (instance: number, callback: (bufferId: number) => void, faderInternal: Fader, pan: boolean) => {
 	if (pan) {
 		faderInternal.panCallback = undefined;
 	} else {
 		faderInternal.volumeCallback = undefined;
 	}
 	setTimeout(() => {
-		callback(bufferId);
+		callback(instance);
 	});
 };
 
 // Allows for blocking
-const faderCallbackPromise = async (bufferId: number, callback: (bufferId: number) => void, faderInternal: Fader, pan: boolean): Promise<void> => {
+const faderCallbackPromise = async (instance: number, callback: (bufferId: number) => void, faderInternal: Fader, pan: boolean): Promise<void> => {
 	if (pan) {
 		faderInternal.panCallback = undefined;
 	} else {
@@ -75,7 +76,7 @@ const faderCallbackPromise = async (bufferId: number, callback: (bufferId: numbe
 	return new Promise((resolve: any) => {
 		setTimeout(() => {
 			resolve();
-			callback(bufferId);
+			callback(instance);
 		});
 	});
 };
@@ -99,6 +100,7 @@ export class GamingCanvasEngineAudio {
 	private static assets: Map<number, HTMLAudioElement> = new Map();
 	private static buffers: Buffer[];
 	private static buffersAvailable: GamingCanvasFIFOQueue<Buffer> = new GamingCanvasFIFOQueue();
+	private static buffersByInstanceId: Map<number, Buffer> = new Map();
 	private static callbackIsPermitted: (state: boolean) => void;
 	private static context: AudioContext;
 	private static enabled: boolean = false;
@@ -155,7 +157,7 @@ export class GamingCanvasEngineAudio {
 
 						if (fader.panSteps === 0) {
 							buffer.panner.pan.setValueAtTime(fader.panRequested, 0);
-							fader.panCallback !== undefined && faderCallback(faderId, fader.panCallback, fader, true);
+							fader.panCallback !== undefined && faderCallback(buffer.instance, fader.panCallback, fader, true);
 						} else {
 							buffer.panner.pan.setValueAtTime(Math.max(-1, Math.min(1, buffer.panner.pan.value + fader.panStepValue)), 0);
 						}
@@ -183,7 +185,7 @@ export class GamingCanvasEngineAudio {
 
 						if (fader.volumeSteps === 0) {
 							buffer.audio.volume = fader.volumeRequestedEff;
-							fader.volumeCallback !== undefined && faderCallback(faderId, fader.volumeCallback, fader, false);
+							fader.volumeCallback !== undefined && faderCallback(buffer.instance, fader.volumeCallback, fader, false);
 						} else {
 							buffer.audio.volume = Math.max(0, Math.min(1, buffer.audio.volume + fader.volumeStepValue));
 						}
@@ -202,31 +204,29 @@ export class GamingCanvasEngineAudio {
 	/**
 	 * Set the specific audio instance's volume
 	 *
-	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param instance is the number returned by the controlPlay() function. Invalid instances are ignored
 	 * @param pan is -1 left, 0 center, 1 right
 	 * @param durationInMs is how long it takes to apply the new value completely (default is 0 milliseconds)
 	 * @param callback is triggered when audio or fader is complete
 	 */
-	public static controlPan(bufferId: number, pan: number, durationInMs: number = 0, callback?: (bufferId: number) => void): void {
-		if (bufferId < 0 || bufferId >= GamingCanvasEngineAudio.buffers.length) {
-			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPan: buffer id ${bufferId} is invalid`);
-		} else {
-			const buffer: Buffer = GamingCanvasEngineAudio.buffers[bufferId];
+	public static controlPan(instance: number, pan: number, durationInMs: number = 0, callback?: (instance: number) => void): void {
+		const buffer: Buffer = <Buffer>GamingCanvasEngineAudio.buffersByInstanceId.get(instance);
 
+		if (buffer !== undefined) {
 			if (!buffer.audio.ended) {
 				let panCurrent: number = buffer.panner.pan.value;
 				pan = Math.max(-1, Math.min(1, pan));
 
 				if (pan > panCurrent - 0.01 && pan < panCurrent + 0.01) {
 					// The change request is too small
-					callback && callback(buffer.id);
+					callback && callback(buffer.instance);
 					return;
 				}
 				durationInMs = Math.max(0, durationInMs);
 
 				// Don't fade if the request duration is less than the goIntervalInMs
 				if (durationInMs > GamingCanvasEngineAudio.goIntervalInMs) {
-					const fader: Fader = GamingCanvasEngineAudio.faders[bufferId];
+					const fader: Fader = GamingCanvasEngineAudio.faders[buffer.id];
 
 					// Duration can't be more than twice as long as the audio source is
 					durationInMs = Math.min((<HTMLAudioElement>GamingCanvasEngineAudio.assets.get(<number>buffer.assetId)).duration * 2000, durationInMs);
@@ -246,7 +246,7 @@ export class GamingCanvasEngineAudio {
 					GamingCanvasEngineAudio.fadersActive.add(buffer.id);
 				} else {
 					buffer.panner.pan.setValueAtTime(pan, 0);
-					callback && callback(buffer.id);
+					callback && callback(buffer.instance);
 				}
 			}
 		}
@@ -255,18 +255,16 @@ export class GamingCanvasEngineAudio {
 	/**
 	 * Suspend playing the audio without ending it, or resume audio where you suspended it
 	 *
-	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param instance is the number returned by the controlPlay() function. Invalid instances are ignored
 	 * @param state true = pause, false = unpause
 	 */
-	public static controlPause(bufferId: number, state: boolean): void {
-		if (bufferId < 0 || bufferId >= GamingCanvasEngineAudio.buffers.length) {
-			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPause: buffer id ${bufferId} is invalid`);
-		} else {
-			const buffer: Buffer = GamingCanvasEngineAudio.buffers[bufferId];
+	public static controlPause(instance: number, state: boolean): void {
+		const buffer: Buffer = <Buffer>GamingCanvasEngineAudio.buffersByInstanceId.get(instance);
 
+		if (buffer !== undefined) {
 			if (!buffer.audio.ended) {
 				state === true ? buffer.audio.pause() : buffer.audio.play();
-				GamingCanvasEngineAudio.faders[bufferId].pause = state;
+				GamingCanvasEngineAudio.faders[buffer.id].pause = state;
 			}
 		}
 	}
@@ -280,7 +278,7 @@ export class GamingCanvasEngineAudio {
 	 * @param positionInS is between 0 and the duration of the audio asset in seconds (default is 0)
 	 * @param volume is between 0 and 1 (default is 1)
 	 * @param callback is triggered when audio is complete
-	 * @return is bufferId, use this to modify the active audio (null on failure)
+	 * @return is instance, use this to modify the active audio (null on failure)
 	 */
 	public static async controlPlay(
 		assetId: number,
@@ -289,7 +287,7 @@ export class GamingCanvasEngineAudio {
 		pan: number = 0,
 		positionInS: number = 0,
 		volume: number = 1,
-		callback?: (bufferId: number) => void,
+		callback?: (instance: number) => void,
 	): Promise<number | null> {
 		if (GamingCanvasEngineAudio.enabled !== true) {
 			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPlay: audio not enabled [see options]`);
@@ -315,7 +313,7 @@ export class GamingCanvasEngineAudio {
 		// Apply bounds
 		pan = Math.max(-1, Math.min(1, pan));
 		positionInS = Math.max(0, Math.min(asset.duration, positionInS));
-		volume = Math.max(0, Math.min(1, volume));
+		volumeEff = Math.max(0, Math.min(1, volumeEff));
 
 		// Load buffer source
 		audio = buffer.audio;
@@ -332,6 +330,14 @@ export class GamingCanvasEngineAudio {
 		buffer.assetId = assetId;
 		buffer.available = false;
 		((buffer.callbackDone = callback), buffer.panner.pan.setValueAtTime(pan, 0));
+
+		// Keep randomizing until a unique number is generated
+		buffer.instance = (Math.random() * Number.MAX_SAFE_INTEGER) | 0;
+		while (buffer.instance === 0 || GamingCanvasEngineAudio.buffersByInstanceId.has(buffer.instance) === true) {
+			buffer.instance = (Math.random() * Number.MAX_SAFE_INTEGER) | 0;
+		}
+		GamingCanvasEngineAudio.buffersByInstanceId.set(buffer.instance, buffer);
+
 		buffer.type = effect === true ? GamingCanvasAudioType.EFFECT : GamingCanvasAudioType.MUSIC;
 
 		// Config: Fader
@@ -339,20 +345,18 @@ export class GamingCanvasEngineAudio {
 
 		// Play
 		await audio.play();
-		return buffer.id;
+		return buffer.instance;
 	}
 
 	/**
 	 * Stop the audio and return the buffer to the availability FIFO queue
 	 *
-	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param instance is the number returned by the controlPlay() function. Invalid instances are ignored
 	 */
-	public static controlStop(bufferId: number): void {
-		if (bufferId < 0 || bufferId >= GamingCanvasEngineAudio.buffers.length) {
-			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlStop: buffer id ${bufferId} is invalid`);
-		} else {
-			const buffer: Buffer = GamingCanvasEngineAudio.buffers[bufferId];
+	public static controlStop(instance: number): void {
+		const buffer: Buffer = <Buffer>GamingCanvasEngineAudio.buffersByInstanceId.get(instance);
 
+		if (buffer !== undefined) {
 			// callbacks triggered by 'audio.onended' event
 			if (!buffer.audio.ended) {
 				// Buffer
@@ -368,17 +372,15 @@ export class GamingCanvasEngineAudio {
 	/**
 	 * Set the specific audio instance's volume
 	 *
-	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param instance is the number returned by the controlPlay() function. Invalid instances are ignored
 	 * @param volume is between 0 and 1
 	 * @param durationInMs is how long it takes to apply the new value completely (default is 0 milliseconds)
 	 * @param callback is triggered when audio or fader is complete
 	 */
-	public static controlVolume(bufferId: number, volume: number, durationInMs: number = 0, callback?: (bufferId: number) => void): void {
-		if (bufferId < 0 || bufferId >= GamingCanvasEngineAudio.buffers.length) {
-			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlVolume: buffer id ${bufferId} is invalid`);
-		} else {
-			const buffer: Buffer = GamingCanvasEngineAudio.buffers[bufferId];
+	public static controlVolume(instance: number, volume: number, durationInMs: number = 0, callback?: (instance: number) => void): void {
+		const buffer: Buffer = <Buffer>GamingCanvasEngineAudio.buffersByInstanceId.get(instance);
 
+		if (buffer !== undefined) {
 			if (!buffer.audio.ended) {
 				let volumeCurrent: number = buffer.audio.volume,
 					volumeEff: number;
@@ -389,13 +391,13 @@ export class GamingCanvasEngineAudio {
 
 				if (volumeEff > volumeCurrent - 0.01 && volumeEff < volumeCurrent + 0.01) {
 					// The change request is too small
-					callback && callback(buffer.id);
+					callback && callback(buffer.instance);
 					return;
 				}
 
 				// Don't fade if the request duration is less than the goIntervalInMs
 				if (durationInMs > GamingCanvasEngineAudio.goIntervalInMs) {
-					const fader: Fader = GamingCanvasEngineAudio.faders[bufferId];
+					const fader: Fader = GamingCanvasEngineAudio.faders[buffer.id];
 
 					// Duration can't be more than twice as long as the audio source is
 					durationInMs = Math.min((<HTMLAudioElement>GamingCanvasEngineAudio.assets.get(<number>buffer.assetId)).duration * 2000, durationInMs);
@@ -417,7 +419,7 @@ export class GamingCanvasEngineAudio {
 					GamingCanvasEngineAudio.fadersActive.add(buffer.id);
 				} else {
 					buffer.audio.volume = volumeEff;
-					callback && callback(buffer.id);
+					callback && callback(buffer.instance);
 				}
 			}
 		}
@@ -494,6 +496,7 @@ export class GamingCanvasEngineAudio {
 		let audio: HTMLAudioElement,
 			buffers: Buffer[] = GamingCanvasEngineAudio.buffers,
 			buffersAvailable: GamingCanvasFIFOQueue<Buffer> = GamingCanvasEngineAudio.buffersAvailable,
+			buffersByInstanceId: Map<number, Buffer> = GamingCanvasEngineAudio.buffersByInstanceId,
 			context: AudioContext = GamingCanvasEngineAudio.context,
 			faders: Fader[] = GamingCanvasEngineAudio.faders,
 			i: number,
@@ -507,13 +510,15 @@ export class GamingCanvasEngineAudio {
 			// OnEnded: Put buffer back in queue
 			buffer.audio.onended = async () => {
 				// Buffer
-				buffer.callbackDone !== undefined && (await bufferCallbackPromise(buffer.id, buffer.callbackDone));
+				buffer.callbackDone !== undefined && (await bufferCallbackPromise(buffer.instance, buffer.callbackDone));
 				buffer.available = true;
+
+				buffersByInstanceId.delete(buffer.instance);
 				buffersAvailable.push(buffer);
 
 				// Fader
-				fader.panCallback !== undefined && (await faderCallbackPromise(buffer.id, fader.panCallback, fader, true));
-				fader.volumeCallback !== undefined && (await faderCallbackPromise(buffer.id, fader.volumeCallback, fader, false));
+				fader.panCallback !== undefined && (await faderCallbackPromise(buffer.instance, fader.panCallback, fader, true));
+				fader.volumeCallback !== undefined && (await faderCallbackPromise(buffer.instance, fader.volumeCallback, fader, false));
 				GamingCanvasEngineAudio.fadersActive.delete(buffer.id);
 				faderReset(GamingCanvasEngineAudio.faders[buffer.id]);
 			};
@@ -541,6 +546,7 @@ export class GamingCanvasEngineAudio {
 					audio: audio,
 					available: true,
 					id: i,
+					instance: -1,
 					panner: panner,
 					source: source,
 				},
