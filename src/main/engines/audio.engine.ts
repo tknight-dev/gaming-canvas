@@ -286,7 +286,7 @@ export class GamingCanvasEngineAudio {
 		loop: boolean = false,
 		pan: number = 0,
 		positionInS: number = 0,
-		volume: number = 1,
+		volume?: number,
 		callback?: (instance: number) => void,
 	): Promise<number | null> {
 		if (GamingCanvasEngineAudio.enabled !== true) {
@@ -308,7 +308,7 @@ export class GamingCanvasEngineAudio {
 
 		let audio: HTMLAudioElement,
 			volumeGlobal: number = effect === true ? GamingCanvasEngineAudio.volumeEffectEff : GamingCanvasEngineAudio.volumeMusicEff,
-			volumeEff: number = volumeGlobal * volume;
+			volumeEff: number = volumeGlobal * (volume === undefined ? 1 : volume);
 
 		// Apply bounds
 		pan = Math.max(-1, Math.min(1, pan));
