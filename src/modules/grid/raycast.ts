@@ -41,8 +41,8 @@ export interface GamingCanvasGridRaycastResult {
 }
 
 export interface GamingCanvasGridRaycastResultDistanceMapInstance {
-	cell?: number; // GridIndex
-	ray?: number; // RayIndex
+	cellIndex?: number; // GridIndex
+	rayIndex?: number; // RayIndex
 }
 
 /**
@@ -179,7 +179,7 @@ export const GamingCanvasGridRaycast = (
 					rays[rayIndex] = x + xAngle * distance; // x
 					rays[rayIndex + 1] = y + yAngle * distance; // y
 					rays[rayIndex + 2] = distance; // Distance
-					rays[rayIndex + 3] = distance * fisheyeCorrection; // Distance (camera plane)
+					rays[rayIndex + 3] = distance * fisheyeCorrection; // Range
 					rays[rayIndex + 4] = gridIndex; // cellIndex
 					rays[rayIndex + 5] = (rays[rayIndex] + rays[rayIndex + 1]) % 1; // cellRelative
 
@@ -201,7 +201,7 @@ export const GamingCanvasGridRaycast = (
 					// Distance Map
 					if (distanceMap !== undefined) {
 						distanceMap.set(distance, {
-							ray: rayIndex,
+							rayIndex: rayIndex,
 						});
 					}
 				}
@@ -227,7 +227,7 @@ export const GamingCanvasGridRaycast = (
 	if (distanceMap !== undefined && distanceMapCells !== undefined) {
 		for ([gridIndex, distance] of distanceMapCells) {
 			distanceMap.set(distance, {
-				cell: gridIndex,
+				cellIndex: gridIndex,
 			});
 		}
 	}
