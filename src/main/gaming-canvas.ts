@@ -1,6 +1,6 @@
 import { GamingCanvasFIFOQueue } from './fifo-queue.js';
 import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from './inputs.js';
-import { GamingCanvasOptions, GamingCanvasOrientation, GamingCanvasReport, GamingCanvasResolutionScaleType } from './models.js';
+import { GamingCanvasOptions, GamingCanvasOrientation, GamingCanvasReport, GamingCanvasRenderStyle } from './models.js';
 import { GamingCanvasAudioType, GamingCanvasEngineAudio } from './engines/audio.engine.js';
 import { GamingCanvasEngineGamepad, GamingCanvasInputGamepadState } from './engines/gamepad.engine.js';
 import { GamingCanvasEngineKeyboard } from './engines/keyboard.engine.js';
@@ -1139,8 +1139,8 @@ export class GamingCanvas {
 		options.orientationCanvasRotateEnable = options.orientationCanvasRotateEnable === undefined ? true : options.orientationCanvasRotateEnable === true;
 		options.orientationCanvasPortaitRotateLeft =
 			options.orientationCanvasPortaitRotateLeft === undefined ? false : options.orientationCanvasPortaitRotateLeft === true;
+		options.renderStyle = options.renderStyle === undefined ? GamingCanvasRenderStyle.ANTIALIAS : options.renderStyle;
 		options.resolutionScaleToFit = options.resolutionScaleToFit === undefined ? true : options.resolutionScaleToFit === true;
-		options.resolutionScaleType = options.resolutionScaleType === undefined ? GamingCanvasResolutionScaleType.ANTIALIAS : options.resolutionScaleType;
 		options.resolutionWidthPx = options.resolutionWidthPx === undefined ? null : Number(options.resolutionWidthPx) | 0 || null;
 
 		return options;
@@ -1169,11 +1169,11 @@ export class GamingCanvas {
 		GamingCanvas.setDebug(<boolean>GamingCanvas.options.debug);
 
 		// Apply: Scale Type
-		switch (<GamingCanvasResolutionScaleType>options.resolutionScaleType) {
-			case GamingCanvasResolutionScaleType.ANTIALIAS:
+		switch (<GamingCanvasRenderStyle>options.renderStyle) {
+			case GamingCanvasRenderStyle.ANTIALIAS:
 				GamingCanvas.elementContainerCanvas.style.imageRendering = 'smooth';
 				break;
-			case GamingCanvasResolutionScaleType.PIXELATED:
+			case GamingCanvasRenderStyle.PIXELATED:
 				GamingCanvas.elementContainerCanvas.style.imageRendering = 'pixelated';
 				break;
 		}
@@ -1197,6 +1197,46 @@ export class GamingCanvas {
 
 	public static isLandscape(): boolean {
 		return GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE;
+	}
+
+	/**
+	 * Apply rendering style to individual canvas contexts
+	 *
+	 * @param resolutionScaleType force a specific scale type
+	 * @param noTimeouts skips the re-apply after specific intervals
+	 */
+	public static renderStyle(
+		context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+		resolutionScaleType?: GamingCanvasRenderStyle,
+		noTimeouts?: boolean,
+	): void {
+		if (resolutionScaleType === undefined) {
+			resolutionScaleType = GamingCanvas.options.renderStyle;
+
+			if (resolutionScaleType === undefined) {
+				console.error('GamingCanvas: failed to apply scale type as none was provided (applied within WebWorker?)');
+				return;
+			}
+		}
+
+		switch (resolutionScaleType) {
+			case GamingCanvasRenderStyle.ANTIALIAS:
+				GamingCanvas.elementContainerCanvas.style.imageRendering = 'smooth';
+				break;
+			case GamingCanvasRenderStyle.PIXELATED:
+				GamingCanvas.elementContainerCanvas.style.imageRendering = 'pixelated';
+				break;
+		}
+
+		if (noTimeouts !== true) {
+			setTimeout(() => {
+				GamingCanvas.renderStyle(context, resolutionScaleType, true);
+
+				setTimeout(() => {
+					GamingCanvas.renderStyle(context, resolutionScaleType, true);
+				}, 500);
+			}, 100);
+		}
 	}
 
 	public static getReport(): GamingCanvasReport {

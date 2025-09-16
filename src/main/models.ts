@@ -25,8 +25,8 @@ export class GamingCanvasOptions {
 	orientation?: GamingCanvasOrientation;
 	orientationCanvasRotateEnable?: boolean;
 	orientationCanvasPortaitRotateLeft?: boolean;
+	renderStyle?: GamingCanvasRenderStyle;
 	resolutionScaleToFit?: boolean;
-	resolutionScaleType?: GamingCanvasResolutionScaleType;
 	resolutionWidthPx?: null | number;
 }
 
@@ -47,7 +47,7 @@ export interface GamingCanvasReport {
 	scaler: number;
 }
 
-export enum GamingCanvasResolutionScaleType {
+export enum GamingCanvasRenderStyle {
 	ANTIALIAS,
 	PIXELATED,
 }
