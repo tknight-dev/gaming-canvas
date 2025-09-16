@@ -1,4 +1,4 @@
-import { GamingCanvasConstPIDouble } from '../../main/const.js';
+import { GamingCanvasConstPIDouble, GamingCanvasConstPIHalf } from '../../main/const.js';
 import { GamingCanvasGridICamera } from './camera.js';
 import { GamingCanvasGridType } from './grid.js';
 
@@ -31,7 +31,7 @@ export interface GamingCanvasGridRaycastOptions {
 
 /**
  * @property cells each value is a Grid data index (encoded (x,y) coordinates)
- * @property rays follow the pattern [ray1-x, ray1-y, ray1-distance, ray1-cellRelative, ray1-cellSide, ..., rayN-x, rayN-y, rayN-distance, rayN-cellRelative, rayN-cellSide]
+ * @property rays are packed together, 7 to a ray
  */
 export interface GamingCanvasGridRaycastResult {
 	cells?: Set<number>;
@@ -41,8 +41,8 @@ export interface GamingCanvasGridRaycastResult {
 }
 
 export interface GamingCanvasGridRaycastResultDistanceMapInstance {
-	cell?: number; // GridIndex
-	ray?: number; // RayIndex
+	cellIndex?: number; // GridIndex
+	rayIndex?: number; // RayIndex
 }
 
 /**
@@ -59,6 +59,7 @@ export const GamingCanvasGridRaycast = (
 		distance: number,
 		distanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> | undefined,
 		distanceMapCells: Map<number, number> | undefined,
+		fisheyeCorrection: number,
 		fov: number = camera.r,
 		fovStep: number = 1,
 		gridData: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array = grid.data,
@@ -111,16 +112,16 @@ export const GamingCanvasGridRaycast = (
 			}
 
 			if (options.rayReuse !== undefined) {
-				if (options.rayReuse.length === length * 6) {
+				if (options.rayReuse.length === length * 7) {
 					rays = options.rayReuse;
 				} else {
 					console.error(
-						`GamingCanvas > GamingCanvasGridRaycast: re-use array length (${options.rayReuse.length}) does not match required length ${length * 6}`,
+						`GamingCanvas > GamingCanvasGridRaycast: re-use array length (${options.rayReuse.length}) does not match required length ${length * 7}`,
 					);
-					rays = new Float64Array(length * 6);
+					rays = new Float64Array(length * 7);
 				}
 			} else {
-				rays = new Float64Array(length * 6);
+				rays = new Float64Array(length * 7);
 			}
 		}
 
@@ -128,11 +129,12 @@ export const GamingCanvasGridRaycast = (
 			return {};
 		}
 	} else {
-		rays = new Float64Array(length * 6);
+		rays = new Float64Array(length * 7);
 	}
 
-	for (; i < length; i++, fov -= fovStep, rayIndex += 6) {
+	for (; i < length; i++, fov -= fovStep, rayIndex += 7) {
 		// Initial angle
+		fisheyeCorrection = Math.cos(camera.r - fov);
 		xAngle = Math.sin(fov);
 		yAngle = Math.cos(fov);
 
@@ -177,28 +179,29 @@ export const GamingCanvasGridRaycast = (
 					rays[rayIndex] = x + xAngle * distance; // x
 					rays[rayIndex + 1] = y + yAngle * distance; // y
 					rays[rayIndex + 2] = distance; // Distance
-					rays[rayIndex + 3] = gridIndex; // cellIndex
-					rays[rayIndex + 4] = (rays[rayIndex] + rays[rayIndex + 1]) % 1; // cellRelative
+					rays[rayIndex + 3] = distance * fisheyeCorrection; // Range
+					rays[rayIndex + 4] = gridIndex; // cellIndex
+					rays[rayIndex + 5] = (rays[rayIndex] + rays[rayIndex + 1]) % 1; // cellRelative
 
 					// cellSide
 					if (rays[rayIndex] % 1 < 0.0001 || rays[rayIndex] % 1 > 0.9999) {
 						if (rays[rayIndex] < x) {
-							rays[rayIndex + 5] = GamingCanvasGridRaycastCellSide.EAST;
+							rays[rayIndex + 6] = GamingCanvasGridRaycastCellSide.EAST;
 						} else {
-							rays[rayIndex + 5] = GamingCanvasGridRaycastCellSide.WEST;
+							rays[rayIndex + 6] = GamingCanvasGridRaycastCellSide.WEST;
 						}
 					} else {
 						if (rays[rayIndex + 1] < y) {
-							rays[rayIndex + 5] = GamingCanvasGridRaycastCellSide.SOUTH;
+							rays[rayIndex + 6] = GamingCanvasGridRaycastCellSide.SOUTH;
 						} else {
-							rays[rayIndex + 5] = GamingCanvasGridRaycastCellSide.NORTH;
+							rays[rayIndex + 6] = GamingCanvasGridRaycastCellSide.NORTH;
 						}
 					}
 
 					// Distance Map
 					if (distanceMap !== undefined) {
 						distanceMap.set(distance, {
-							ray: rayIndex,
+							rayIndex: rayIndex,
 						});
 					}
 				}
@@ -224,7 +227,7 @@ export const GamingCanvasGridRaycast = (
 	if (distanceMap !== undefined && distanceMapCells !== undefined) {
 		for ([gridIndex, distance] of distanceMapCells) {
 			distanceMap.set(distance, {
-				cell: gridIndex,
+				cellIndex: gridIndex,
 			});
 		}
 	}
