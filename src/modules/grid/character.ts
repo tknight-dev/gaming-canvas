@@ -114,16 +114,18 @@ export const GamingCanvasGridCharacterControl = (
 			controlEff = input.x * <number>options.factorPosition * timestampDelta;
 		}
 
-		if (options.clip === true) {
-			index = ((camera.x + controlEff + (controlEff > 0 ? character.size : -character.size)) | 0) * grid.sideLength;
+		if (Math.abs(controlEff) > 0.0001) {
+			if (options.clip === true) {
+				index = ((camera.x + controlEff + (controlEff > 0 ? character.size : -character.size)) | 0) * grid.sideLength;
 
-			if ((grid.data[index + (camera.y | 0)] & blockingMask) === 0) {
+				if ((grid.data[index + (camera.y | 0)] & blockingMask) === 0) {
+					camera.x += controlEff;
+					changed = true;
+				}
+			} else {
 				camera.x += controlEff;
 				changed = true;
 			}
-		} else {
-			camera.x += controlEff;
-			changed = true;
 		}
 
 		// Set: Y
@@ -133,16 +135,18 @@ export const GamingCanvasGridCharacterControl = (
 			controlEff = input.y * <number>options.factorPosition * timestampDelta;
 		}
 
-		if (options.clip === true) {
-			index = (camera.y + controlEff + (controlEff > 0 ? character.size : -character.size)) | 0;
+		if (Math.abs(controlEff) > 0.0001) {
+			if (options.clip === true) {
+				index = (camera.y + controlEff + (controlEff > 0 ? character.size : -character.size)) | 0;
 
-			if ((grid.data[(camera.x | 0) * grid.sideLength + index] & blockingMask) === 0) {
+				if ((grid.data[(camera.x | 0) * grid.sideLength + index] & blockingMask) === 0) {
+					camera.y += controlEff;
+					changed = true;
+				}
+			} else {
 				camera.y += controlEff;
 				changed = true;
 			}
-		} else {
-			camera.y += controlEff;
-			changed = true;
 		}
 	}
 
