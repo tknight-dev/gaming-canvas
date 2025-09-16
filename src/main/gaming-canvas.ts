@@ -1221,10 +1221,10 @@ export class GamingCanvas {
 
 		switch (resolutionScaleType) {
 			case GamingCanvasRenderStyle.ANTIALIAS:
-				GamingCanvas.elementContainerCanvas.style.imageRendering = 'smooth';
+				context.imageSmoothingEnabled = true;
 				break;
 			case GamingCanvasRenderStyle.PIXELATED:
-				GamingCanvas.elementContainerCanvas.style.imageRendering = 'pixelated';
+				context.imageSmoothingEnabled = false;
 				break;
 		}
 
