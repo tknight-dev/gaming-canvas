@@ -40,16 +40,18 @@ Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
 - **Visibility**: Quickly know if your game needs to be paused (browser minimized or switched to new tab)
 - **Wake Lock**: Quickly prevent mobile devices from dimming the screen while you're playing
 
-See it in action with my game: [Life](https://app.tknight.dev/game/life/index.html?perf=true). Its a multithreaded Conway's Game of Life for Desktop and Mobile devices (supports Gamepad, Keyboard, Mouse, and Touch based inputs) [[GitHub](https://github.com/tknight-dev/life)]!
+See the **GamingCanvas** in action in the following games:
+
+- [Life](https://app.tknight.dev/game/life/index.html?perf=true), A multithreaded Conway's Game of Life for Desktop and Mobile devices (supports Gamepad, Keyboard, Mouse, and Touch based inputs) [[GitHub](https://github.com/tknight-dev/life)]
 
 ## Documentation
 
 Link: [Documentation](https://gaming-canvas.org/)
 
-- [Quick Start](https://gaming-canvas.org/)
-- [How-To](https://gaming-canvas.org/category/how-to)
-- [Model Definitions](https://gaming-canvas.org/category/model-definitions)
-- [Tips & Tricks](https://gaming-canvas.org/category/tips--tricks)
-- [Troubleshooting](https://gaming-canvas.org/troubleshooting)
+- [Quick Start](https://gaming-canvas.org/docs)
+- [How-To](https://gaming-canvas.org/docs/category/how-to)
+- [Model Definitions](https://gaming-canvas.org/docs/category/model-definitions)
+- [Tips & Tricks](https://gaming-canvas.org/docs/category/tips--tricks)
+- [Troubleshooting](https://gaming-canvas.org/docs/troubleshooting)
 
-[![forthebadge](https://img.shields.io/badge/made%20with-%20typescript-C1282D.svg?logo=typescript&style=for-the-badge)](https://www.typescriptlang.org/) [![forthebadge](https://img.shields.io/badge/powered%20by-%20github-7116FB.svg?logo=github&style=for-the-badge)](https://www.github.com/)
+[![TypeScript](https://img.shields.io/badge/made%20with-%20typescript-C1282D.svg?logo=typescript&style=for-the-badge)](https://www.typescriptlang.org/) [![GitHub](https://img.shields.io/badge/powered%20by-%20github-7116FB.svg?logo=github&style=for-the-badge)](https://www.github.com/)
