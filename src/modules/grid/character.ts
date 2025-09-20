@@ -13,6 +13,7 @@ import { GamingCanvasGridType } from './grid.js';
 export interface GamingCanvasGridCharacter {
 	camera: GamingCanvasGridICamera;
 	cameraPrevious: GamingCanvasGridICamera;
+	gridIndex: number;
 	size: number; // How large is the camera compared to the Grid? 1 cell, 0.5 cell, 2 cells, etc?
 	timestamp: number; // Set by you at the start of a loop
 	timestampPrevious: number; // Set by you at the end of a loop
@@ -148,6 +149,10 @@ export const GamingCanvasGridCharacterControl = (
 				changed = true;
 			}
 		}
+	}
+
+	if (changed === true) {
+		character.gridIndex = (camera.x | 0) * grid.sideLength + (camera.y | 0);
 	}
 
 	// Done
