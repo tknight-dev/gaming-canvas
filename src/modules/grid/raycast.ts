@@ -1,4 +1,4 @@
-import { GamingCanvasConstPIDouble, GamingCanvasConstPIHalf } from '../../main/const.js';
+import { GamingCanvasConstPIDouble } from '../../main/const.js';
 import { GamingCanvasGridICamera } from './camera.js';
 import { GamingCanvasGridType } from './grid.js';
 
