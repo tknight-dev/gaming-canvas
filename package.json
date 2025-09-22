@@ -35,6 +35,7 @@
     ],
     "homepage": "https://gaming-canvas.org",
     "keywords": [
+        "audio",
         "canvas",
         "dpi",
         "fullscreen",
@@ -49,6 +50,7 @@
         "orientation",
         "resolution",
         "responsive",
+        "splitscreen",
         "touch",
         "vibration",
         "visibility",
@@ -71,5 +73,5 @@
     },
     "type": "module",
     "types": "./dist/index.d.ts",
-    "version": "1.10.2"
+    "version": "1.11.0"
 }
