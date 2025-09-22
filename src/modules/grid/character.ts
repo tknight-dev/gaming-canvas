@@ -27,10 +27,10 @@ export interface GamingCanvasGridCharacterInput {
 
 export interface GamingCanvasGridCharacterNPC extends GamingCanvasGridCharacter {
 	fov: number; // radians
+	fovDistanceMax: number;
 	playerAngle: number[];
 	playerDistance: number[];
 	playerLOS: boolean[];
-	sightDistanceMax: number; // Limits how far the NPC can spot a player
 }
 
 export enum GamingCanvasGridCharacterControlStyle {
@@ -235,7 +235,7 @@ export const GamingCanvasGridCharacterSeen = (
 			npc.playerLOS[playerIndex] = false;
 
 			// Check Distance
-			if (distance < npc.sightDistanceMax) {
+			if (distance < npc.fovDistanceMax) {
 				fovHalf = npc.fov / 2;
 				fovA = npc.camera.r - fovHalf + GamingCanvasConstPIHalf;
 				fovB = npc.camera.r + fovHalf + GamingCanvasConstPIHalf;
