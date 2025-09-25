@@ -241,7 +241,7 @@ export const GamingCanvasGridCharacterSeen = (
 				fovB = npc.camera.r + fovHalf + GamingCanvasConstPI_0_50;
 
 				// Correct for rotation between GamingCanvasConstPIDouble and 0
-				if (fovA < GamingCanvasConstPI_0_50 && angle > GamingCanvasConstPI_0_50) {
+				if (fovA < GamingCanvasConstPI_0_50 && angle > GamingCanvasConstPI_1_50) {
 					fovA += GamingCanvasConstPI_2_00;
 					fovB += GamingCanvasConstPI_2_00;
 				}
