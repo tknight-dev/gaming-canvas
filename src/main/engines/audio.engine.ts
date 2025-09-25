@@ -292,6 +292,9 @@ export class GamingCanvasEngineAudio {
 		if (GamingCanvasEngineAudio.enabled !== true) {
 			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPlay: audio not enabled [see options]`);
 			return null;
+		} else if (GamingCanvasEngineAudio.permission !== true) {
+			console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPlay: audio not permitted`);
+			return null;
 		}
 
 		const asset: HTMLAudioElement | undefined = GamingCanvasEngineAudio.assets.get(assetId);
