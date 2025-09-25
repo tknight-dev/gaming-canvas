@@ -1,4 +1,4 @@
-import { GamingCanvasConstPIDouble } from '../../main/const.js';
+import { GamingCanvasConstPI_2_00 } from '../../main/const.js';
 import { GamingCanvasGridICamera } from './camera.js';
 import { GamingCanvasGridType } from './grid.js';
 
@@ -269,7 +269,7 @@ export const GamingCanvasGridRaycastTestImageCreate = (height: number, width?: n
 
 	context.fillStyle = 'green';
 	context.beginPath();
-	context.arc(widthHalf, heightHalf, minHalf / 2, 0, GamingCanvasConstPIDouble);
+	context.arc(widthHalf, heightHalf, minHalf / 2, 0, GamingCanvasConstPI_2_00);
 	context.closePath();
 	context.fill();
 
