@@ -1,6 +1,4 @@
 /**
- * Statistical analysis stuff
- *
  * @author tknight-dev
  */
 
