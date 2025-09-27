@@ -203,14 +203,14 @@ export interface GamingCanvasGridPathAStarResult {
  * @param gridIndexA is source cell
  * @param gridIndexB is destination cell
  * @param blocking is either a mask where non-zero results are true, or a function which returns true on blocked
- * @param weight default return value is 0. Values greater than zero are more likely to be avoided.
+ * @param weight 0 is apply heuristic, and non-zero returns are the final weight (no additional heuristic applied)
  */
 export const GamingCanvasGridPathAStar = (
 	gridIndexA: number,
 	gridIndexB: number,
 	grid: GamingCanvasGridType,
 	blocking: number | ((cell: number) => boolean),
-	weight?: (cell: number) => number,
+	weight?: (cell: number, heuristic: () => number) => number,
 	options: GamingCanvasGridPathAStarOptions = {},
 ): GamingCanvasGridPathAStarResult => {
 	let a: number,
@@ -226,6 +226,22 @@ export const GamingCanvasGridPathAStar = (
 		gridIndexBY: number = gridIndexB % gridSideLength,
 		gridIndexBX: number = (gridIndexB - gridIndexBY) / gridSideLength,
 		heap: GamingCanvasGridBinaryHeap,
+		heuristic = (heuristic?: GamingCanvasGridPathAStarOptionsPathHeuristic) => {
+			switch (heuristic !== undefined ? heuristic : optionPathHeuristic) {
+				case GamingCanvasGridPathAStarOptionsPathHeuristic.CHEBYSHEV:
+					return Math.max(Math.abs(gridIndexNeighborX - gridIndexBX), Math.abs(gridIndexNeighborY - gridIndexBY));
+				case GamingCanvasGridPathAStarOptionsPathHeuristic.DIAGONAL:
+					a = Math.abs(gridIndexNeighborX - gridIndexBX);
+					b = Math.abs(gridIndexNeighborY - gridIndexBY);
+					return a + b + -0.5858 * Math.min(a, b);
+				case GamingCanvasGridPathAStarOptionsPathHeuristic.EUCLIDIAN:
+					return ((gridIndexNeighborX - gridIndexBX) ** 2 + (gridIndexNeighborY - gridIndexBY) ** 2) ** 0.5;
+				case GamingCanvasGridPathAStarOptionsPathHeuristic.MANHATTAN:
+					return Math.abs(gridIndexNeighborX - gridIndexBX) + Math.abs(gridIndexNeighborY - gridIndexBY);
+				case GamingCanvasGridPathAStarOptionsPathHeuristic.NONE:
+					return 1;
+			}
+		},
 		node: GamingCanvasGridPathAStarNode,
 		nodeClosest: GamingCanvasGridPathAStarNode,
 		nodeNeighbor: GamingCanvasGridPathAStarNode,
@@ -442,9 +458,10 @@ export const GamingCanvasGridPathAStar = (
 			}
 
 			if (pathOperationsInstance[0] !== 0 && pathOperationsInstance[1] !== 0) {
-				weightGridNext = node.weightGrid + nodeNeighbor.weightGrid * 1.41421 + (weight !== undefined ? weight(gridData[nodeNeighbor.gridIndex]) : 0);
+				weightGridNext =
+					node.weightGrid + nodeNeighbor.weightGrid * 1.41421 + (weight !== undefined ? weight(gridData[nodeNeighbor.gridIndex], heuristic) : 0);
 			} else {
-				weightGridNext = node.weightGrid + nodeNeighbor.weightGrid + (weight !== undefined ? weight(gridData[nodeNeighbor.gridIndex]) : 0);
+				weightGridNext = node.weightGrid + nodeNeighbor.weightGrid + (weight !== undefined ? weight(gridData[nodeNeighbor.gridIndex], heuristic) : 0);
 			}
 			visited = nodeNeighbor.visited;
 
