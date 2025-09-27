@@ -203,6 +203,7 @@ export interface GamingCanvasGridPathAStarResult {
  * @param gridIndexA is source cell
  * @param gridIndexB is destination cell
  * @param blocking is either a mask where non-zero results are true, or a function which returns true on blocked
+ * @param weight default return value is 0. Values greater than zero are more likely to be avoided.
  */
 export const GamingCanvasGridPathAStar = (
 	gridIndexA: number,
