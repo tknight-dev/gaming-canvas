@@ -46,16 +46,17 @@ export interface GamingCanvasGridRaycastResultDistanceMapInstance {
 }
 
 /**
- * @param blockingMask `grid.data[index] & blockingMask === 0` is not blocked
+ * @param blocking is either a mask where non-zero results are true, or a function which returns true on blocked
  * @return .cells are indexes for each cell touched by a ray | .rays are the (x,y) coordinates, from the camera postion, that form a ray (line)
  */
 export const GamingCanvasGridRaycast = (
 	camera: GamingCanvasGridICamera,
 	grid: GamingCanvasGridType,
-	blockingMask: number,
+	blocking: number | ((cell: number) => boolean),
 	options?: GamingCanvasGridRaycastOptions,
 ): GamingCanvasGridRaycastResult => {
-	let cells: Set<number> | undefined,
+	let blockingMask: boolean = typeof blocking === 'number',
+		cells: Set<number> | undefined,
 		distance: number,
 		distanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> | undefined,
 		distanceMapCells: Map<number, number> | undefined,
@@ -174,7 +175,10 @@ export const GamingCanvasGridRaycast = (
 			}
 
 			// Is ray terminated at blocked cell?
-			if ((gridData[gridIndex] & blockingMask) !== 0) {
+			if (
+				(blockingMask === true && (gridData[gridIndex] & (<number>blocking)) !== 0) ||
+				(blockingMask === false && (<any>blocking)(gridData[gridIndex]) === true)
+			) {
 				if (rays !== undefined) {
 					rays[rayIndex] = x + xAngle * distance; // x
 					rays[rayIndex + 1] = y + yAngle * distance; // y

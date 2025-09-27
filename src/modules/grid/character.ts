@@ -50,16 +50,17 @@ export interface GamingCanvasGridCharacterControlOptions {
  *
  * The `z` isn't modified
  *
- * @param blockingMask `grid.data[index] & blockingMask === 0` is not blocked
+ * @param blocking is either a mask where non-zero results are true, or a function which returns true on blocked
  */
 export const GamingCanvasGridCharacterControl = (
 	character: GamingCanvasGridCharacter,
 	input: GamingCanvasGridCharacterInput,
 	grid: GamingCanvasGridType,
-	blockingMask: number,
+	blocking: number | ((cell: number) => boolean),
 	options?: GamingCanvasGridCharacterControlOptions,
 ): boolean => {
-	const camera: GamingCanvasGridICamera = character.camera;
+	const blockingMask: boolean = typeof blocking === 'number',
+		camera: GamingCanvasGridICamera = character.camera;
 
 	// Options
 	if (options === undefined) {
@@ -127,9 +128,16 @@ export const GamingCanvasGridCharacterControl = (
 			if (options.clip === true) {
 				index = ((camera.x + controlEff + (controlEff > 0 ? character.size : -character.size)) | 0) * grid.sideLength;
 
-				if ((grid.data[index + (camera.y | 0)] & blockingMask) === 0) {
-					camera.x += controlEff;
-					changed = true;
+				if (blockingMask === true) {
+					if ((grid.data[index + (camera.y | 0)] & (<number>blocking)) === 0) {
+						camera.x += controlEff;
+						changed = true;
+					}
+				} else {
+					if ((<any>blocking)(grid.data[index + (camera.y | 0)]) === false) {
+						camera.x += controlEff;
+						changed = true;
+					}
 				}
 			} else {
 				camera.x += controlEff;
@@ -148,9 +156,16 @@ export const GamingCanvasGridCharacterControl = (
 			if (options.clip === true) {
 				index = (camera.y + controlEff + (controlEff > 0 ? character.size : -character.size)) | 0;
 
-				if ((grid.data[(camera.x | 0) * grid.sideLength + index] & blockingMask) === 0) {
-					camera.y += controlEff;
-					changed = true;
+				if (blockingMask === true) {
+					if ((grid.data[(camera.x | 0) * grid.sideLength + index] & (<number>blocking)) === 0) {
+						camera.y += controlEff;
+						changed = true;
+					}
+				} else {
+					if ((<any>blocking)(grid.data[(camera.x | 0) * grid.sideLength + index]) === false) {
+						camera.y += controlEff;
+						changed = true;
+					}
 				}
 			} else {
 				camera.y += controlEff;
