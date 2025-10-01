@@ -896,7 +896,7 @@ export class GamingCanvas {
 	 */
 	public static async audioControlPlay(
 		_assetId: number,
-		_effect: boolean = true,
+		_type: GamingCanvasAudioType = GamingCanvasAudioType.EFFECT,
 		_loop: boolean = false,
 		_pan: number = 0,
 		_positionInS: number = 0,

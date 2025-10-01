@@ -448,12 +448,36 @@ export const GamingCanvasGridPathAStar = (
 			if (nodeNeighbor.closed) {
 				continue;
 			} else if (optionBlockingMask === true) {
+				// Is blocked?
 				if ((gridData[gridIndexNeighbor] & (<number>blocking)) !== 0) {
 					continue;
 				}
+
+				// Is diagnoal?
+				if (pathOperationsInstance[0] !== 0 && pathOperationsInstance[1] !== 0) {
+					// Is diagnoal path blocked?
+					if (
+						(gridData[(x + pathOperationsInstance[0]) * gridSideLength + y] & (<number>blocking)) !== 0 &&
+						(gridData[x * gridSideLength + (y + pathOperationsInstance[1])] & (<number>blocking)) !== 0
+					) {
+						continue;
+					}
+				}
 			} else {
+				// Is blocked?
 				if ((<any>blocking)(gridData[gridIndexNeighbor]) === true) {
 					continue;
+				}
+
+				// Is diagnoal?
+				if (pathOperationsInstance[0] !== 0 && pathOperationsInstance[1] !== 0) {
+					// Is diagnoal path blocked?
+					if (
+						(<any>blocking)(gridData[(x + pathOperationsInstance[0]) * gridSideLength + y]) === true &&
+						(<any>blocking)(gridData[x * gridSideLength + (y + pathOperationsInstance[1])]) === true
+					) {
+						continue;
+					}
 				}
 			}
 
