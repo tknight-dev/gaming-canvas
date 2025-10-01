@@ -2,6 +2,9 @@
  * @author tknight-dev
  */
 
+export const GamingCanvasConstIntegerMaxSafe: number = Number.MAX_SAFE_INTEGER;
+export const GamingCanvasConstIntegerMinSafe: number = Number.MIN_SAFE_INTEGER;
+
 export const GamingCanvasConstPI_0_125: number = Math.PI * 0.125;
 export const GamingCanvasConstPI_0_250: number = Math.PI * 0.25;
 export const GamingCanvasConstPI_0_375: number = Math.PI * 0.375;
@@ -18,5 +21,3 @@ export const GamingCanvasConstPI_1_625: number = Math.PI * 1.625;
 export const GamingCanvasConstPI_1_750: number = Math.PI * 1.75;
 export const GamingCanvasConstPI_1_875: number = Math.PI * 1.875;
 export const GamingCanvasConstPI_2_000: number = Math.PI * 2;
-export const GamingCanvasConstIntegerMaxSafe: number = Number.MAX_SAFE_INTEGER;
-export const GamingCanvasConstIntegerMinSafe: number = Number.MIN_SAFE_INTEGER;

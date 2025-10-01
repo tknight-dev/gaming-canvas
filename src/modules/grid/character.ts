@@ -1,4 +1,4 @@
-import { GamingCanvasConstPI_1_50, GamingCanvasConstPI_2_00, GamingCanvasConstPI_0_50 } from '../../main/const.js';
+import { GamingCanvasConstPI_1_500, GamingCanvasConstPI_2_000, GamingCanvasConstPI_0_500 } from '../../main/const.js';
 import { GamingCanvasGridICamera } from './camera.js';
 import { GamingCanvasGridType } from './grid.js';
 
@@ -108,9 +108,9 @@ export const GamingCanvasGridCharacterControl = (
 		camera.r -= input.r * <number>options.factorRotation * timestampDelta;
 
 		if (camera.r < 0) {
-			camera.r += GamingCanvasConstPI_2_00;
-		} else if (camera.r > GamingCanvasConstPI_2_00) {
-			camera.r -= GamingCanvasConstPI_2_00;
+			camera.r += GamingCanvasConstPI_2_000;
+		} else if (camera.r > GamingCanvasConstPI_2_000) {
+			camera.r -= GamingCanvasConstPI_2_000;
 		}
 
 		changed = true;
@@ -239,7 +239,7 @@ export const GamingCanvasGridCharacterSeen = (
 			y = npc.camera.y - player.camera.y;
 
 			// Angle
-			angle = GamingCanvasConstPI_1_50 - Math.atan2(y, x);
+			angle = GamingCanvasConstPI_1_500 - Math.atan2(y, x);
 			npc.playerAngle[playerIndex] = angle;
 
 			// Distance
@@ -252,13 +252,13 @@ export const GamingCanvasGridCharacterSeen = (
 			// Check Distance
 			if (distance < npc.fovDistanceMax) {
 				fovHalf = npc.fov / 2;
-				fovA = npc.camera.r - fovHalf + GamingCanvasConstPI_0_50;
-				fovB = npc.camera.r + fovHalf + GamingCanvasConstPI_0_50;
+				fovA = npc.camera.r - fovHalf + GamingCanvasConstPI_0_500;
+				fovB = npc.camera.r + fovHalf + GamingCanvasConstPI_0_500;
 
 				// Correct for rotation between GamingCanvasConstPIDouble and 0
-				if (fovA < GamingCanvasConstPI_0_50 && angle > GamingCanvasConstPI_1_50) {
-					fovA += GamingCanvasConstPI_2_00;
-					fovB += GamingCanvasConstPI_2_00;
+				if (fovA < GamingCanvasConstPI_0_500 && angle > GamingCanvasConstPI_1_500) {
+					fovA += GamingCanvasConstPI_2_000;
+					fovB += GamingCanvasConstPI_2_000;
 				}
 
 				// Check FOV
