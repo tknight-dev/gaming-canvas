@@ -40,8 +40,10 @@ interface Fader {
 
 export enum GamingCanvasAudioType {
 	ALL,
+	AMBIENCE,
 	EFFECT,
 	MUSIC,
+	VOICEOVER,
 }
 
 // Allows for blocking
@@ -113,10 +115,14 @@ export class GamingCanvasEngineAudio {
 	private static permissionSample: HTMLAudioElement;
 	private static request: number;
 	private static volumeAll: number = 1;
+	private static volumeAmbience: number = 0.6;
+	private static volumeAmbienceEff: number = GamingCanvasEngineAudio.volumeAmbience;
 	private static volumeEffect: number = 0.8;
 	private static volumeEffectEff: number = GamingCanvasEngineAudio.volumeEffect;
 	private static volumeMusic: number = 1;
 	private static volumeMusicEff: number = GamingCanvasEngineAudio.volumeMusic;
+	private static volumeVoiceover: number = 1;
+	private static volumeVoiceoverEff: number = GamingCanvasEngineAudio.volumeVoiceover;
 
 	private static go(_timestampNow: number): void {}
 	private static go__funcForward(): void {
@@ -167,10 +173,19 @@ export class GamingCanvasEngineAudio {
 						changed = true;
 						fader.volumeSteps--;
 
-						if (buffer.type === GamingCanvasAudioType.EFFECT) {
-							limit = GamingCanvasEngineAudio.volumeEffectEff;
-						} else {
-							limit = GamingCanvasEngineAudio.volumeMusicEff;
+						switch (buffer.type) {
+							case GamingCanvasAudioType.AMBIENCE:
+								limit = GamingCanvasEngineAudio.volumeAmbienceEff;
+								break;
+							case GamingCanvasAudioType.EFFECT:
+								limit = GamingCanvasEngineAudio.volumeEffectEff;
+								break;
+							case GamingCanvasAudioType.MUSIC:
+								limit = GamingCanvasEngineAudio.volumeMusicEff;
+								break;
+							case GamingCanvasAudioType.VOICEOVER:
+								limit = GamingCanvasEngineAudio.volumeVoiceoverEff;
+								break;
 						}
 
 						if (fader.volumeLimit !== limit) {
@@ -272,7 +287,8 @@ export class GamingCanvasEngineAudio {
 	/**
 	 * If an audio buffer is available, via the availibility FIFO queue, then the asset will be loaded into the buffer and played from that source
 	 *
-	 * @param effect (default is true) [false implies music]
+	 * @param assetId is the id of the audio file in cache to be played
+	 * @param type (default is EFFECT)
 	 * @param loop (default is false)
 	 * @param pan is -1 left, 0 center, 1 right (default is 0)
 	 * @param positionInS is between 0 and the duration of the audio asset in seconds (default is 0)
@@ -282,7 +298,7 @@ export class GamingCanvasEngineAudio {
 	 */
 	public static async controlPlay(
 		assetId: number,
-		effect: boolean = true,
+		type: GamingCanvasAudioType = GamingCanvasAudioType.EFFECT,
 		loop: boolean = false,
 		pan: number = 0,
 		positionInS: number = 0,
@@ -310,8 +326,23 @@ export class GamingCanvasEngineAudio {
 		}
 
 		let audio: HTMLAudioElement,
-			volumeGlobal: number = effect === true ? GamingCanvasEngineAudio.volumeEffectEff : GamingCanvasEngineAudio.volumeMusicEff,
+			volumeGlobal: number,
 			volumeEff: number = volumeGlobal * (volume === undefined ? 1 : volume);
+
+		switch (type) {
+			case GamingCanvasAudioType.AMBIENCE:
+				volumeGlobal = GamingCanvasEngineAudio.volumeAmbienceEff;
+				break;
+			case GamingCanvasAudioType.EFFECT:
+				volumeGlobal = GamingCanvasEngineAudio.volumeEffectEff;
+				break;
+			case GamingCanvasAudioType.MUSIC:
+				volumeGlobal = GamingCanvasEngineAudio.volumeMusicEff;
+				break;
+			case GamingCanvasAudioType.VOICEOVER:
+				volumeGlobal = GamingCanvasEngineAudio.volumeVoiceoverEff;
+				break;
+		}
 
 		// Apply bounds
 		pan = Math.max(-1, Math.min(1, pan));
@@ -341,7 +372,7 @@ export class GamingCanvasEngineAudio {
 		}
 		GamingCanvasEngineAudio.buffersByInstanceId.set(buffer.instance, buffer);
 
-		buffer.type = effect === true ? GamingCanvasAudioType.EFFECT : GamingCanvasAudioType.MUSIC;
+		buffer.type = type;
 
 		// Config: Fader
 		faderReset(GamingCanvasEngineAudio.faders[buffer.id]);
@@ -389,8 +420,22 @@ export class GamingCanvasEngineAudio {
 					volumeEff: number;
 
 				volume = Math.max(0, Math.min(1, volume));
-				volumeEff =
-					volume * (buffer.type === GamingCanvasAudioType.EFFECT ? GamingCanvasEngineAudio.volumeEffectEff : GamingCanvasEngineAudio.volumeMusicEff);
+				volumeEff = volume;
+
+				switch (buffer.type) {
+					case GamingCanvasAudioType.AMBIENCE:
+						volumeEff *= GamingCanvasEngineAudio.volumeAmbienceEff;
+						break;
+					case GamingCanvasAudioType.EFFECT:
+						volumeEff *= GamingCanvasEngineAudio.volumeEffectEff;
+						break;
+					case GamingCanvasAudioType.MUSIC:
+						volumeEff *= GamingCanvasEngineAudio.volumeMusicEff;
+						break;
+					case GamingCanvasAudioType.VOICEOVER:
+						volumeEff *= GamingCanvasEngineAudio.volumeVoiceoverEff;
+						break;
+				}
 
 				if (volumeEff > volumeCurrent - 0.01 && volumeEff < volumeCurrent + 0.01) {
 					// The change request is too small
@@ -408,7 +453,22 @@ export class GamingCanvasEngineAudio {
 					// Set the fader parameters
 					fader.active = true;
 					fader.volumeCallback = callback;
-					fader.volumeLimit = GamingCanvasAudioType.EFFECT ? GamingCanvasEngineAudio.volumeEffectEff : GamingCanvasEngineAudio.volumeMusicEff;
+
+					switch (buffer.type) {
+						case GamingCanvasAudioType.AMBIENCE:
+							fader.volumeLimit = GamingCanvasEngineAudio.volumeAmbienceEff;
+							break;
+						case GamingCanvasAudioType.EFFECT:
+							fader.volumeLimit = GamingCanvasEngineAudio.volumeEffectEff;
+							break;
+						case GamingCanvasAudioType.MUSIC:
+							fader.volumeLimit = GamingCanvasEngineAudio.volumeMusicEff;
+							break;
+						case GamingCanvasAudioType.VOICEOVER:
+							fader.volumeLimit = GamingCanvasEngineAudio.volumeVoiceoverEff;
+							break;
+					}
+
 					fader.volumeSteps = ((durationInMs / GamingCanvasEngineAudio.goIntervalInMs) | 0) + 1; // Make sure we at least overshoot the target
 					fader.volumeStepValue = Math.abs(volumeCurrent - volumeEff) / fader.volumeSteps;
 					fader.volumeRequested = volume;
@@ -669,8 +729,24 @@ export class GamingCanvasEngineAudio {
 					}
 
 					GamingCanvasEngineAudio.volumeAll = volume;
+					GamingCanvasEngineAudio.volumeAmbienceEff = GamingCanvasEngineAudio.volumeAmbience * GamingCanvasEngineAudio.volumeAll;
 					GamingCanvasEngineAudio.volumeEffectEff = GamingCanvasEngineAudio.volumeEffect * GamingCanvasEngineAudio.volumeAll;
 					GamingCanvasEngineAudio.volumeMusicEff = GamingCanvasEngineAudio.volumeMusic * GamingCanvasEngineAudio.volumeAll;
+					GamingCanvasEngineAudio.volumeVoiceoverEff = GamingCanvasEngineAudio.volumeVoiceover * GamingCanvasEngineAudio.volumeAll;
+					break;
+				case GamingCanvasAudioType.AMBIENCE:
+					if (volume === 0) {
+						differencePercentage = 0;
+					} else {
+						differencePercentage = volume / (GamingCanvasEngineAudio.volumeAmbience || 1);
+
+						if (!isFinite(differencePercentage) || differencePercentage < 0.01) {
+							return;
+						}
+					}
+
+					GamingCanvasEngineAudio.volumeAmbience = volume;
+					GamingCanvasEngineAudio.volumeAmbienceEff = GamingCanvasEngineAudio.volumeAmbience * GamingCanvasEngineAudio.volumeAll;
 					break;
 				case GamingCanvasAudioType.EFFECT:
 					if (volume === 0) {
@@ -699,6 +775,20 @@ export class GamingCanvasEngineAudio {
 
 					GamingCanvasEngineAudio.volumeMusic = volume;
 					GamingCanvasEngineAudio.volumeMusicEff = GamingCanvasEngineAudio.volumeMusic * GamingCanvasEngineAudio.volumeAll;
+					break;
+				case GamingCanvasAudioType.VOICEOVER:
+					if (volume === 0) {
+						differencePercentage = 0;
+					} else {
+						differencePercentage = volume / (GamingCanvasEngineAudio.volumeAmbience || 1);
+
+						if (!isFinite(differencePercentage) || differencePercentage < 0.01) {
+							return;
+						}
+					}
+
+					GamingCanvasEngineAudio.volumeVoiceover = volume;
+					GamingCanvasEngineAudio.volumeVoiceoverEff = GamingCanvasEngineAudio.volumeVoiceover * GamingCanvasEngineAudio.volumeAll;
 					break;
 				default:
 					console.error(`GamingCanvas > GamingCanvasEngineAudio > volumeGlobal: type ${type} is invalid`);
