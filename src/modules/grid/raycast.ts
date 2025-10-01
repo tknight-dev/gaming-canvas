@@ -52,7 +52,7 @@ export interface GamingCanvasGridRaycastResultDistanceMapInstance {
 export const GamingCanvasGridRaycast = (
 	camera: GamingCanvasGridICamera,
 	grid: GamingCanvasGridType,
-	blocking: number | ((cell: number) => boolean),
+	blocking: number | ((cell: number, gridIndex: number) => boolean),
 	options?: GamingCanvasGridRaycastOptions,
 ): GamingCanvasGridRaycastResult => {
 	let blockingMask: boolean = typeof blocking === 'number',
@@ -177,7 +177,7 @@ export const GamingCanvasGridRaycast = (
 			// Is ray terminated at blocked cell?
 			if (
 				(blockingMask === true && (gridData[gridIndex] & (<number>blocking)) !== 0) ||
-				(blockingMask === false && (<any>blocking)(gridData[gridIndex]) === true)
+				(blockingMask === false && (<any>blocking)(gridData[gridIndex], gridIndex) === true)
 			) {
 				if (rays !== undefined) {
 					rays[rayIndex] = x + xAngle * distance; // x

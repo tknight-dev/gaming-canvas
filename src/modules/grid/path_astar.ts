@@ -209,14 +209,16 @@ export const GamingCanvasGridPathAStar = (
 	gridIndexA: number,
 	gridIndexB: number,
 	grid: GamingCanvasGridType,
-	blocking: number | ((cell: number) => boolean),
-	weight?: (cell: number, heuristic: () => number) => number,
+	blocking: number | ((cell: number, gridIndex: number) => boolean),
+	weight?: (cell: number, gridIndex: number, heuristic: () => number) => number,
 	options: GamingCanvasGridPathAStarOptions = {},
 ): GamingCanvasGridPathAStarResult => {
 	let a: number,
 		b: number,
 		gridData: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array = grid.data,
 		gridIndexNeighbor: number,
+		gridIndexNeighborDiagonal1: number,
+		gridIndexNeighborDiagonal2: number,
 		gridIndexNeighborX: number,
 		gridIndexNeighborY: number,
 		gridSideLength: number = grid.sideLength,
@@ -285,7 +287,7 @@ export const GamingCanvasGridPathAStar = (
 			};
 		}
 	} else {
-		if ((<any>blocking)(gridData[gridIndexA]) === true || (<any>blocking)(gridData[gridIndexB]) === true) {
+		if ((<any>blocking)(gridData[gridIndexA], gridIndexA) === true || (<any>blocking)(gridData[gridIndexB], gridIndexB) === true) {
 			console.error('GamingCanvasGridPathAStar: invalid initial gridIndex(s) [A or B blocked]');
 			return {
 				error: true,
@@ -465,16 +467,18 @@ export const GamingCanvasGridPathAStar = (
 				}
 			} else {
 				// Is blocked?
-				if ((<any>blocking)(gridData[gridIndexNeighbor]) === true) {
+				if ((<any>blocking)(gridData[gridIndexNeighbor], gridIndexNeighbor) === true) {
 					continue;
 				}
 
 				// Is diagnoal?
 				if (pathOperationsInstance[0] !== 0 && pathOperationsInstance[1] !== 0) {
 					// Is diagnoal path blocked?
+					gridIndexNeighborDiagonal1 = (x + pathOperationsInstance[0]) * gridSideLength + y;
+					gridIndexNeighborDiagonal2 = x * gridSideLength + (y + pathOperationsInstance[1]);
 					if (
-						(<any>blocking)(gridData[(x + pathOperationsInstance[0]) * gridSideLength + y]) === true &&
-						(<any>blocking)(gridData[x * gridSideLength + (y + pathOperationsInstance[1])]) === true
+						(<any>blocking)(gridData[gridIndexNeighborDiagonal1], gridIndexNeighborDiagonal1) === true &&
+						(<any>blocking)(gridData[gridIndexNeighborDiagonal2], gridIndexNeighborDiagonal2) === true
 					) {
 						continue;
 					}
@@ -483,9 +487,14 @@ export const GamingCanvasGridPathAStar = (
 
 			if (pathOperationsInstance[0] !== 0 && pathOperationsInstance[1] !== 0) {
 				weightGridNext =
-					node.weightGrid + nodeNeighbor.weightGrid * 1.41421 + (weight !== undefined ? weight(gridData[nodeNeighbor.gridIndex], heuristic) : 0);
+					node.weightGrid +
+					nodeNeighbor.weightGrid * 1.41421 +
+					(weight !== undefined ? weight(gridData[nodeNeighbor.gridIndex], nodeNeighbor.gridIndex, heuristic) : 0);
 			} else {
-				weightGridNext = node.weightGrid + nodeNeighbor.weightGrid + (weight !== undefined ? weight(gridData[nodeNeighbor.gridIndex], heuristic) : 0);
+				weightGridNext =
+					node.weightGrid +
+					nodeNeighbor.weightGrid +
+					(weight !== undefined ? weight(gridData[nodeNeighbor.gridIndex], nodeNeighbor.gridIndex, heuristic) : 0);
 			}
 			visited = nodeNeighbor.visited;
 
