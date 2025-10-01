@@ -325,9 +325,7 @@ export class GamingCanvasEngineAudio {
 			return null;
 		}
 
-		let audio: HTMLAudioElement,
-			volumeGlobal: number,
-			volumeEff: number = volumeGlobal * (volume === undefined ? 1 : volume);
+		let audio: HTMLAudioElement, volumeGlobal: number, volumeEff: number;
 
 		switch (type) {
 			case GamingCanvasAudioType.AMBIENCE:
@@ -343,6 +341,8 @@ export class GamingCanvasEngineAudio {
 				volumeGlobal = GamingCanvasEngineAudio.volumeVoiceoverEff;
 				break;
 		}
+
+		volumeEff = volumeGlobal * (volume === undefined ? 1 : volume);
 
 		// Apply bounds
 		pan = Math.max(-1, Math.min(1, pan));
