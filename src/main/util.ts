@@ -104,6 +104,12 @@ export class GamingCanvasUtilTimers {
 		}
 	}
 
+	public clearAll() {
+		this.timesInMS.clear();
+		this.callbacks.clear();
+		this.added.clear();
+	}
+
 	/**
 	 * Update the interal clock without modifying the durations of the internal timer instances (effectively pauses the timers)
 	 */
