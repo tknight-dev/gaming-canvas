@@ -285,6 +285,22 @@ export class GamingCanvasEngineAudio {
 	}
 
 	/**
+	 * Suspend playing the audio without ending it, or resume audio where you suspended it
+	 *
+	 * @param state true = pause, false = unpause
+	 */
+	public static controlPauseAll(state: boolean): void {
+		let buffer: Buffer;
+
+		for (buffer of GamingCanvasEngineAudio.buffersByInstanceId.values()) {
+			if (!buffer.audio.ended) {
+				state === true ? buffer.audio.pause() : buffer.audio.play();
+				GamingCanvasEngineAudio.faders[buffer.id].pause = state;
+			}
+		}
+	}
+
+	/**
 	 * If an audio buffer is available, via the availibility FIFO queue, then the asset will be loaded into the buffer and played from that source
 	 *
 	 * @param assetId is the id of the audio file in cache to be played
@@ -399,6 +415,29 @@ export class GamingCanvasEngineAudio {
 
 				// Fader
 				GamingCanvasEngineAudio.fadersActive.delete(buffer.id);
+			}
+		}
+	}
+
+	/**
+	 * Stop the audio and return the buffer to the availability FIFO queue
+	 *
+	 * @param type specify a specific type to stop (default is all types)
+	 */
+	public static controlStopAll(type: GamingCanvasAudioType = GamingCanvasAudioType.ALL): void {
+		let buffer: Buffer;
+
+		for (buffer of GamingCanvasEngineAudio.buffersByInstanceId.values()) {
+			// callbacks triggered by 'audio.onended' event
+			if (!buffer.audio.ended) {
+				if (type === GamingCanvasAudioType.ALL || buffer.type === type) {
+					// Buffer
+					buffer.audio.loop = false;
+					buffer.audio.currentTime = buffer.audio.duration;
+
+					// Fader
+					GamingCanvasEngineAudio.fadersActive.delete(buffer.id);
+				}
 			}
 		}
 	}
