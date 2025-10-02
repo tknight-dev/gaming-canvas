@@ -55,8 +55,10 @@ export class GamingCanvas {
 		// Function Forward: Engine Audio
 		GamingCanvas.audioControlPan = GamingCanvasEngineAudio.controlPan;
 		GamingCanvas.audioControlPause = GamingCanvasEngineAudio.controlPause;
+		GamingCanvas.audioControlPauseAll = GamingCanvasEngineAudio.controlPauseAll;
 		GamingCanvas.audioControlPlay = GamingCanvasEngineAudio.controlPlay;
 		GamingCanvas.audioControlStop = GamingCanvasEngineAudio.controlStop;
+		GamingCanvas.audioControlStopAll = GamingCanvasEngineAudio.controlStopAll;
 		GamingCanvas.audioControlVolume = GamingCanvasEngineAudio.controlVolume;
 		GamingCanvas.audioLoad = GamingCanvasEngineAudio.load;
 		GamingCanvas.audioMute = GamingCanvasEngineAudio.mute;
@@ -97,7 +99,6 @@ export class GamingCanvas {
 			scaler: number,
 			splitRotateSpecial: boolean | undefined,
 			styleTransform: string,
-			value: number,
 			widthContainer: number,
 			widthResolution: number;
 
@@ -869,20 +870,27 @@ export class GamingCanvas {
 	/**
 	 * Set the specific audio instance's volume
 	 *
-	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param instance is the number returned by the controlPlay() function
 	 * @param pan is -1 left, 0 center, 1 right
 	 * @param durationInMs is how long it takes to apply the new value completely (default is 0 milliseconds)
 	 * @param callback is triggered when audio or fader is complete
 	 */
-	public static audioControlPan(_bufferId: number, _pan: number, _durationInMs: number = 0, _callback?: (bufferId: number) => void): void {}
+	public static audioControlPan(_instance: number, _pan: number, _durationInMs: number = 0, _callback?: (instance: number) => void): void {}
 
 	/**
 	 * Suspend playing the audio without ending it, or resume audio where you suspended it
 	 *
-	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param instance is the number returned by the controlPlay() function
 	 * @param state true = pause, false = unpause
 	 */
-	public static audioControlPause(_bufferId: number, _state: boolean): void {}
+	public static audioControlPause(_instance: number, _state: boolean): void {}
+
+	/**
+	 * Suspend playing the audio without ending it, or resume audio where you suspended it
+	 *
+	 * @param state true = pause, false = unpause
+	 */
+	public static audioControlPauseAll(_state: boolean): void {}
 
 	/**
 	 * If an audio buffer is available, via the availibility FIFO queue, then the asset will be loaded into the buffer and played from that source
@@ -892,7 +900,7 @@ export class GamingCanvas {
 	 * @param pan is -1 left, 0 center, 1 right (default is 0)
 	 * @param positionInS is between 0 and the duration of the audio asset in seconds (default is 0)
 	 * @param volume is between 0 and 1 (default is 1)
-	 * @return is bufferId, use this to modify the active audio (null on failure)
+	 * @return is instance, use this to modify the active audio (null on failure)
 	 */
 	public static async audioControlPlay(
 		_assetId: number,
@@ -901,7 +909,7 @@ export class GamingCanvas {
 		_pan: number = 0,
 		_positionInS: number = 0,
 		_volume: number = 1,
-		_callback?: (bufferId: number) => void,
+		_callback?: (instance: number) => void,
 	): Promise<number | null> {
 		return null;
 	}
@@ -909,19 +917,26 @@ export class GamingCanvas {
 	/**
 	 * Stop the audio and return the buffer to the availability FIFO queue
 	 *
-	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param instance is the number returned by the controlPlay() function
 	 */
-	public static audioControlStop(_bufferId: number): void {}
+	public static audioControlStop(_instance: number): void {}
+
+	/**
+	 * Stop the audio and return the buffer to the availability FIFO queue
+	 *
+	 * @param type specify a specific type to stop (default is all types)
+	 */
+	public static audioControlStopAll(type: GamingCanvasAudioType = GamingCanvasAudioType.ALL): void {}
 
 	/**
 	 * Set the specific audio instance's volume
 	 *
-	 * @param bufferId is the number returned by the controlPlay() function
+	 * @param instance is the number returned by the controlPlay() function
 	 * @param volume is between 0 and 1
 	 * @param durationInMs is how long it takes to apply the new value completely (default is 0 milliseconds)
 	 * @param callback is triggered when audio or fader is complete
 	 */
-	public static audioControlVolume(_bufferId: number, _volume: number, _durationInMs: number = 0, _callback?: (bufferId: number) => void): void {}
+	public static audioControlVolume(_instance: number, _volume: number, _durationInMs: number = 0, _callback?: (instance: number) => void): void {}
 
 	/**
 	 * @param assets Map<identifing number, Blob/DataURL/URL>

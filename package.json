@@ -7,7 +7,7 @@
         "rimraf": "^6.0.0",
         "typescript": "^5.0.0"
     },
-    "description": "A better/faster way to start writing games in JS",
+    "description": "A better/faster way to start writing games",
     "exports": {
         ".": {
             "import": {
@@ -41,16 +41,19 @@
         "fullscreen",
         "gamepad",
         "gaming",
+        "grids",
         "inputs",
         "keyboard",
         "layers",
         "lightweight",
         "mobile",
         "mouse",
+        "multithreading",
         "orientation",
         "resolution",
         "responsive",
         "splitscreen",
+        "threads",
         "touch",
         "vibration",
         "visibility",
@@ -73,5 +76,5 @@
     },
     "type": "module",
     "types": "./dist/index.d.ts",
-    "version": "1.12.5"
+    "version": "1.13.0"
 }

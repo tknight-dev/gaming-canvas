@@ -1,4 +1,3 @@
-export * from '../../main/const.js';
 export * from './camera.js';
 export * from './character.js';
 export * from './grid.js';

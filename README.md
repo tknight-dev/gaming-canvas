@@ -2,7 +2,12 @@
 
 ![Logo](https://gaming-canvas.org/img/logo.webp)
 
-Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
+Supports
+
+- `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
+- Multithreading ([WebWorkers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers))
+    - Designed take full advantage of multiple threads in JavaScript
+    - Check out the documentation [Tips & Tricks: Multithreading](https://gaming-canvas.org/docs/category/multithreading) to learn more. Here's a write up of a multithreaded `GamingCanvas` game: [Game Analysis: Life (3 threads)](https://gaming-canvas.org/docs/tips-and-tricks/multithreading/game-analysis-life)
 
 ## Why This Library?
 
@@ -20,7 +25,7 @@ Supports `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
     - Mouse: Supports left, right, and wheel based inputs
     - Touch: Supports as many individual inputs as your screen can support
 - **Layers**: Specify how many layers you want to optimize your game for. It can generate multiple canvases for background, foreground, overlay-1, etc, etc
-    - Send each layer to a different [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to dedicate a thread to each canvas element (massive performance gains)
+    - Send each layer to a different [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers) to dedicate a thread to each canvas element (massive performance gains) (multithreading)
 - **Lists**: Provides `List` implementions where `Array` performance faulters
     - Double-Linked-List
     - FIFO Queue (Single-Linked-List without `popEnd()` or `pushStart()`)
