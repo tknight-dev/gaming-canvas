@@ -56,10 +56,11 @@ export const GamingCanvasGridCharacterControl = (
 	character: GamingCanvasGridCharacter,
 	input: GamingCanvasGridCharacterInput,
 	grid: GamingCanvasGridType,
-	blocking: number | ((cell: number) => boolean),
+	blocking: number | ((cell: number, gridIndex: number) => boolean),
 	options?: GamingCanvasGridCharacterControlOptions,
 ): boolean => {
-	const blockingMask: boolean = typeof blocking === 'number',
+	let blockingIndex: number,
+		blockingMask: boolean = typeof blocking === 'number',
 		camera: GamingCanvasGridICamera = character.camera;
 
 	// Options
@@ -134,7 +135,8 @@ export const GamingCanvasGridCharacterControl = (
 						changed = true;
 					}
 				} else {
-					if ((<any>blocking)(grid.data[index + (camera.y | 0)]) === false) {
+					blockingIndex = index + (camera.y | 0);
+					if ((<any>blocking)(grid.data[blockingIndex], blockingIndex) === false) {
 						camera.x += controlEff;
 						changed = true;
 					}
@@ -162,7 +164,8 @@ export const GamingCanvasGridCharacterControl = (
 						changed = true;
 					}
 				} else {
-					if ((<any>blocking)(grid.data[(camera.x | 0) * grid.sideLength + index]) === false) {
+					blockingIndex = (camera.x | 0) * grid.sideLength + index;
+					if ((<any>blocking)(grid.data[blockingIndex], blockingIndex) === false) {
 						camera.y += controlEff;
 						changed = true;
 					}
@@ -196,9 +199,10 @@ export const GamingCanvasGridCharacterSeen = (
 	players: GamingCanvasGridCharacter[],
 	npcs: GamingCanvasGridCharacterNPC[] | Iterable<GamingCanvasGridCharacterNPC>,
 	grid: GamingCanvasGridType,
-	blockingMask: number,
+	blocking: number | ((cell: number, gridIndex: number) => boolean),
 ): void => {
 	let angle: number,
+		blockingMask: boolean = typeof blocking === 'number',
 		distance: number,
 		fovA: number,
 		fovB: number,
@@ -318,9 +322,16 @@ export const GamingCanvasGridCharacterSeen = (
 							}
 
 							// Is ray terminated at blocked cell?
-							if ((gridData[gridIndex] & blockingMask) !== 0) {
-								npc.playerLOS[playerIndex] = false;
-								break;
+							if (blockingMask === true) {
+								if ((gridData[gridIndex] & (<number>blocking)) !== 0) {
+									npc.playerLOS[playerIndex] = false;
+									break;
+								}
+							} else {
+								if ((<any>blocking)(gridData[gridIndex], gridIndex) === true) {
+									npc.playerLOS[playerIndex] = false;
+									break;
+								}
 							}
 						}
 					}
