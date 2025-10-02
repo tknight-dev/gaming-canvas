@@ -258,6 +258,7 @@ export const GamingCanvasGridPathAStar = (
 		pathOperations: number[][],
 		pathOperationsInstance: number[],
 		visited: boolean,
+		weightDerived: number,
 		weightGridNext: number,
 		x: number,
 		y: number;
@@ -485,16 +486,12 @@ export const GamingCanvasGridPathAStar = (
 				}
 			}
 
+			// if (x !== gridIndexNeighborX && y !== gridIndexNeighborY) {
+
 			if (pathOperationsInstance[0] !== 0 && pathOperationsInstance[1] !== 0) {
-				weightGridNext =
-					node.weightGrid +
-					nodeNeighbor.weightGrid * 1.41421 +
-					(weight !== undefined ? weight(gridData[nodeNeighbor.gridIndex], nodeNeighbor.gridIndex, heuristic) : 0);
+				weightGridNext = node.weightGrid + nodeNeighbor.weightGrid * 1.41421;
 			} else {
-				weightGridNext =
-					node.weightGrid +
-					nodeNeighbor.weightGrid +
-					(weight !== undefined ? weight(gridData[nodeNeighbor.gridIndex], nodeNeighbor.gridIndex, heuristic) : 0);
+				weightGridNext = node.weightGrid + nodeNeighbor.weightGrid;
 			}
 			visited = nodeNeighbor.visited;
 
@@ -504,24 +501,30 @@ export const GamingCanvasGridPathAStar = (
 				nodeNeighbor.weightGrid = weightGridNext;
 
 				if (nodeNeighbor.weightHeuristic === 0) {
-					switch (optionPathHeuristic) {
-						case GamingCanvasGridPathAStarOptionsPathHeuristic.CHEBYSHEV:
-							nodeNeighbor.weightHeuristic = Math.max(Math.abs(gridIndexNeighborX - gridIndexBX), Math.abs(gridIndexNeighborY - gridIndexBY));
-							break;
-						case GamingCanvasGridPathAStarOptionsPathHeuristic.DIAGONAL:
-							a = Math.abs(gridIndexNeighborX - gridIndexBX);
-							b = Math.abs(gridIndexNeighborY - gridIndexBY);
-							nodeNeighbor.weightHeuristic = a + b + -0.5858 * Math.min(a, b);
-							break;
-						case GamingCanvasGridPathAStarOptionsPathHeuristic.EUCLIDIAN:
-							nodeNeighbor.weightHeuristic = ((gridIndexNeighborX - gridIndexBX) ** 2 + (gridIndexNeighborY - gridIndexBY) ** 2) ** 0.5;
-							break;
-						case GamingCanvasGridPathAStarOptionsPathHeuristic.MANHATTAN:
-							nodeNeighbor.weightHeuristic = Math.abs(gridIndexNeighborX - gridIndexBX) + Math.abs(gridIndexNeighborY - gridIndexBY);
-							break;
-						case GamingCanvasGridPathAStarOptionsPathHeuristic.NONE:
-							nodeNeighbor.weightHeuristic = 1;
-							break;
+					if (weight !== undefined) {
+						nodeNeighbor.weightHeuristic = weight(gridData[nodeNeighbor.gridIndex], nodeNeighbor.gridIndex, heuristic);
+					}
+
+					if (nodeNeighbor.weightHeuristic === 0) {
+						switch (optionPathHeuristic) {
+							case GamingCanvasGridPathAStarOptionsPathHeuristic.CHEBYSHEV:
+								nodeNeighbor.weightHeuristic = Math.max(Math.abs(gridIndexNeighborX - gridIndexBX), Math.abs(gridIndexNeighborY - gridIndexBY));
+								break;
+							case GamingCanvasGridPathAStarOptionsPathHeuristic.DIAGONAL:
+								a = Math.abs(gridIndexNeighborX - gridIndexBX);
+								b = Math.abs(gridIndexNeighborY - gridIndexBY);
+								nodeNeighbor.weightHeuristic = a + b + -0.5858 * Math.min(a, b);
+								break;
+							case GamingCanvasGridPathAStarOptionsPathHeuristic.EUCLIDIAN:
+								nodeNeighbor.weightHeuristic = ((gridIndexNeighborX - gridIndexBX) ** 2 + (gridIndexNeighborY - gridIndexBY) ** 2) ** 0.5;
+								break;
+							case GamingCanvasGridPathAStarOptionsPathHeuristic.MANHATTAN:
+								nodeNeighbor.weightHeuristic = Math.abs(gridIndexNeighborX - gridIndexBX) + Math.abs(gridIndexNeighborY - gridIndexBY);
+								break;
+							case GamingCanvasGridPathAStarOptionsPathHeuristic.NONE:
+								nodeNeighbor.weightHeuristic = 1;
+								break;
+						}
 					}
 				}
 
