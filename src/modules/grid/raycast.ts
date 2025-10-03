@@ -1,4 +1,4 @@
-import { GamingCanvasConstPI_2_000 } from '../../main/const.js';
+import { GamingCanvasConstPI_0_500, GamingCanvasConstPI_2_000 } from '../../main/const.js';
 import { GamingCanvasGridICamera } from './camera.js';
 import { GamingCanvasGridType } from './grid.js';
 
@@ -55,7 +55,8 @@ export const GamingCanvasGridRaycast = (
 	blocking: number | ((cell: number, gridIndex: number) => boolean),
 	options?: GamingCanvasGridRaycastOptions,
 ): GamingCanvasGridRaycastResult => {
-	let blockingMask: boolean = typeof blocking === 'number',
+	let angle: number,
+		blockingMask: boolean = typeof blocking === 'number',
 		cells: Set<number> | undefined,
 		distance: number,
 		distanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> | undefined,
@@ -85,6 +86,12 @@ export const GamingCanvasGridRaycast = (
 		yStep: number,
 		yStepRay: number;
 
+	// Correct original camera angle
+	angle = camera.r + GamingCanvasConstPI_0_500;
+	if (angle > GamingCanvasConstPI_2_000) {
+		angle -= GamingCanvasConstPI_2_000;
+	}
+
 	if (options !== undefined) {
 		if (options.cellEnable === true) {
 			cells = new Set();
@@ -107,7 +114,7 @@ export const GamingCanvasGridRaycast = (
 				length = Math.max(1, options.rayCount) | 0;
 
 				if (length !== 1) {
-					fov = camera.r + options.rayFOV / 2;
+					fov = angle + options.rayFOV / 2;
 					fovStep = options.rayFOV / (length - 1);
 				}
 			}
@@ -135,7 +142,7 @@ export const GamingCanvasGridRaycast = (
 
 	for (; i < length; i++, fov -= fovStep, rayIndex += 7) {
 		// Initial angle
-		fisheyeCorrection = Math.cos(camera.r - fov);
+		fisheyeCorrection = Math.cos(angle - fov);
 		xAngle = Math.sin(fov);
 		yAngle = Math.cos(fov);
 
