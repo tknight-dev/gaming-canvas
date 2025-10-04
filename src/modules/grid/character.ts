@@ -31,8 +31,6 @@ export interface GamingCanvasGridCharacterInput {
 	y: number; // -1 to 1 (-1 is up)
 }
 
-export interface GamingCanvasGridCharacterNPC extends GamingCanvasGridCharacter {}
-
 export enum GamingCanvasGridCharacterControlStyle {
 	FIXED = 1, // x/y is never changed by the current r (radians) rotation
 	STRAFE = 2, // x/y always is perpendicular to the current r (radians) rotation

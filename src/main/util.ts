@@ -70,8 +70,14 @@ export class GamingCanvasUtilTimers {
 	 * @param callback this function is called with the overall duration of the timeout (original duration + clock updates [pauses])
 	 * @return id
 	 */
-	public add(callback: (durationInMs: number) => void, durationInMS: number): number {
-		const id: number = ++this.counter;
+	public add(callback: (durationInMs: number) => void, durationInMS: number, id?: number): number {
+		if (id === undefined) {
+			id = ++this.counter;
+		} else {
+			this.timesInMS.delete(id);
+			this.callbacks.delete(id);
+			this.added.delete(id);
+		}
 
 		this.added.set(id, performance.now() | 0);
 		this.callbacks.set(id, callback);
