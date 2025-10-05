@@ -258,7 +258,6 @@ export const GamingCanvasGridPathAStar = (
 		pathOperations: number[][],
 		pathOperationsInstance: number[],
 		visited: boolean,
-		weightDerived: number,
 		weightGridNext: number,
 		x: number,
 		y: number;
@@ -279,8 +278,15 @@ export const GamingCanvasGridPathAStar = (
 			path: null,
 		};
 	} else if (optionBlockingMask === true) {
-		if ((gridData[gridIndexA] & (<number>blocking)) !== 0 || (gridData[gridIndexB] & (<number>blocking)) !== 0) {
-			console.error('GamingCanvasGridPathAStar: invalid initial gridIndex(s) [A or B blocked]');
+		if ((gridData[gridIndexA] & (<number>blocking)) !== 0) {
+			console.error(`GamingCanvasGridPathAStar: invalid initial gridIndex(s) ${gridIndexA} [source blocked]`);
+			return {
+				error: true,
+				memory: memory,
+				path: null,
+			};
+		} else if ((gridData[gridIndexB] & (<number>blocking)) !== 0) {
+			console.error(`GamingCanvasGridPathAStar: invalid initial gridIndex ${gridIndexB} [destination blocked]`);
 			return {
 				error: true,
 				memory: memory,
@@ -288,8 +294,15 @@ export const GamingCanvasGridPathAStar = (
 			};
 		}
 	} else {
-		if ((<any>blocking)(gridData[gridIndexA], gridIndexA) === true || (<any>blocking)(gridData[gridIndexB], gridIndexB) === true) {
-			console.error('GamingCanvasGridPathAStar: invalid initial gridIndex(s) [A or B blocked]');
+		if ((<any>blocking)(gridData[gridIndexA], gridIndexA) === true) {
+			console.error(`GamingCanvasGridPathAStar: invalid initial gridIndex(s) ${gridIndexA} [source blocked]`);
+			return {
+				error: true,
+				memory: memory,
+				path: null,
+			};
+		} else if ((<any>blocking)(gridData[gridIndexB], gridIndexB) === true) {
+			console.error(`GamingCanvasGridPathAStar: invalid initial gridIndex ${gridIndexB} [destination blocked]`);
 			return {
 				error: true,
 				memory: memory,
