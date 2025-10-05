@@ -160,4 +160,8 @@ export class GamingCanvasUtilTimers {
 	public getClock(): number {
 		return this.timestampThen;
 	}
+
+	public getTimeRemaining(id: number): number | undefined {
+		return this.timesInMS.get(id);
+	}
 }
