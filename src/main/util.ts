@@ -55,7 +55,7 @@ export const GamingCanvasUtilScale = (value: number, fromMin: number, fromMax: n
 export class GamingCanvasUtilTimers {
 	private added: Map<number, number>;
 	private counter: number = -1;
-	private callbacks: Map<number, (durationInMs: number) => void>;
+	private callbacks: Map<number, (durationInMs: number, id: number) => void>;
 	private timesInMS: Map<number, number>;
 	private timestampThen: number;
 
@@ -70,7 +70,7 @@ export class GamingCanvasUtilTimers {
 	 * @param callback this function is called with the overall duration of the timeout (original duration + clock updates [pauses])
 	 * @return id
 	 */
-	public add(callback: (durationInMs: number) => void, durationInMS: number, id?: number): number {
+	public add(callback: (durationInMs: number, id: number) => void, durationInMS: number, id?: number): number {
 		if (id === undefined) {
 			id = ++this.counter;
 		} else {
@@ -93,10 +93,10 @@ export class GamingCanvasUtilTimers {
 	/**
 	 * Process callbacks asynchronously
 	 */
-	private callback(callbacks: Map<number, (durationInMs: number) => void>, durationInMs: number, id: number): void {
+	private callback(callbacks: Map<number, (durationInMs: number, id: number) => void>, durationInMs: number, id: number): void {
 		setTimeout(() => {
 			if (callbacks.has(id) === true) {
-				callbacks.get(id)(durationInMs);
+				callbacks.get(id)(durationInMs, id);
 				callbacks.delete(id);
 			}
 		});
@@ -139,7 +139,7 @@ export class GamingCanvasUtilTimers {
 		this.timestampThen = timestampNow;
 
 		// Process
-		let callbacks: Map<number, (durationInMs: number) => void> = this.callbacks,
+		let callbacks: Map<number, (durationInMs: number, id: number) => void> = this.callbacks,
 			durationInMs: number,
 			id: number,
 			timesInMS: Map<number, number> = this.timesInMS;
