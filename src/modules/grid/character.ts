@@ -195,7 +195,6 @@ export const GamingCanvasGridCharacterControl = (
  * @param lookers are updated based on which characters they see
  * @param grid
  * @param blocking
- * @return GamingCanvasGridCharacterNPC[] contains the NPCs that have a new LOS value
  */
 export const GamingCanvasGridCharacterLook = (
 	characters: GamingCanvasGridCharacter[] | Iterable<GamingCanvasGridCharacter>,
@@ -226,6 +225,10 @@ export const GamingCanvasGridCharacterLook = (
 		yRayLength: number,
 		yStep: number,
 		yStepRay: number;
+
+	if (Array.isArray(lookers) === false) {
+		lookers = Array.from(lookers);
+	}
 
 	for (character of characters) {
 		for (characterWatcher of lookers) {
