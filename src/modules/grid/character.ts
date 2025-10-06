@@ -17,9 +17,9 @@ export interface GamingCanvasGridCharacter {
 	fovDistanceMax: number;
 	gridIndex: number;
 	id: number;
-	seenAngle: Map<number, number>;
-	seenDistance: Map<number, number>;
-	seenLOS: Map<number, boolean>;
+	seenAngleById: Map<number, number>;
+	seenDistanceById: Map<number, number>;
+	seenLOSById: Map<number, boolean>;
 	size: number; // How large is the camera compared to the Grid? 1 cell, 0.5 cell, 2 cells, etc?
 	timestamp: number; // Set by you at the start of a loop
 	timestampPrevious: number; // Set by you at the end of a loop
@@ -30,8 +30,6 @@ export interface GamingCanvasGridCharacterInput {
 	x: number; // -1 to 1 (-1 is left)
 	y: number; // -1 to 1 (-1 is up)
 }
-
-export interface GamingCanvasGridCharacterNPC extends GamingCanvasGridCharacter {}
 
 export enum GamingCanvasGridCharacterControlStyle {
 	FIXED = 1, // x/y is never changed by the current r (radians) rotation
@@ -197,7 +195,6 @@ export const GamingCanvasGridCharacterControl = (
  * @param lookers are updated based on which characters they see
  * @param grid
  * @param blocking
- * @return GamingCanvasGridCharacterNPC[] contains the NPCs that have a new LOS value
  */
 export const GamingCanvasGridCharacterLook = (
 	characters: GamingCanvasGridCharacter[] | Iterable<GamingCanvasGridCharacter>,
@@ -229,6 +226,10 @@ export const GamingCanvasGridCharacterLook = (
 		yStep: number,
 		yStepRay: number;
 
+	if (Array.isArray(lookers) === false) {
+		lookers = Array.from(lookers);
+	}
+
 	for (character of characters) {
 		for (characterWatcher of lookers) {
 			// Position
@@ -240,14 +241,14 @@ export const GamingCanvasGridCharacterLook = (
 			if (angle < 0) {
 				angle += GamingCanvasConstPI_2_000;
 			}
-			characterWatcher.seenAngle.set(character.id, angle);
+			characterWatcher.seenAngleById.set(character.id, angle);
 
 			// Distance
 			distance = (x ** 2 + y ** 2) ** 0.5;
-			characterWatcher.seenDistance.set(character.id, distance);
+			characterWatcher.seenDistanceById.set(character.id, distance);
 
 			// Line of Sight
-			characterWatcher.seenLOS.set(character.id, false);
+			characterWatcher.seenLOSById.set(character.id, false);
 
 			// Check Distance
 			if (distance < characterWatcher.fovDistanceMax) {
@@ -261,7 +262,7 @@ export const GamingCanvasGridCharacterLook = (
 				// Check FOV
 				if (angle > -fovHalf && angle < fovHalf) {
 					angle = GamingCanvasConstPI_2_000 - Math.atan2(-y, x);
-					characterWatcher.seenLOS.set(character.id, true);
+					characterWatcher.seenLOSById.set(character.id, true);
 
 					// Is right in front of npc?
 					if (distance > 1) {
@@ -288,7 +289,7 @@ export const GamingCanvasGridCharacterLook = (
 						yRayLength = (yAngle < 0 ? y - yIndex : 1 - (y - yIndex)) * yStepRay;
 
 						// Increment ray cell by cell
-						characterWatcher.seenLOS.set(character.id, true);
+						characterWatcher.seenLOSById.set(character.id, true);
 						for (i = 0; i < gridSideLength; i++) {
 							// Next cell
 							if (xRayLength < yRayLength) {
@@ -306,7 +307,7 @@ export const GamingCanvasGridCharacterLook = (
 
 							// Within grid?
 							if (gridIndex < 0 || gridIndex >= gridSize) {
-								characterWatcher.seenLOS.set(character.id, false);
+								characterWatcher.seenLOSById.set(character.id, false);
 								break;
 							}
 
@@ -318,12 +319,12 @@ export const GamingCanvasGridCharacterLook = (
 							// Is ray terminated at blocked cell?
 							if (blockingMask === true) {
 								if ((gridData[gridIndex] & (<number>blocking)) !== 0) {
-									characterWatcher.seenLOS.set(character.id, false);
+									characterWatcher.seenLOSById.set(character.id, false);
 									break;
 								}
 							} else {
 								if ((<any>blocking)(gridData[gridIndex], gridIndex) === true) {
-									characterWatcher.seenLOS.set(character.id, false);
+									characterWatcher.seenLOSById.set(character.id, false);
 									break;
 								}
 							}
