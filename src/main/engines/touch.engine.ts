@@ -109,7 +109,7 @@ export class GamingCanvasEngineTouch {
 		});
 
 		(elInteractive || document.body).addEventListener('touchend', (event: TouchEvent) => {
-			return touchActive(false, event);
+			return touchActive(false, event, GamingCanvasEngineTouch.calc(event));
 		});
 
 		let touchmoveDiff: number, touchmoveNow: number;
