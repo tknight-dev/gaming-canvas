@@ -24,7 +24,7 @@ export interface GamingCanvasInputPositionOverlay {
 	top: number;
 }
 
-export const GamingCanvasInputPositionClone = (position: GamingCanvasInputPosition) => {
+export const GamingCanvasInputPositionClone = (position: GamingCanvasInputPosition): GamingCanvasInputPosition => {
 	return {
 		out: position.out,
 		x: position.x,
@@ -32,6 +32,24 @@ export const GamingCanvasInputPositionClone = (position: GamingCanvasInputPositi
 		y: position.y,
 		yRelative: position.yRelative,
 	};
+};
+
+export const GamingCanvasInputPositionsClone = (positions: GamingCanvasInputPosition[]): GamingCanvasInputPosition[] => {
+	let clone: GamingCanvasInputPosition[] = new Array(positions.length),
+		i = 0,
+		position: GamingCanvasInputPosition;
+
+	for (position of positions) {
+		clone[i++] = {
+			out: position.out,
+			x: position.x,
+			xRelative: position.xRelative,
+			y: position.y,
+			yRelative: position.yRelative,
+		};
+	}
+
+	return clone;
 };
 
 export const GamingCanvasInputPositionDistance = (a: GamingCanvasInputPositionBasic, b: GamingCanvasInputPositionBasic) => {
