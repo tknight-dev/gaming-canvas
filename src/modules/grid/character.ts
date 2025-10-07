@@ -1,4 +1,5 @@
 import { GamingCanvasConstPI_2_000, GamingCanvasConstPI_1_000 } from '../../main/const.js';
+import { GamingCanvasInputType } from '../../main/inputs.js';
 import { GamingCanvasGridICamera } from './camera.js';
 import { GamingCanvasGridType } from './grid.js';
 
@@ -27,6 +28,7 @@ export interface GamingCanvasGridCharacter {
 
 export interface GamingCanvasGridCharacterInput {
 	r: number; // -1 to 1 (-1 is increase r)
+	type?: GamingCanvasInputType;
 	x: number; // -1 to 1 (-1 is left)
 	y: number; // -1 to 1 (-1 is up)
 }

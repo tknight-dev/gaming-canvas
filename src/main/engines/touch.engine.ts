@@ -14,7 +14,7 @@ export interface GamingCanvasInputTouch extends GamingCanvasInput {
 	propriatary: {
 		action: GamingCanvasInputTouchAction;
 		down?: boolean;
-		positions?: GamingCanvasInputPosition[];
+		positions: GamingCanvasInputPosition[];
 	};
 }
 
@@ -85,7 +85,7 @@ export class GamingCanvasEngineTouch {
 		GamingCanvasEngineTouch.el = elInputs;
 		GamingCanvasEngineTouch.queue = queue;
 
-		const touchActive = (down: boolean, event: TouchEvent, positions?: GamingCanvasInputPosition[]): boolean => {
+		const touchActive = (down: boolean, event: TouchEvent, positions: GamingCanvasInputPosition[]): boolean => {
 			event.preventDefault();
 			event.stopPropagation();
 
@@ -105,11 +105,11 @@ export class GamingCanvasEngineTouch {
 		};
 
 		(elInteractive || document.body).addEventListener('touchcancel', (event: TouchEvent) => {
-			return touchActive(false, event);
+			return touchActive(false, event, []);
 		});
 
 		(elInteractive || document.body).addEventListener('touchend', (event: TouchEvent) => {
-			return touchActive(false, event);
+			return touchActive(false, event, GamingCanvasEngineTouch.calc(event));
 		});
 
 		let touchmoveDiff: number, touchmoveNow: number;
