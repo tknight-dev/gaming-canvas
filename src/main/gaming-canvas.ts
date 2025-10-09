@@ -40,9 +40,11 @@ export class GamingCanvas {
 	private static stateHeight: number;
 	private static stateOrientation: GamingCanvasOrientation;
 	private static stateReport: GamingCanvasReport;
+	private static stateScaler: number;
 	private static stateVisibility: boolean;
 	private static stateWakeLock: WakeLockSentinel | undefined;
 	private static stateWakeLockState: boolean;
+	private static stateWidth: number;
 	private static vibrateInterval: ReturnType<typeof setInterval>;
 
 	/**
@@ -261,9 +263,17 @@ export class GamingCanvas {
 			 * Callback
 			 */
 			GamingCanvas.stateReport = report;
-			if (!skipCallback && GamingCanvas.callbackReport) {
-				if (changed || initial || report.canvasHeight !== GamingCanvas.stateHeight) {
+			if (skipCallback !== true && GamingCanvas.callbackReport !== undefined) {
+				if (
+					changed === true ||
+					initial === true ||
+					report.canvasHeight !== GamingCanvas.stateHeight ||
+					report.canvasWidth !== GamingCanvas.stateWidth ||
+					report.scaler !== GamingCanvas.stateScaler
+				) {
 					GamingCanvas.stateHeight = report.canvasHeight;
+					GamingCanvas.stateWidth = report.canvasWidth;
+					GamingCanvas.stateScaler = report.scaler;
 
 					if (GamingCanvas.options.callbackReportLimitPerMs === 0) {
 						GamingCanvas.callbackReport(report);
@@ -311,14 +321,6 @@ export class GamingCanvas {
 
 				if (GamingCanvas.stateFullscreen !== state) {
 					GamingCanvas.stateFullscreen = state;
-
-					// Initialize sizing: fixes browser issues between desktop and mobile (idk why)
-					GamingCanvas.stateOrientation = undefined;
-					GamingCanvas.oPortrait();
-					GamingCanvas.stateOrientation = undefined;
-					GamingCanvas.oLandscape();
-					GamingCanvas.stateOrientation = undefined;
-					GamingCanvas.go();
 
 					GamingCanvas.callbackFullscreen && GamingCanvas.callbackFullscreen(state);
 				}
@@ -502,14 +504,6 @@ export class GamingCanvas {
 				GamingCanvas.elementContainerOverlayWrapper.appendChild(element);
 			}
 		}
-
-		// Initialize sizing: fixes browser issues between desktop and mobile (idk why)
-		GamingCanvas.stateOrientation = undefined;
-		GamingCanvas.oPortrait();
-		GamingCanvas.stateOrientation = undefined;
-		GamingCanvas.oLandscape();
-		GamingCanvas.stateOrientation = undefined;
-		GamingCanvas.go();
 
 		// Apply
 		GamingCanvas.setOptions(options);
