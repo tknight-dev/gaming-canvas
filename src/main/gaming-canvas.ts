@@ -312,6 +312,14 @@ export class GamingCanvas {
 				if (GamingCanvas.stateFullscreen !== state) {
 					GamingCanvas.stateFullscreen = state;
 
+					// Initialize sizing: fixes browser issues between desktop and mobile (idk why)
+					GamingCanvas.stateOrientation = undefined;
+					GamingCanvas.oPortrait();
+					GamingCanvas.stateOrientation = undefined;
+					GamingCanvas.oLandscape();
+					GamingCanvas.stateOrientation = undefined;
+					GamingCanvas.go();
+
 					GamingCanvas.callbackFullscreen && GamingCanvas.callbackFullscreen(state);
 				}
 			});
@@ -496,10 +504,12 @@ export class GamingCanvas {
 		}
 
 		// Initialize sizing: fixes browser issues between desktop and mobile (idk why)
-		GamingCanvas.stateOrientation = <any>undefined;
+		GamingCanvas.stateOrientation = undefined;
 		GamingCanvas.oPortrait();
-		GamingCanvas.stateOrientation = <any>undefined;
+		GamingCanvas.stateOrientation = undefined;
 		GamingCanvas.oLandscape();
+		GamingCanvas.stateOrientation = undefined;
+		GamingCanvas.go();
 
 		// Apply
 		GamingCanvas.setOptions(options);
