@@ -162,6 +162,13 @@ export class GamingCanvasGridViewport {
 		this.applyZ(camera, report);
 		this.apply(camera, cameraFitToView);
 	}
+
+	public updateReport(report: GamingCanvasReport): void {
+		this.height = report.canvasHeight / this.cellSizePx;
+		this.heightPx = report.canvasHeight;
+		this.width = report.canvasWidth / this.cellSizePx;
+		this.widthPx = report.canvasWidth;
+	}
 }
 
 /**

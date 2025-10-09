@@ -272,9 +272,9 @@ export const GamingCanvasGridPathAStar = (
 		};
 	} else if (gridIndexA < 0 || gridIndexB < 0 || gridIndexA > gridSize || gridIndexB > gridSize) {
 		if (gridIndexA < 0 || gridIndexA > gridSize) {
-			console.error(`GamingCanvasGridPathAStar: invalid initial gridIndex ${gridIndexA} [0 <= source <= ${gridSize}]`);
+			console.error(`GamingCanvasGridPathAStar: invalid gridIndex ${gridIndexA} [0 <= source <= ${gridSize}]`);
 		} else {
-			console.error(`GamingCanvasGridPathAStar: invalid initial gridIndex ${gridIndexB} [0 <= destination <= ${gridSize}]`);
+			console.error(`GamingCanvasGridPathAStar: invalid gridIndex ${gridIndexB} [0 <= destination <= ${gridSize}]`);
 		}
 
 		return {
@@ -284,14 +284,14 @@ export const GamingCanvasGridPathAStar = (
 		};
 	} else if (optionBlockingMask === true) {
 		if ((gridData[gridIndexA] & (<number>blocking)) !== 0) {
-			console.error(`GamingCanvasGridPathAStar: invalid initial gridIndex ${gridIndexA} [source blocked]`);
+			console.error(`GamingCanvasGridPathAStar: invalid gridIndex ${gridIndexA} [source blocked]`);
 			return {
 				error: true,
 				memory: memory,
 				path: null,
 			};
 		} else if ((gridData[gridIndexB] & (<number>blocking)) !== 0) {
-			console.error(`GamingCanvasGridPathAStar: invalid initial gridIndex ${gridIndexB} [destination blocked]`);
+			console.error(`GamingCanvasGridPathAStar: invalid gridIndex ${gridIndexB} [destination blocked]`);
 			return {
 				error: true,
 				memory: memory,
@@ -300,14 +300,14 @@ export const GamingCanvasGridPathAStar = (
 		}
 	} else {
 		if ((<any>blocking)(gridData[gridIndexA], gridIndexA) === true) {
-			console.error(`GamingCanvasGridPathAStar: invalid initial gridIndex ${gridIndexA} [source blocked]`);
+			console.error(`GamingCanvasGridPathAStar: invalid gridIndex ${gridIndexA} [source blocked]`);
 			return {
 				error: true,
 				memory: memory,
 				path: null,
 			};
 		} else if ((<any>blocking)(gridData[gridIndexB], gridIndexB) === true) {
-			console.error(`GamingCanvasGridPathAStar: invalid initial gridIndex ${gridIndexB} [destination blocked]`);
+			console.error(`GamingCanvasGridPathAStar: invalid gridIndex ${gridIndexB} [destination blocked]`);
 			return {
 				error: true,
 				memory: memory,
