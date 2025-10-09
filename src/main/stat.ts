@@ -13,6 +13,12 @@ export enum GamingCanvasStatCalcType {
 	SUM,
 }
 
+export enum GamingCanvasStatCalcPrecision {
+	_16,
+	_32,
+	_64,
+}
+
 export interface GamingCanvasStatQuartile {
 	q0: number;
 	q1: number;
@@ -33,25 +39,18 @@ export class GamingCanvasStat {
 	/**
 	 * Samples determines how many values can be stored at one time: the more samples, the more cpu/memory, and the more accurate the measurement
 	 *
-	 * @param samplesOrSize can be an array of data (also sets sample size to array length) or the number of samples you want the stat to contain
-	 * @param data optional parameter to fill initial data set
+	 * @param samples can be an array of data (also sets sample size to array length) or the number of samples you want the stat to contain
 	 */
-	constructor(samplesOrSize?: number | number[]) {
-		let array: boolean = false,
-			samples: number = 5;
-
-		if (samplesOrSize !== undefined) {
-			if (Array.isArray(samplesOrSize)) {
-				array = true;
-				samples = samplesOrSize.length;
-			} else {
-				samples = samplesOrSize;
-			}
-		}
-
-		this.data = array ? (<number[]>samplesOrSize).slice(0) : new Array(samples);
+	constructor(samples: number | number[] = 5) {
 		this.index = 0;
-		this.size = array ? (<number[]>samplesOrSize).length : 0;
+
+		if (Array.isArray(samples) === true) {
+			this.data = samples;
+			this.size = samples.length;
+		} else {
+			this.data = new Array(samples);
+			this.size = 0;
+		}
 	}
 
 	/**
@@ -162,6 +161,58 @@ export class GamingCanvasStat {
 	public clear(): void {
 		this.index = 0;
 		this.size = 0;
+	}
+
+	/**
+	 * Returns a GamingCanvasStat instance from an encoded GamingCanvasStat (Float Array)
+	 */
+	public static decode(data: Float16Array | Float32Array | Float64Array): GamingCanvasStat {
+		let i = 0,
+			max: number = data.length - 1,
+			array: number[] = new Array(data[max]),
+			stat: GamingCanvasStat = new GamingCanvasStat(data[max]);
+
+		stat.data = array;
+		if (array.length !== 0 && array.length % max !== 0) {
+			stat.index = array.length;
+		}
+		stat.size = array.length;
+
+		for (; i < max; i++) {
+			array[i] = data[i];
+		}
+
+		return stat;
+	}
+
+	/**
+	 * Returns a Typed Array (TransferableObject) with the last element representing the original sample size
+	 */
+	public encode(precision: GamingCanvasStatCalcPrecision = GamingCanvasStatCalcPrecision._32): Float16Array | Float32Array | Float64Array {
+		let array: Float16Array | Float32Array | Float64Array,
+			data: number[] = this.data,
+			i: number = 0,
+			size: number = this.size;
+
+		switch (precision) {
+			case GamingCanvasStatCalcPrecision._16:
+				array = new Float16Array(this.size + 1);
+				break;
+			case GamingCanvasStatCalcPrecision._32:
+				array = new Float32Array(this.size + 1);
+				break;
+			case GamingCanvasStatCalcPrecision._64:
+				array = new Float64Array(this.size + 1);
+				break;
+		}
+
+		for (; i < size; i++) {
+			array[i] = data[i] || 0;
+		}
+
+		array[array.length - 1] = size;
+
+		return array;
 	}
 
 	/**
