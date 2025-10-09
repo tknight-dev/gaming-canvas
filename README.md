@@ -29,7 +29,7 @@ Supports
 - **Lists**: Provides `List` implementions where `Array` performance faulters
     - Double-Linked-List
     - FIFO Queue (Single-Linked-List without `popEnd()` or `pushStart()`)
-- **Lightweight**: Core library is **~40kb**
+- **Lightweight**: Core library is **~45kb**
 - **Modules**
     - **Grids**: Includes _Grid_, _Camera_, _Path Finding (A\*)_, _Raycasting_, and _Viewport_ implementations. See [How-To > Module: Grids](https://gaming-canvas.org/docs/category/module-grids) for all the features and details
 - **Mobile**: Mobile devices are fully supported
