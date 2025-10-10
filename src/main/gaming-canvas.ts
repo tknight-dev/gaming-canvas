@@ -725,13 +725,14 @@ export class GamingCanvas {
 				antialias: false,
 			}),
 			canvasSplitLandscapeVertical: boolean = GamingCanvas.options.canvasSplitLandscapeVertical === true,
+			canvas: HTMLCanvasElement,
 			canvases: HTMLCanvasElement[] = GamingCanvas.elementCanvases,
 			orientationCanvasRotateEnable: boolean = GamingCanvas.options.orientationCanvasRotateEnable === true,
 			orientationCanvasPortaitRotateLeft: boolean = GamingCanvas.options.orientationCanvasPortaitRotateLeft === true,
 			orientationLandscape: boolean = GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE;
 
 		// Draw every layer into the screenshot canvas starting with the lowest layer canvases[0]
-		for (let canvas of canvases) {
+		for (canvas of canvases) {
 			if (skipCanvases !== undefined && skipCanvases.includes(Number(canvas.id.replace(/\D/g, ''))) === true) {
 				continue;
 			}
