@@ -723,6 +723,9 @@ export class GamingCanvas {
 			canvasScreenshotContext: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>canvasScreenshot.getContext('2d', {
 				alpha: true,
 				antialias: false,
+				depth: true,
+				desynchronized: true,
+				powerPreference: 'high-performance',
 			}),
 			canvasSplitLandscapeVertical: boolean = GamingCanvas.options.canvasSplitLandscapeVertical === true,
 			canvas: HTMLCanvasElement,
