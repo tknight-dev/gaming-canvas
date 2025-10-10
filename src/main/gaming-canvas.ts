@@ -724,7 +724,7 @@ export class GamingCanvas {
 				alpha: true,
 				antialias: false,
 				depth: true,
-				desynchronized: true,
+				desynchronized: false,
 				powerPreference: 'high-performance',
 			}),
 			canvasSplitLandscapeVertical: boolean = GamingCanvas.options.canvasSplitLandscapeVertical === true,
