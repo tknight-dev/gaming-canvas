@@ -710,81 +710,78 @@ export class GamingCanvas {
 	/**
 	 * Take screenshot of all canvas layers stacked as they are displayed
 	 *
+	 * @param skipCanvases don't include these canvasId's in the screenshot
 	 * @return null on failure
 	 */
-	public static async screenshot(): Promise<Blob | null> {
+	public static async screenshot(skipCanvases?: number[]): Promise<Blob | null> {
 		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > screenshot: not initialized yet');
 			return null;
 		}
 
-		return new Promise<Blob | null>((resolve: any) => {
-			let canvasScreenshot: HTMLCanvasElement = document.createElement('canvas'),
-				canvasScreenshotContext: CanvasRenderingContext2D = <CanvasRenderingContext2D>canvasScreenshot.getContext('2d', {
-					alpha: true,
-					antialias: false,
-				}),
-				canvasSplitLandscapeVertical: boolean = GamingCanvas.options.canvasSplitLandscapeVertical === true,
-				canvases: HTMLCanvasElement[] = GamingCanvas.elementCanvases,
-				orientationCanvasRotateEnable: boolean = GamingCanvas.options.orientationCanvasRotateEnable === true,
-				orientationCanvasPortaitRotateLeft: boolean = GamingCanvas.options.orientationCanvasPortaitRotateLeft === true,
-				orientationLandscape: boolean = GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE,
-				report: GamingCanvasReport = GamingCanvas.stateReport;
+		let canvasScreenshot: OffscreenCanvas = new OffscreenCanvas(GamingCanvas.stateReport.canvasWidth, GamingCanvas.stateReport.canvasHeight),
+			canvasScreenshotContext: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>canvasScreenshot.getContext('2d', {
+				alpha: true,
+				antialias: false,
+				depth: true,
+				desynchronized: false,
+				powerPreference: 'high-performance',
+			}),
+			canvasSplitLandscapeVertical: boolean = GamingCanvas.options.canvasSplitLandscapeVertical === true,
+			canvas: HTMLCanvasElement,
+			canvases: HTMLCanvasElement[] = GamingCanvas.elementCanvases,
+			orientationCanvasRotateEnable: boolean = GamingCanvas.options.orientationCanvasRotateEnable === true,
+			orientationCanvasPortaitRotateLeft: boolean = GamingCanvas.options.orientationCanvasPortaitRotateLeft === true,
+			orientationLandscape: boolean = GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE;
 
-			// Match dimensions
-			canvasScreenshot.height = report.canvasHeight;
-			canvasScreenshot.width = report.canvasWidth;
+		// Draw every layer into the screenshot canvas starting with the lowest layer canvases[0]
+		for (canvas of canvases) {
+			if (skipCanvases !== undefined && skipCanvases.includes(Number(canvas.id.replace(/\D/g, ''))) === true) {
+				continue;
+			}
 
-			// Draw every layer into the screenshot canvas starting with the lowest layer canvases[0]
-			for (let canvas of canvases) {
-				if (canvas.id.endsWith('a') === true || canvas.id.endsWith('b') === true) {
-					// Split Screen
-					if (orientationLandscape !== true && orientationCanvasRotateEnable === true && orientationCanvasPortaitRotateLeft !== true) {
-						// Special case
-						if (canvas.id.endsWith('a') === true) {
-							canvasScreenshotContext.drawImage(canvas, 0, 0);
-						} else {
-							canvasScreenshotContext.drawImage(canvas, (canvasScreenshot.width / 2) | 0, 0);
-						}
+			if (canvas.id.endsWith('a') === true || canvas.id.endsWith('b') === true) {
+				// Split Screen
+				if (orientationLandscape !== true && orientationCanvasRotateEnable === true && orientationCanvasPortaitRotateLeft !== true) {
+					// Special case
+					if (canvas.id.endsWith('a') === true) {
+						canvasScreenshotContext.drawImage(canvas, 0, 0);
 					} else {
-						// Regular
-						if (canvas.id.endsWith('b') === true) {
-							if (orientationLandscape === true && canvasSplitLandscapeVertical === true) {
-								canvasScreenshotContext.drawImage(canvas, (canvasScreenshot.width / 2) | 0, 0);
-							} else {
-								canvasScreenshotContext.drawImage(canvas, 0, (canvasScreenshot.height / 2) | 0);
-							}
-						}
+						canvasScreenshotContext.drawImage(canvas, (canvasScreenshot.width / 2) | 0, 0);
 					}
 				} else {
-					// Whole Screen
-					canvasScreenshotContext.drawImage(canvas, 0, 0);
-				}
-
-				if (orientationLandscape !== true && orientationCanvasRotateEnable === true && orientationCanvasPortaitRotateLeft !== true) {
-				} else {
+					// Regular
 					if (canvas.id.endsWith('b') === true) {
 						if (orientationLandscape === true && canvasSplitLandscapeVertical === true) {
 							canvasScreenshotContext.drawImage(canvas, (canvasScreenshot.width / 2) | 0, 0);
 						} else {
 							canvasScreenshotContext.drawImage(canvas, 0, (canvasScreenshot.height / 2) | 0);
 						}
-					} else {
-						canvasScreenshotContext.drawImage(canvas, 0, 0);
 					}
 				}
+			} else {
+				// Whole Screen
+				canvasScreenshotContext.drawImage(canvas, 0, 0);
 			}
 
-			// Convert screnshot canvas into PNG blob
-			canvasScreenshot.toBlob(
-				(blob: Blob | null) => {
-					resolve(blob);
+			if (orientationLandscape !== true && orientationCanvasRotateEnable === true && orientationCanvasPortaitRotateLeft !== true) {
+			} else {
+				if (canvas.id.endsWith('b') === true) {
+					if (orientationLandscape === true && canvasSplitLandscapeVertical === true) {
+						canvasScreenshotContext.drawImage(canvas, (canvasScreenshot.width / 2) | 0, 0);
+					} else {
+						canvasScreenshotContext.drawImage(canvas, 0, (canvasScreenshot.height / 2) | 0);
+					}
+				} else {
+					canvasScreenshotContext.drawImage(canvas, 0, 0);
+				}
+			}
+		}
 
-					document.removeChild(canvasScreenshot);
-				},
-				'image/png',
-				1,
-			);
+		// Convert screnshot canvas into PNG blob
+		return await canvasScreenshot.convertToBlob({
+			type: 'image/png',
+			quality: 1,
 		});
 	}
 
