@@ -433,7 +433,7 @@ export class GamingCanvasEngineAudio {
 				if (type === GamingCanvasAudioType.ALL || buffer.type === type) {
 					// Buffer
 					buffer.audio.loop = false;
-					buffer.audio.currentTime = buffer.audio.duration;
+					buffer.audio.currentTime = buffer.audio.duration || 0;
 
 					// Fader
 					GamingCanvasEngineAudio.fadersActive.delete(buffer.id);
