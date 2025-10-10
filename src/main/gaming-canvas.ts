@@ -710,9 +710,10 @@ export class GamingCanvas {
 	/**
 	 * Take screenshot of all canvas layers stacked as they are displayed
 	 *
+	 * @param skipCanvases don't include these canvasId's in the screenshot
 	 * @return null on failure
 	 */
-	public static async screenshot(): Promise<Blob | null> {
+	public static async screenshot(skipCanvases?: number[]): Promise<Blob | null> {
 		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > screenshot: not initialized yet');
 			return null;
@@ -737,6 +738,10 @@ export class GamingCanvas {
 
 			// Draw every layer into the screenshot canvas starting with the lowest layer canvases[0]
 			for (let canvas of canvases) {
+				if (skipCanvases !== undefined && skipCanvases.includes(Number(canvas.id.replace(/\D/g, ''))) === true) {
+					continue;
+				}
+
 				if (canvas.id.endsWith('a') === true || canvas.id.endsWith('b') === true) {
 					// Split Screen
 					if (orientationLandscape !== true && orientationCanvasRotateEnable === true && orientationCanvasPortaitRotateLeft !== true) {
@@ -779,8 +784,6 @@ export class GamingCanvas {
 			canvasScreenshot.toBlob(
 				(blob: Blob | null) => {
 					resolve(blob);
-
-					document.removeChild(canvasScreenshot);
 				},
 				'image/png',
 				1,
