@@ -837,7 +837,10 @@ export class GamingCanvasEngineAudio {
 			// Apply volume difference to buffers, as required
 			for (buffer of buffers) {
 				if (type === GamingCanvasAudioType.ALL || buffer.type === type) {
-					buffer.audio.volume = Math.max(0, Math.min(1, buffer.audio.volume * differencePercentage));
+					buffer.audio.volume = Math.max(
+						0,
+						Math.min(1, buffer.audio.volume === 0 ? differencePercentage : buffer.audio.volume * differencePercentage),
+					);
 				}
 			}
 		} catch (error) {
