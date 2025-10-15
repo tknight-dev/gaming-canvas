@@ -2,6 +2,8 @@
  * @author tknight-dev
  */
 
+import { GamingCanvasConstPI_2_000 } from './const.js';
+
 /**
  * Dynamically increase array size without disturbing existing values
  *
@@ -30,6 +32,41 @@ export const GamingCanvasUtilArrayExpand = (array: any[], increaseBy: number, fi
 	} else {
 		return array;
 	}
+};
+
+/**
+ * Generates a simple image for verifying your render logic
+ */
+export const GamingCanvasUtilImageTestCreate = (height: number, width?: number): OffscreenCanvas => {
+	height = height | 0;
+	width = width === undefined ? height : width | 0;
+
+	const canvas: OffscreenCanvas = new OffscreenCanvas(width, height),
+		context: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>canvas.getContext('2d'),
+		heightHalf: number = (height / 2) | 0,
+		minHalf: number = (Math.min(height, width) / 2) | 0,
+		widthHalf: number = (width / 2) | 0;
+
+	canvas.height = height;
+	canvas.width = width;
+
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	context.fillStyle = 'rgb(224,224,224)';
+	context.fillRect(0, 0, width, height);
+
+	context.fillStyle = 'red';
+	context.fillRect(0, 0, minHalf, minHalf);
+
+	context.fillStyle = 'blue';
+	context.fillRect(width - minHalf, height - minHalf, minHalf, minHalf);
+
+	context.fillStyle = 'green';
+	context.beginPath();
+	context.arc(widthHalf, heightHalf, minHalf / 2, 0, GamingCanvasConstPI_2_000);
+	context.closePath();
+	context.fill();
+
+	return canvas;
 };
 
 /**
