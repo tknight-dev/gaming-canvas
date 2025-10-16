@@ -22,7 +22,7 @@ export enum GamingCanvasGridRaycastCellSide {
  */
 export interface GamingCanvasGridRaycastOptions {
 	cellEnable?: boolean; // Defaults to true
-	cellIgnoreMask?: number;
+	cellIgnoreValue?: number;
 	distanceMapEnable?: boolean; // Default to false
 	rayCount?: number;
 	rayEnable?: boolean;
@@ -58,7 +58,7 @@ export const GamingCanvasGridRaycast = (
 ): GamingCanvasGridRaycastResult => {
 	let angle: number,
 		blockingMask: boolean = typeof blocking === 'number',
-		cellIgnoreMask: number | undefined,
+		cellIgnoreValue: number | undefined,
 		cells: Set<number> | undefined,
 		distance: number,
 		distanceMap: Map<number, GamingCanvasGridRaycastResultDistanceMapInstance> | undefined,
@@ -106,7 +106,7 @@ export const GamingCanvasGridRaycast = (
 				distanceMapCells.set(0, (x | 0) * gridSideLength + (y | 0)); // Add the origin cell
 			}
 		}
-		cellIgnoreMask = options.cellIgnoreMask;
+		cellIgnoreValue = options.cellIgnoreValue;
 
 		if (options.rayEnable !== true) {
 			if (options.distanceMapEnable === true && distanceMap === undefined) {
@@ -221,7 +221,7 @@ export const GamingCanvasGridRaycast = (
 				}
 				break;
 			} else if (cells !== undefined) {
-				if (cellIgnoreMask === undefined || (gridData[gridIndex] & cellIgnoreMask) === 0) {
+				if (cellIgnoreValue === undefined || gridData[gridIndex] !== cellIgnoreValue) {
 					cells.add(gridIndex);
 
 					// Distance Map
