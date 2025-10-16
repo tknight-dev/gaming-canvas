@@ -7,7 +7,7 @@ Supports
 - `CommonJS` (`.cjs`) and `ESM` (`.mjs`)
 - Multithreading ([WebWorkers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers))
     - Designed take full advantage of multiple threads in JavaScript
-    - Check out the documentation [Tips & Tricks: Multithreading](https://gaming-canvas.org/docs/category/multithreading) to learn more. Here's a write up of a multithreaded `GamingCanvas` game: [Game Analysis: Life (3 threads)](https://gaming-canvas.org/docs/tips-and-tricks/multithreading/game-analysis-life)
+    - Check out the documentation [Tips & Tricks: Multithreading](https://gaming-canvas.org/docs/category/multithreading) to learn more
 
 ## Why This Library?
 
