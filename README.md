@@ -48,12 +48,14 @@ Supports
 See the **GamingCanvas** in action in the following games:
 
 - [Life](https://app.tknight.dev/game/life/index.html?perf=true), A multithreaded Conway's Game of Life for Desktop and Mobile devices (supports Gamepad, Keyboard, Mouse, and Touch based inputs) [[GitHub](https://github.com/tknight-dev/life)]
+- [Wolfenstein3D](https://app.tknight.dev/game/wolfenstein3d/index.html), A multithreaded (+Multiplayer) rewrite of _Id Software_'s 1992 release (supports Gamepad, Keyboard, Mouse, and Touch based inputs) [[GitHub](https://github.com/tknight-dev/wolfenstein3d)]
 
 ## Documentation
 
 Link: [Documentation](https://gaming-canvas.org/)
 
 - [Quick Start](https://gaming-canvas.org/docs)
+- [Game Analysis](https://gaming-canvas.org/docs/category/game-analysis)
 - [How-To](https://gaming-canvas.org/docs/category/how-to)
 - [Model Definitions](https://gaming-canvas.org/docs/category/model-definitions)
 - [Tips & Tricks](https://gaming-canvas.org/docs/category/tips--tricks)
