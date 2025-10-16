@@ -37,9 +37,9 @@ export const GamingCanvasUtilArrayExpand = (array: any[], increaseBy: number, fi
 /**
  * Generates a simple image for verifying your render logic
  */
-export const GamingCanvasUtilImageTestCreate = (height: number, width?: number): OffscreenCanvas => {
-	height = height | 0;
-	width = width === undefined ? height : width | 0;
+export const GamingCanvasUtilDebugImage = (width: number, height?: number): OffscreenCanvas => {
+	width = width | 0;
+	height = height === undefined ? width : height | 0;
 
 	const canvas: OffscreenCanvas = new OffscreenCanvas(width, height),
 		context: OffscreenCanvasRenderingContext2D = <OffscreenCanvasRenderingContext2D>canvas.getContext('2d'),
