@@ -55,8 +55,8 @@ See the **GamingCanvas** in action in the following games:
 Link: [Documentation](https://gaming-canvas.org/)
 
 - [Quick Start](https://gaming-canvas.org/docs)
-- [Game Analysis](https://gaming-canvas.org/docs/category/game-analysis)
 - [How-To](https://gaming-canvas.org/docs/category/how-to)
+- [Game Analysis](https://gaming-canvas.org/docs/category/game-analysis)
 - [Model Definitions](https://gaming-canvas.org/docs/category/model-definitions)
 - [Tips & Tricks](https://gaming-canvas.org/docs/category/tips--tricks)
 - [Troubleshooting](https://gaming-canvas.org/docs/troubleshooting)
