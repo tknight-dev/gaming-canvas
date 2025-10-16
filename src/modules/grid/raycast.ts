@@ -41,7 +41,7 @@ export interface GamingCanvasGridRaycastResult {
 }
 
 export interface GamingCanvasGridRaycastResultDistanceMapInstance {
-	cellIndex?: number; // GridIndex
+	gridIndex?: number; // GridIndex
 	rayIndex?: number; // RayIndex
 }
 
@@ -238,7 +238,7 @@ export const GamingCanvasGridRaycast = (
 	if (distanceMap !== undefined && distanceMapCells !== undefined) {
 		for ([gridIndex, distance] of distanceMapCells) {
 			distanceMap.set(distance, {
-				cellIndex: gridIndex,
+				gridIndex: gridIndex,
 			});
 		}
 	}
