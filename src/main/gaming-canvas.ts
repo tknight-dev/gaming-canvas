@@ -515,7 +515,7 @@ export class GamingCanvas {
 			GamingCanvasEngineAudio.isContext() ? undefined : new AudioContext(),
 		);
 		options.inputGamepadEnable && GamingCanvasEngineGamepad.initialize(GamingCanvas.inputQueue, <number>options.inputGamepadDeadbandStick);
-		options.inputKeyboardEnable && GamingCanvasEngineKeyboard.initialize(GamingCanvas.inputQueue);
+		options.inputKeyboardEnable && GamingCanvasEngineKeyboard.initialize(GamingCanvas.inputQueue, options.inputKeyboardPreventTab);
 		options.inputMouseEnable &&
 			GamingCanvasEngineMouse.initialize(
 				GamingCanvas.elementContainerCanvasInputs,
@@ -1153,6 +1153,7 @@ export class GamingCanvas {
 			options.inputGamepadDeadbandStick === undefined ? 0.08 : Math.max(0, Math.min(1, Number(options.inputGamepadDeadbandStick) || 0));
 		options.inputGamepadEnable = options.inputGamepadEnable === undefined ? false : options.inputGamepadEnable === true;
 		options.inputKeyboardEnable = options.inputKeyboardEnable === undefined ? false : options.inputKeyboardEnable === true;
+		options.inputKeyboardPreventTab = options.inputKeyboardPreventTab === undefined ? false : options.inputKeyboardPreventTab === true;
 		options.inputMouseEnable = options.inputMouseEnable === undefined ? false : options.inputMouseEnable === true;
 		options.inputMousePreventContextMenu = options.inputMousePreventContextMenu === undefined ? false : options.inputMousePreventContextMenu === true;
 		options.inputTouchEnable = options.inputTouchEnable === undefined ? false : options.inputTouchEnable === true;

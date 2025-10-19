@@ -18,6 +18,7 @@ export class GamingCanvasOptions {
 	inputGamepadDeadbandStick?: number;
 	inputGamepadEnable?: boolean;
 	inputKeyboardEnable?: boolean;
+	inputKeyboardPreventTab?: boolean;
 	inputMouseEnable?: boolean;
 	inputMousePreventContextMenu?: boolean;
 	inputTouchEnable?: boolean;
