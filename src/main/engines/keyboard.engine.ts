@@ -34,11 +34,16 @@ export class GamingCanvasEngineKeyboard {
 	public static active: boolean = true;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 
-	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>): void {
+	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, preventTab: boolean): void {
 		GamingCanvasEngineKeyboard.active = true;
 		GamingCanvasEngineKeyboard.queue = queue;
 
 		document.addEventListener('keydown', (event: KeyboardEvent) => {
+			if (event.code === 'Tab') {
+				event.preventDefault();
+				event.stopPropagation();
+			}
+
 			if (GamingCanvasEngineKeyboard.active && !event.repeat) {
 				GamingCanvasEngineKeyboard.queue.push({
 					propriatary: {
