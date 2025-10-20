@@ -20,6 +20,7 @@ interface Buffer {
 	panner: StereoPannerNode;
 	source: MediaElementAudioSourceNode;
 	type?: GamingCanvasAudioType;
+	volumeRequested: number;
 }
 
 interface Fader {
@@ -380,6 +381,7 @@ export class GamingCanvasEngineAudio {
 		buffer.assetId = assetId;
 		buffer.available = false;
 		((buffer.callbackDone = callback), buffer.panner.pan.setValueAtTime(pan, 0));
+		buffer.volumeRequested = volumeEff;
 
 		// Keep randomizing until a unique number is generated
 		buffer.instance = (Math.random() * Number.MAX_SAFE_INTEGER) | 0;
@@ -460,6 +462,7 @@ export class GamingCanvasEngineAudio {
 
 				volume = Math.max(0, Math.min(1, volume));
 				volumeEff = volume;
+				buffer.volumeRequested = volumeEff;
 
 				switch (buffer.type) {
 					case GamingCanvasAudioType.AMBIENCE:
@@ -651,6 +654,7 @@ export class GamingCanvasEngineAudio {
 					instance: -1,
 					panner: panner,
 					source: source,
+					volumeRequested: 0,
 				},
 				{
 					active: false,
@@ -747,8 +751,7 @@ export class GamingCanvasEngineAudio {
 	 */
 	public static volumeGlobal(volume: number, type: GamingCanvasAudioType) {
 		let buffer: Buffer,
-			buffers: Buffer[] = GamingCanvasEngineAudio.buffers,
-			differencePercentage: number = 0;
+			buffers: Buffer[] = GamingCanvasEngineAudio.buffers;
 
 		try {
 			// Make sure it's in range
@@ -757,16 +760,6 @@ export class GamingCanvasEngineAudio {
 			// Apply to global volumnes
 			switch (type) {
 				case GamingCanvasAudioType.ALL:
-					if (volume === 0) {
-						differencePercentage = 0;
-					} else {
-						differencePercentage = volume / (GamingCanvasEngineAudio.volumeAll || 1);
-
-						if (!isFinite(differencePercentage) || differencePercentage < 0.01) {
-							return;
-						}
-					}
-
 					GamingCanvasEngineAudio.volumeAll = volume;
 					GamingCanvasEngineAudio.volumeAmbienceEff = GamingCanvasEngineAudio.volumeAmbience * GamingCanvasEngineAudio.volumeAll;
 					GamingCanvasEngineAudio.volumeEffectEff = GamingCanvasEngineAudio.volumeEffect * GamingCanvasEngineAudio.volumeAll;
@@ -774,58 +767,18 @@ export class GamingCanvasEngineAudio {
 					GamingCanvasEngineAudio.volumeVoiceoverEff = GamingCanvasEngineAudio.volumeVoiceover * GamingCanvasEngineAudio.volumeAll;
 					break;
 				case GamingCanvasAudioType.AMBIENCE:
-					if (volume === 0) {
-						differencePercentage = 0;
-					} else {
-						differencePercentage = volume / (GamingCanvasEngineAudio.volumeAmbience || 1);
-
-						if (!isFinite(differencePercentage) || differencePercentage < 0.01) {
-							return;
-						}
-					}
-
 					GamingCanvasEngineAudio.volumeAmbience = volume;
 					GamingCanvasEngineAudio.volumeAmbienceEff = GamingCanvasEngineAudio.volumeAmbience * GamingCanvasEngineAudio.volumeAll;
 					break;
 				case GamingCanvasAudioType.EFFECT:
-					if (volume === 0) {
-						differencePercentage = 0;
-					} else {
-						differencePercentage = volume / (GamingCanvasEngineAudio.volumeEffect || 1);
-
-						if (!isFinite(differencePercentage) || differencePercentage < 0.01) {
-							return;
-						}
-					}
-
 					GamingCanvasEngineAudio.volumeEffect = volume;
 					GamingCanvasEngineAudio.volumeEffectEff = GamingCanvasEngineAudio.volumeEffect * GamingCanvasEngineAudio.volumeAll;
 					break;
 				case GamingCanvasAudioType.MUSIC:
-					if (volume === 0) {
-						differencePercentage = 0;
-					} else {
-						differencePercentage = volume / (GamingCanvasEngineAudio.volumeMusic || 1);
-
-						if (!isFinite(differencePercentage) || differencePercentage < 0.01) {
-							return;
-						}
-					}
-
 					GamingCanvasEngineAudio.volumeMusic = volume;
 					GamingCanvasEngineAudio.volumeMusicEff = GamingCanvasEngineAudio.volumeMusic * GamingCanvasEngineAudio.volumeAll;
 					break;
 				case GamingCanvasAudioType.VOICEOVER:
-					if (volume === 0) {
-						differencePercentage = 0;
-					} else {
-						differencePercentage = volume / (GamingCanvasEngineAudio.volumeAmbience || 1);
-
-						if (!isFinite(differencePercentage) || differencePercentage < 0.01) {
-							return;
-						}
-					}
-
 					GamingCanvasEngineAudio.volumeVoiceover = volume;
 					GamingCanvasEngineAudio.volumeVoiceoverEff = GamingCanvasEngineAudio.volumeVoiceover * GamingCanvasEngineAudio.volumeAll;
 					break;
@@ -837,14 +790,24 @@ export class GamingCanvasEngineAudio {
 			// Apply volume difference to buffers, as required
 			for (buffer of buffers) {
 				if (type === GamingCanvasAudioType.ALL || buffer.type === type) {
-					buffer.audio.volume = Math.max(
-						0,
-						Math.min(1, buffer.audio.volume === 0 ? differencePercentage : buffer.audio.volume * differencePercentage),
-					);
+					switch (buffer.type) {
+						case GamingCanvasAudioType.AMBIENCE:
+							buffer.audio.volume = buffer.volumeRequested * GamingCanvasEngineAudio.volumeAmbienceEff;
+							break;
+						case GamingCanvasAudioType.EFFECT:
+							buffer.audio.volume = buffer.volumeRequested * GamingCanvasEngineAudio.volumeEffectEff;
+							break;
+						case GamingCanvasAudioType.MUSIC:
+							buffer.audio.volume = buffer.volumeRequested * GamingCanvasEngineAudio.volumeMusicEff;
+							break;
+						case GamingCanvasAudioType.VOICEOVER:
+							buffer.audio.volume = buffer.volumeRequested * GamingCanvasEngineAudio.volumeVoiceoverEff;
+							break;
+					}
 				}
 			}
 		} catch (error) {
-			console.error(differencePercentage, volume, GamingCanvasEngineAudio.volumeAll, error);
+			console.error(volume, GamingCanvasEngineAudio.volumeAll, error);
 		}
 	}
 
