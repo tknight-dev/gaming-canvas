@@ -23,7 +23,7 @@ export class GamingCanvasGridEditor {
 	private empty: boolean;
 	private grid: GamingCanvasGridType;
 	private history: GamingCanvasDoubleLinkedList<GamingCanvasGridEditHistoryEvent>;
-	private historyEventCurrent: GamingCanvasDoubleLinkedListNode<GamingCanvasGridEditHistoryEvent>;
+	private historyEventCurrent: GamingCanvasDoubleLinkedListNode<GamingCanvasGridEditHistoryEvent> | undefined;
 	private historyLimit: number;
 
 	/**
@@ -242,6 +242,12 @@ export class GamingCanvasGridEditor {
 		this.empty = false;
 		history.pushEnd(event);
 		this.historyEventCurrent = history.getEnd();
+	}
+
+	public historyClear(): void {
+		this.empty = true;
+		this.history.clear();
+		this.historyEventCurrent = undefined;
 	}
 
 	public historyRedo(): boolean {
