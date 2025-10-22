@@ -149,13 +149,6 @@ export const GamingCanvasGridUtilDataApplyFill = (grid: GamingCanvasGridType, gr
 	modifier(gridIndex);
 };
 
-/**
- * Apply a single value to the grid
- */
-export const GamingCanvasGridUtilDataApplySingle = (grid: GamingCanvasGridType, gridIndex: number, value: number): void => {
-	grid.data[gridIndex] = value;
-};
-
 export const GamingCanvasGridUtilDistance = (gridIndexA: number, gridIndexB: number, grid: GamingCanvasGridType): number => {
 	const y1: number = gridIndexA % grid.sideLength,
 		y2: number = gridIndexB % grid.sideLength,
