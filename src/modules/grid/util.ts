@@ -17,12 +17,9 @@ export const GamingCanvasGridUtilDataApplyFill = (grid: GamingCanvasGridType, gr
 				x: number = (gridIndex / sideLength) | 0,
 				y: number = gridIndex % sideLength;
 
-			gridData[gridIndex] = value;
-			modified.add(gridIndex);
-
-			// Left
+			// Center & Left
 			if (x !== 0) {
-				for (a = x - 1; a !== 0; a--) {
+				for (a = x; a !== 0; a--) {
 					gridIndex = a * sideLength + y;
 
 					if (gridData[gridIndex] !== valueOriginal || modified.has(gridIndex) === true) {
