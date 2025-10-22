@@ -23,10 +23,10 @@ export class GamingCanvasDoubleLinkedList<T> {
 				node = {
 					data: data,
 					next: undefined,
-					previous: this._length ? this.end : undefined,
+					previous: this._length !== 0 ? this.end : undefined,
 				};
 
-				if (this.end) {
+				if (this.end !== undefined) {
 					this.end.next = node;
 					this.end = node;
 				} else {
@@ -59,7 +59,7 @@ export class GamingCanvasDoubleLinkedList<T> {
 	public popEnd(): T | undefined {
 		let end: GamingCanvasDoubleLinkedListNode<T> | undefined = this.end;
 
-		if (end) {
+		if (end !== undefined) {
 			if (this._length === 1) {
 				this.end = undefined;
 				this.start = undefined;
@@ -77,7 +77,7 @@ export class GamingCanvasDoubleLinkedList<T> {
 	public popStart(): T | undefined {
 		let start: GamingCanvasDoubleLinkedListNode<T> | undefined = this.start;
 
-		if (start) {
+		if (start !== undefined) {
 			if (this._length === 1) {
 				this.end = undefined;
 				this.start = undefined;
@@ -99,7 +99,7 @@ export class GamingCanvasDoubleLinkedList<T> {
 			previous: this._length ? this.end : undefined,
 		};
 
-		if (this.end) {
+		if (this.end !== undefined) {
 			this.end.next = node;
 			this.end = node;
 		} else {
@@ -119,7 +119,7 @@ export class GamingCanvasDoubleLinkedList<T> {
 			previous: undefined,
 		};
 
-		if (this.start) {
+		if (this.start !== undefined) {
 			this.start.previous = node;
 			this.start = node;
 		} else {
@@ -132,6 +132,9 @@ export class GamingCanvasDoubleLinkedList<T> {
 		return node;
 	}
 
+	/**
+	 * Caution: removing a node that doesn't actually exist in this list will cause the length of this list to be incorrect
+	 */
 	public remove(node: GamingCanvasDoubleLinkedListNode<T>): GamingCanvasDoubleLinkedListNode<T> {
 		if (this.end === node) {
 			this.end = node.previous;
@@ -139,14 +142,14 @@ export class GamingCanvasDoubleLinkedList<T> {
 		if (this.start === node) {
 			this.start = node.next;
 		}
-		if (node.next) {
+		if (node.next !== undefined) {
 			node.next.previous = node.previous;
-			node.next = undefined;
 		}
-		if (node.previous) {
+		if (node.previous !== undefined) {
 			node.previous.next = node.next;
-			node.previous = undefined;
 		}
+
+		this._length--;
 
 		return node;
 	}
