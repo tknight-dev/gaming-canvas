@@ -8,14 +8,15 @@ import { GamingCanvasGridType } from './grid.js';
 interface GamingCanvasGridEditHistoryEvent {
 	gridIndex: number;
 	type: GamingCanvasGridEditType;
-	value: number;
-	valueOriginal: number;
+	values: Map<number, number>;
+	valuesOriginal: Map<number, number>;
 }
 
 export enum GamingCanvasGridEditType {
-	APPLY_FILL,
-	APPLY_SINGLE,
-	ERASE_SINGLE,
+	FILL_APPLY,
+	FILL_ERASE,
+	SINGLE_APPLY,
+	SINGLE_ERASE,
 }
 
 export class GamingCanvasGridEditor {
@@ -39,7 +40,12 @@ export class GamingCanvasGridEditor {
 	/**
 	 * Replace single cell and all neighboring cells that match the original cell's value (no diagonals)
 	 */
-	public applyFill(gridIndex: number, value: number, historySkip: boolean = false): void {
+	public fillApply(
+		gridIndex: number,
+		value: number,
+		historySkip: boolean = false,
+		historyType: GamingCanvasGridEditType = GamingCanvasGridEditType.FILL_APPLY,
+	): void {
 		if (this.grid.data[gridIndex] !== value) {
 			const gridData: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array = this.grid.data,
 				modified: Set<number> = new Set(),
@@ -58,8 +64,10 @@ export class GamingCanvasGridEditor {
 							if (gridData[gridIndex] !== valueOriginal || modified.has(gridIndex) === true) {
 								break;
 							}
+							valuesOriginal.set(gridIndex, gridData[gridIndex]);
 							gridData[gridIndex] = value;
 							modified.add(gridIndex);
+							values.set(gridIndex, value);
 
 							// Down
 							for (b = y + 1; b !== sideLength; b++) {
@@ -68,8 +76,10 @@ export class GamingCanvasGridEditor {
 								if (gridData[gridIndex] !== valueOriginal || modified.has(gridIndex) === true) {
 									break;
 								}
+								valuesOriginal.set(gridIndex, gridData[gridIndex]);
 								gridData[gridIndex] = value;
 								modified.add(gridIndex);
+								values.set(gridIndex, value);
 
 								// Left
 								if (a !== 0) {
@@ -91,8 +101,10 @@ export class GamingCanvasGridEditor {
 								if (gridData[gridIndex] !== valueOriginal || modified.has(gridIndex) === true) {
 									break;
 								}
+								valuesOriginal.set(gridIndex, gridData[gridIndex]);
 								gridData[gridIndex] = value;
 								modified.add(gridIndex);
+								values.set(gridIndex, value);
 
 								// Left
 								if (a !== 0) {
@@ -117,8 +129,10 @@ export class GamingCanvasGridEditor {
 							if (gridData[gridIndex] !== valueOriginal || modified.has(gridIndex) === true) {
 								break;
 							}
+							valuesOriginal.set(gridIndex, gridData[gridIndex]);
 							gridData[gridIndex] = value;
 							modified.add(gridIndex);
+							values.set(gridIndex, value);
 
 							// Down
 							for (b = y + 1; b !== sideLength; b++) {
@@ -127,8 +141,10 @@ export class GamingCanvasGridEditor {
 								if (gridData[gridIndex] !== valueOriginal || modified.has(gridIndex) === true) {
 									break;
 								}
+								valuesOriginal.set(gridIndex, gridData[gridIndex]);
 								gridData[gridIndex] = value;
 								modified.add(gridIndex);
+								values.set(gridIndex, value);
 
 								// Left
 								if (a !== 0) {
@@ -150,8 +166,10 @@ export class GamingCanvasGridEditor {
 								if (gridData[gridIndex] !== valueOriginal || modified.has(gridIndex) === true) {
 									break;
 								}
+								valuesOriginal.set(gridIndex, gridData[gridIndex]);
 								gridData[gridIndex] = value;
 								modified.add(gridIndex);
+								values.set(gridIndex, value);
 
 								// Left
 								if (a !== 0) {
@@ -174,44 +192,24 @@ export class GamingCanvasGridEditor {
 					}
 				},
 				sideLength: number = this.grid.sideLength,
-				valueOriginal: number = gridData[gridIndex];
+				values: Map<number, number> = new Map(),
+				valueOriginal: number = gridData[gridIndex],
+				valuesOriginal: Map<number, number> = new Map();
 
 			historySkip === false &&
 				this.historyAdd({
 					gridIndex: gridIndex,
-					type: GamingCanvasGridEditType.APPLY_FILL,
-					value: value,
-					valueOriginal: valueOriginal,
+					type: historyType,
+					values: values,
+					valuesOriginal: valuesOriginal,
 				});
 
 			modifier(gridIndex);
 		}
 	}
 
-	public applySingle(gridIndex: number, value: number, historySkip: boolean = false): void {
-		if (this.grid.data[gridIndex] !== value) {
-			historySkip === false &&
-				this.historyAdd({
-					gridIndex: gridIndex,
-					type: GamingCanvasGridEditType.APPLY_SINGLE,
-					value: value,
-					valueOriginal: this.grid.data[gridIndex],
-				});
-			this.grid.data[gridIndex] = value;
-		}
-	}
-
-	public eraseSingle(gridIndex: number, historySkip: boolean = false): void {
-		if (this.grid.data[gridIndex] !== 0) {
-			historySkip === false &&
-				this.historyAdd({
-					gridIndex: gridIndex,
-					type: GamingCanvasGridEditType.ERASE_SINGLE,
-					value: 0,
-					valueOriginal: this.grid.data[gridIndex],
-				});
-			this.grid.data[gridIndex] = 0;
-		}
+	public fillErase(gridIndex: number, historySkip: boolean = false): void {
+		this.fillApply(gridIndex, 0, historySkip, GamingCanvasGridEditType.FILL_ERASE);
 	}
 
 	private historyAdd(event: GamingCanvasGridEditHistoryEvent): void {
@@ -255,17 +253,12 @@ export class GamingCanvasGridEditor {
 			this.empty = false;
 
 			// Re-apply
-			const event: GamingCanvasGridEditHistoryEvent = this.historyEventCurrent.data;
-			switch (event.type) {
-				case GamingCanvasGridEditType.APPLY_FILL:
-					this.applyFill(event.gridIndex, event.value, true);
-					break;
-				case GamingCanvasGridEditType.APPLY_SINGLE:
-					this.applySingle(event.gridIndex, event.value, true);
-					break;
-				case GamingCanvasGridEditType.ERASE_SINGLE:
-					this.eraseSingle(event.gridIndex, true);
-					break;
+			let event: GamingCanvasGridEditHistoryEvent = this.historyEventCurrent.data,
+				gridData: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array = this.grid.data,
+				gridIndex: number,
+				value: number;
+			for ([gridIndex, value] of event.values.entries()) {
+				gridData[gridIndex] = value;
 			}
 
 			return true;
@@ -280,19 +273,13 @@ export class GamingCanvasGridEditor {
 
 	public historyUndo(): boolean {
 		if (this.history.length !== 0 && this.empty !== true) {
-			const event: GamingCanvasGridEditHistoryEvent = this.historyEventCurrent.data;
+			const event: GamingCanvasGridEditHistoryEvent = this.historyEventCurrent.data,
+				gridData: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array = this.grid.data;
 
 			// Reverse apply
-			switch (event.type) {
-				case GamingCanvasGridEditType.APPLY_FILL:
-					this.applyFill(event.gridIndex, event.valueOriginal, true);
-					break;
-				case GamingCanvasGridEditType.APPLY_SINGLE:
-					this.applySingle(event.gridIndex, event.valueOriginal, true);
-					break;
-				case GamingCanvasGridEditType.ERASE_SINGLE:
-					this.applySingle(event.gridIndex, event.valueOriginal, true);
-					break;
+			let gridIndex: number, value: number;
+			for ([gridIndex, value] of event.valuesOriginal.entries()) {
+				gridData[gridIndex] = value;
 			}
 
 			// Update timeline
@@ -310,6 +297,34 @@ export class GamingCanvasGridEditor {
 	}
 
 	public historyUndoAvailable(): boolean {
-		return this.history.length !== 0 && this.historyEventCurrent.previous !== undefined;
+		return this.history.length !== 0 && this.empty !== true;
+	}
+
+	public singleApply(
+		gridIndex: number,
+		value: number,
+		historySkip: boolean = false,
+		historyType: GamingCanvasGridEditType = GamingCanvasGridEditType.SINGLE_APPLY,
+	): void {
+		if (this.grid.data[gridIndex] !== value) {
+			let values: Map<number, number> = new Map(),
+				valuesOriginal: Map<number, number> = new Map();
+
+			values.set(gridIndex, value);
+			valuesOriginal.set(gridIndex, this.grid.data[gridIndex]);
+
+			historySkip === false &&
+				this.historyAdd({
+					gridIndex: gridIndex,
+					type: historyType,
+					values: values,
+					valuesOriginal: valuesOriginal,
+				});
+			this.grid.data[gridIndex] = value;
+		}
+	}
+
+	public singleErase(gridIndex: number, historySkip: boolean = false): void {
+		this.singleApply(gridIndex, 0, historySkip, GamingCanvasGridEditType.SINGLE_ERASE);
 	}
 }
