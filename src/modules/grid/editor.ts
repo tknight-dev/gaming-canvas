@@ -57,8 +57,8 @@ export class GamingCanvasGridEditor {
 						y: number = gridIndex % sideLength;
 
 					// Center & Left
-					if (x !== 0) {
-						for (a = x; a !== 0; a--) {
+					if (x !== -1) {
+						for (a = x; a !== -1; a--) {
 							gridIndex = a * sideLength + y;
 
 							if (gridData[gridIndex] !== valueOriginal || modified.has(gridIndex) === true) {
@@ -95,7 +95,7 @@ export class GamingCanvasGridEditor {
 							}
 
 							// Up
-							for (b = y - 1; b !== 0; b--) {
+							for (b = y - 1; b !== -1; b--) {
 								gridIndex = a * sideLength + b;
 
 								if (gridData[gridIndex] !== valueOriginal || modified.has(gridIndex) === true) {
@@ -160,7 +160,7 @@ export class GamingCanvasGridEditor {
 							}
 
 							// Up
-							for (b = y - 1; b !== 0; b--) {
+							for (b = y - 1; b !== -1; b--) {
 								gridIndex = a * sideLength + b;
 
 								if (gridData[gridIndex] !== valueOriginal || modified.has(gridIndex) === true) {
