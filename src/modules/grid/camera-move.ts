@@ -20,9 +20,9 @@ interface GamingCanvasGridCameraMoveJob extends GamingCanvasGridCameraMoveOption
 }
 
 export interface GamingCanvasGridCameraMoveOptions {
-	xPositionType: GamingCanvasGridCameraMoveOptionsPositionType;
-	yPositionType: GamingCanvasGridCameraMoveOptionsPositionType;
-	zPositionType: GamingCanvasGridCameraMoveOptionsPositionType;
+	xPositionType?: GamingCanvasGridCameraMoveOptionsPositionType;
+	yPositionType?: GamingCanvasGridCameraMoveOptionsPositionType;
+	zPositionType?: GamingCanvasGridCameraMoveOptionsPositionType;
 }
 
 export enum GamingCanvasGridCameraMoveOptionsPositionType {
@@ -51,7 +51,7 @@ export const GamingCanvasGridCameraMove = (
 	y: number,
 	z: number,
 	durationInMs: number,
-	options: GamingCanvasGridCameraMoveOptions = <any>{},
+	options: GamingCanvasGridCameraMoveOptions = {},
 	callback?: (camera: GamingCanvasGridICamera) => void,
 ): number | null => {
 	// Options
