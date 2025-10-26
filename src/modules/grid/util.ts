@@ -39,9 +39,9 @@ export const GamingCanvasGridUtilDistanceSort = (source: number, gridIndexes: nu
 
 	return gridIndexes.sort((gridIndexA: number, gridIndexB: number) => {
 		if (invert === true) {
-			return distanceByGridIndex.get(gridIndexB) - distanceByGridIndex.get(gridIndexA);
+			return <number>distanceByGridIndex.get(gridIndexB) - <number>distanceByGridIndex.get(gridIndexA);
 		} else {
-			return distanceByGridIndex.get(gridIndexA) - distanceByGridIndex.get(gridIndexB);
+			return <number>distanceByGridIndex.get(gridIndexA) - <number>distanceByGridIndex.get(gridIndexB);
 		}
 	});
 };

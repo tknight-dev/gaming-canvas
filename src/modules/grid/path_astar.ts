@@ -38,7 +38,7 @@ class GamingCanvasGridBinaryHeap {
 	public bubbleUp(index: number) {
 		let child1: GamingCanvasGridPathAStarNode,
 			child1Index: number,
-			child1WeightCombined: number,
+			child1WeightCombined: number = 0,
 			child2Index: number,
 			length: number = this.content.length,
 			node: GamingCanvasGridPathAStarNode = this.content[index],
@@ -80,11 +80,10 @@ class GamingCanvasGridBinaryHeap {
 	}
 
 	public pop() {
-		const nodeFirst: GamingCanvasGridPathAStarNode = this.content[0],
-			nodeLast: GamingCanvasGridPathAStarNode = this.content.pop();
+		const nodeFirst: GamingCanvasGridPathAStarNode = this.content[0];
 
 		if (this.content.length !== 0) {
-			this.content[0] = nodeLast;
+			this.content[0] = <GamingCanvasGridPathAStarNode>this.content.pop();
 			this.bubbleUp(0);
 		}
 
@@ -98,12 +97,12 @@ class GamingCanvasGridBinaryHeap {
 
 	public remove(node: GamingCanvasGridPathAStarNode) {
 		const nodeIndex = this.content.indexOf(node),
-			nodeLast: GamingCanvasGridPathAStarNode = this.content.pop();
+			nodeLast: GamingCanvasGridPathAStarNode | undefined = this.content.pop();
 
 		if (nodeIndex !== this.content.length - 1) {
-			this.content[nodeIndex] = nodeLast;
+			this.content[nodeIndex] = <GamingCanvasGridPathAStarNode>nodeLast;
 
-			if (nodeLast.weightCombined < node.weightCombined) {
+			if ((<GamingCanvasGridPathAStarNode>nodeLast).weightCombined < node.weightCombined) {
 				this.sinkDown(nodeIndex);
 			} else {
 				this.bubbleUp(nodeIndex);
@@ -323,7 +322,7 @@ export const GamingCanvasGridPathAStar = (
 
 	// Memory
 	if (memory !== undefined) {
-		nodes = options.memory.nodes;
+		nodes = memory.nodes;
 
 		// Defaults
 		for (x = 0; x < nodes.length; x++) {

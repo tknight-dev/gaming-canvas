@@ -357,6 +357,9 @@ export class GamingCanvasEngineAudio {
 			case GamingCanvasAudioType.VOICEOVER:
 				volumeGlobal = GamingCanvasEngineAudio.volumeVoiceoverEff;
 				break;
+			default:
+				console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPlay: unknown type ${type}`);
+				return null;
 		}
 
 		volumeEff = volumeGlobal * (volume === undefined ? 1 : volume);
@@ -381,7 +384,7 @@ export class GamingCanvasEngineAudio {
 		buffer.assetId = assetId;
 		buffer.available = false;
 		((buffer.callbackDone = callback), buffer.panner.pan.setValueAtTime(pan, 0));
-		buffer.volumeRequested = volumeEff;
+		buffer.volumeRequested = Math.max(0, Math.min(1, volume === undefined ? 1 : volume));
 
 		// Keep randomizing until a unique number is generated
 		buffer.instance = (Math.random() * Number.MAX_SAFE_INTEGER) | 0;

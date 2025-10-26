@@ -1,5 +1,7 @@
 export * from './camera.js';
+export * from './camera-move.js';
 export * from './character.js';
+export * from './character-control.js';
 export * from './editor.js';
 export * from './grid.js';
 export * from './path_astar.js';

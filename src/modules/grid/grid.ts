@@ -40,7 +40,7 @@ abstract class GamingCanvasGrid<T> {
 		const index: number = (x | 0) * this.sideLength + (y | 0);
 
 		if (index < this.size && index >= 0) {
-			return this.data[index];
+			return (<Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array>this.data)[index];
 		} else {
 			console.error(`${this.prefix} > get: x (${x}) and y (${y}) not within grid [sideLength=${this.sideLength}]`);
 			return undefined;
@@ -51,7 +51,7 @@ abstract class GamingCanvasGrid<T> {
 		const index: number = (position.x | 0) * this.sideLength + (position.y | 0);
 
 		if (index < this.size && index >= 0) {
-			return this.data[index];
+			return (<Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array>this.data)[index];
 		} else {
 			console.error(`${this.prefix} > getBasic: x (${position.x}) and y (${position.y}) not within grid [sideLength=${this.sideLength}]`);
 			return undefined;
@@ -62,7 +62,7 @@ abstract class GamingCanvasGrid<T> {
 		const index: number = (x | 0) * this.sideLength + (y | 0);
 
 		if (index < this.size && index >= 0) {
-			this.data[index] = value;
+			(<Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array>this.data)[index] = value;
 			return true;
 		} else {
 			console.error(`${this.prefix} > set: x (${x}) and y (${y}) not within grid [sideLength=${this.sideLength}]`);
@@ -74,7 +74,7 @@ abstract class GamingCanvasGrid<T> {
 		const index: number = (position.x | 0) * this.sideLength + (position.y | 0);
 
 		if (index < this.size && index >= 0) {
-			this.data[index] = value;
+			(<Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array>this.data)[index] = value;
 			return true;
 		} else {
 			console.error(`${this.prefix} > setBasic: x (${position.x}) and y (${position.y}) not within grid [sideLength=${this.sideLength}]`);
