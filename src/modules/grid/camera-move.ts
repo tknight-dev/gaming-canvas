@@ -1,4 +1,4 @@
-import { GamingCanvasConstIntegerMaxSafe, GamingCanvasConstPI_2_000 } from '../../main/const.js';
+import { GamingCanvasConstPI_2_000 } from '../../main/const.js';
 import { GamingCanvasDoubleLinkedList, GamingCanvasDoubleLinkedListNode } from '../../main/double-linked-list.js';
 import { GamingCanvasGridICamera } from './camera.js';
 
@@ -6,7 +6,7 @@ import { GamingCanvasGridICamera } from './camera.js';
  * @author tknight-dev
  */
 
-interface GamingCanvasGridCameraMoveJob extends GamingCanvasGridCameraMoveJobOptions, GamingCanvasGridCameraMoveJobRequest {
+interface GamingCanvasGridCameraMoveJob extends GamingCanvasGridCameraMoveOptions, GamingCanvasGridCameraMoveJobRequest {
 	durationCompletedInMs: number;
 	id: number;
 	rOriginal: number;
@@ -19,13 +19,13 @@ interface GamingCanvasGridCameraMoveJob extends GamingCanvasGridCameraMoveJobOpt
 	zStep: number;
 }
 
-export interface GamingCanvasGridCameraMoveJobOptions {
-	xPositionType: GamingCanvasGridCameraMoveJobOptionsPositionType;
-	yPositionType: GamingCanvasGridCameraMoveJobOptionsPositionType;
-	zPositionType: GamingCanvasGridCameraMoveJobOptionsPositionType;
+export interface GamingCanvasGridCameraMoveOptions {
+	xPositionType: GamingCanvasGridCameraMoveOptionsPositionType;
+	yPositionType: GamingCanvasGridCameraMoveOptionsPositionType;
+	zPositionType: GamingCanvasGridCameraMoveOptionsPositionType;
 }
 
-export enum GamingCanvasGridCameraMoveJobOptionsPositionType {
+export enum GamingCanvasGridCameraMoveOptionsPositionType {
 	ABSOLUTE,
 	RELATIVE,
 }
@@ -40,6 +40,55 @@ interface GamingCanvasGridCameraMoveJobRequest {
 	z: number;
 }
 
+/**
+ * @param callback is triggered on completion
+ * @return is null if the durationInMs is <= 0 as the move is done immediately
+ */
+export const GamingCanvasGridCameraMove = (
+	camera: GamingCanvasGridICamera,
+	r: number,
+	x: number,
+	y: number,
+	z: number,
+	durationInMs: number,
+	options: GamingCanvasGridCameraMoveOptions = <any>{},
+	callback?: (camera: GamingCanvasGridICamera) => void,
+): number | null => {
+	// Options
+	options.xPositionType === undefined && (options.xPositionType = GamingCanvasGridCameraMoveOptionsPositionType.ABSOLUTE);
+	options.yPositionType === undefined && (options.yPositionType = GamingCanvasGridCameraMoveOptionsPositionType.ABSOLUTE);
+	options.zPositionType === undefined && (options.zPositionType = GamingCanvasGridCameraMoveOptionsPositionType.ABSOLUTE);
+
+	// Apply now or submit to workload
+	if (durationInMs <= 0) {
+		camera.r += r;
+		camera.x = options.xPositionType === GamingCanvasGridCameraMoveOptionsPositionType.ABSOLUTE ? x : camera.x + x;
+		camera.y = options.xPositionType === GamingCanvasGridCameraMoveOptionsPositionType.ABSOLUTE ? y : camera.y + y;
+		camera.z = options.xPositionType === GamingCanvasGridCameraMoveOptionsPositionType.ABSOLUTE ? z : camera.z + z;
+
+		if (callback !== undefined) {
+			setTimeout(() => {
+				callback(camera);
+			});
+		}
+
+		return null;
+	} else {
+		return GamingCanvasGridCameraMoveLoop.add(
+			{
+				callback: callback,
+				camera: camera,
+				durationInMs: durationInMs,
+				r: r,
+				x: x,
+				y: y,
+				z: z,
+			},
+			options,
+		);
+	}
+};
+
 class GamingCanvasGridCameraMoveLoop {
 	public static fpms: number = 1000 / 60; // 60FPS default
 	public static idCounter: number = 0;
@@ -53,7 +102,7 @@ class GamingCanvasGridCameraMoveLoop {
 		GamingCanvasGridCameraMoveLoop.loop__funcForward();
 	}
 
-	public static add(request: GamingCanvasGridCameraMoveJobRequest, options: GamingCanvasGridCameraMoveJobOptions): number {
+	public static add(request: GamingCanvasGridCameraMoveJobRequest, options: GamingCanvasGridCameraMoveOptions): number {
 		const job: GamingCanvasGridCameraMoveJob = <GamingCanvasGridCameraMoveJob>Object.assign(request, options);
 
 		// Add basics
@@ -65,23 +114,23 @@ class GamingCanvasGridCameraMoveLoop {
 		job.zOriginal = request.camera.z;
 
 		// Calc: X
-		if (job.xPositionType === GamingCanvasGridCameraMoveJobOptionsPositionType.RELATIVE) {
+		if (job.xPositionType === GamingCanvasGridCameraMoveOptionsPositionType.RELATIVE) {
 			job.x += job.xOriginal;
-			job.xPositionType = GamingCanvasGridCameraMoveJobOptionsPositionType.ABSOLUTE;
+			job.xPositionType = GamingCanvasGridCameraMoveOptionsPositionType.ABSOLUTE;
 		}
 		job.xStep = job.xOriginal - job.x;
 
 		// Calc: Y
-		if (job.yPositionType === GamingCanvasGridCameraMoveJobOptionsPositionType.RELATIVE) {
+		if (job.yPositionType === GamingCanvasGridCameraMoveOptionsPositionType.RELATIVE) {
 			job.y += job.yOriginal;
-			job.yPositionType = GamingCanvasGridCameraMoveJobOptionsPositionType.ABSOLUTE;
+			job.yPositionType = GamingCanvasGridCameraMoveOptionsPositionType.ABSOLUTE;
 		}
 		job.yStep = job.yOriginal - job.y;
 
 		// Calc: Z
-		if (job.zPositionType === GamingCanvasGridCameraMoveJobOptionsPositionType.RELATIVE) {
+		if (job.zPositionType === GamingCanvasGridCameraMoveOptionsPositionType.RELATIVE) {
 			job.z += job.zOriginal;
-			job.zPositionType = GamingCanvasGridCameraMoveJobOptionsPositionType.ABSOLUTE;
+			job.zPositionType = GamingCanvasGridCameraMoveOptionsPositionType.ABSOLUTE;
 		}
 		job.zStep = job.zOriginal - job.z;
 
@@ -230,55 +279,6 @@ export const GamingCanvasGridCameraMovePause = (pause: boolean): void => {
 				GamingCanvasGridCameraMoveLoop.request = requestAnimationFrame(GamingCanvasGridCameraMoveLoop.loop);
 			}
 		}
-	}
-};
-
-/**
- * @param callback is triggered on completion
- * @return is null if the durationInMs is <= 0 as the move is done immediately
- */
-export const GamingCanvasGridCameraMoveLinear = (
-	camera: GamingCanvasGridICamera,
-	r: number,
-	x: number,
-	y: number,
-	z: number,
-	durationInMs: number,
-	options: GamingCanvasGridCameraMoveJobOptions = <any>{},
-	callback?: (camera: GamingCanvasGridICamera) => void,
-): number | null => {
-	// Options
-	options.xPositionType === undefined && (options.xPositionType = GamingCanvasGridCameraMoveJobOptionsPositionType.ABSOLUTE);
-	options.yPositionType === undefined && (options.yPositionType = GamingCanvasGridCameraMoveJobOptionsPositionType.ABSOLUTE);
-	options.zPositionType === undefined && (options.zPositionType = GamingCanvasGridCameraMoveJobOptionsPositionType.ABSOLUTE);
-
-	// Apply now or submit to workload
-	if (durationInMs <= 0) {
-		camera.r += r;
-		camera.x = options.xPositionType === GamingCanvasGridCameraMoveJobOptionsPositionType.ABSOLUTE ? x : camera.x + x;
-		camera.y = options.xPositionType === GamingCanvasGridCameraMoveJobOptionsPositionType.ABSOLUTE ? y : camera.y + y;
-		camera.z = options.xPositionType === GamingCanvasGridCameraMoveJobOptionsPositionType.ABSOLUTE ? z : camera.z + z;
-
-		if (callback !== undefined) {
-			setTimeout(() => {
-				callback(camera);
-			});
-		}
-
-		return null;
-	} else {
-		return GamingCanvasGridCameraMoveLoop.add(
-			{
-				callback: callback,
-				camera: camera,
-				durationInMs: durationInMs,
-				r: r,
-				x: x,
-				y: y,
-				z: z,
-			},
-			options,
-		);
 	}
 };
 
