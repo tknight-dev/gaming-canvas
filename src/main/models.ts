@@ -2,6 +2,12 @@
  * @author tknight-dev
  */
 
+export enum GamingCanvasOptionsDetectDeviceType {
+	MOBILE,
+	PC,
+	TABLET,
+}
+
 export class GamingCanvasOptions {
 	aspectRatio?: number;
 	audioBufferCount?: number;

@@ -132,8 +132,10 @@ export class GamingCanvasUtilTimers {
 	 */
 	private callback(callbacks: Map<number, (durationInMs: number, id: number) => void>, durationInMs: number, id: number): void {
 		setTimeout(() => {
-			if (callbacks.has(id) === true) {
-				callbacks.get(id)(durationInMs, id);
+			let callback: ((durationInMs: number, id: number) => void) | undefined = callbacks.get(id);
+
+			if (callback !== undefined) {
+				callback(durationInMs, id);
 				callbacks.delete(id);
 			}
 		});
@@ -185,7 +187,7 @@ export class GamingCanvasUtilTimers {
 			durationInMs -= delta;
 
 			if (durationInMs <= 0) {
-				this.callback(callbacks, timestampNow - this.added.get(id), id);
+				this.callback(callbacks, timestampNow - <number>this.added.get(id), id);
 				this.added.delete(id);
 				timesInMS.delete(id);
 			} else {

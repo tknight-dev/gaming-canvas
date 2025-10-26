@@ -222,11 +222,11 @@ export class GamingCanvasGridEditor {
 
 		// New Timeline
 		if (history.length !== 0 && this.historyEventCurrent !== history.getEnd()) {
-			let node: GamingCanvasDoubleLinkedListNode<GamingCanvasGridEditHistoryEvent>;
+			let node: GamingCanvasDoubleLinkedListNode<GamingCanvasGridEditHistoryEvent> | undefined;
 
 			// Remove events from a previous timeline
 			// EG edit1, edit2, edit3a, edit4, undo (now edit3a), undo (now edit2), edit3b (edit4 no longer exists)
-			node = this.historyEventCurrent.next;
+			node = (<any>this.historyEventCurrent).next;
 			while (node !== undefined) {
 				history.remove(node);
 				node = node.next;
@@ -251,15 +251,15 @@ export class GamingCanvasGridEditor {
 	}
 
 	public historyRedo(): boolean {
-		if (this.history.length !== 0 && this.historyEventCurrent.next !== undefined) {
+		if (this.history.length !== 0 && (<any>this.historyEventCurrent).next !== undefined) {
 			// Update timeline
 			if (this.empty !== true) {
-				this.historyEventCurrent = this.historyEventCurrent.next;
+				this.historyEventCurrent = (<any>this.historyEventCurrent).next;
 			}
 			this.empty = false;
 
 			// Re-apply
-			let event: GamingCanvasGridEditHistoryEvent = this.historyEventCurrent.data,
+			let event: GamingCanvasGridEditHistoryEvent = (<any>this.historyEventCurrent).data,
 				gridData: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array = this.grid.data,
 				gridIndex: number,
 				value: number;
@@ -274,12 +274,12 @@ export class GamingCanvasGridEditor {
 	}
 
 	public historyRedoAvailable(): boolean {
-		return this.history.length !== 0 && this.historyEventCurrent.next !== undefined;
+		return this.history.length !== 0 && (<any>this.historyEventCurrent).next !== undefined;
 	}
 
 	public historyUndo(): boolean {
 		if (this.history.length !== 0 && this.empty !== true) {
-			const event: GamingCanvasGridEditHistoryEvent = this.historyEventCurrent.data,
+			const event: GamingCanvasGridEditHistoryEvent = (<any>this.historyEventCurrent).data,
 				gridData: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array = this.grid.data;
 
 			// Reverse apply
@@ -289,8 +289,8 @@ export class GamingCanvasGridEditor {
 			}
 
 			// Update timeline
-			if (this.historyEventCurrent.previous !== undefined) {
-				this.historyEventCurrent = this.historyEventCurrent.previous;
+			if ((<any>this.historyEventCurrent).previous !== undefined) {
+				this.historyEventCurrent = (<any>this.historyEventCurrent).previous;
 				this.empty = false;
 			} else {
 				this.empty = true;

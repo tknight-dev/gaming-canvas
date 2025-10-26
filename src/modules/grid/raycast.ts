@@ -154,9 +154,9 @@ export const GamingCanvasGridRaycast = (
 		yIndex = y | 0;
 
 		// Step size to next cell
-		xStep = Math.sign(xAngle);
+		xStep = xAngle === 0 ? 0 : xAngle > 0 ? 1 : -1;
 		xStepRay = (1 + (yAngle / xAngle) * (yAngle / xAngle)) ** 0.5;
-		yStep = Math.sign(yAngle);
+		yStep = yAngle === 0 ? 0 : yAngle > 0 ? 1 : -1;
 		yStepRay = (1 + (xAngle / yAngle) * (xAngle / yAngle)) ** 0.5;
 
 		// Offset ray length by current position within cell

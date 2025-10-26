@@ -357,6 +357,9 @@ export class GamingCanvasEngineAudio {
 			case GamingCanvasAudioType.VOICEOVER:
 				volumeGlobal = GamingCanvasEngineAudio.volumeVoiceoverEff;
 				break;
+			default:
+				console.error(`GamingCanvas > GamingCanvasEngineAudio > controlPlay: unknown type ${type}`);
+				return null;
 		}
 
 		volumeEff = volumeGlobal * (volume === undefined ? 1 : volume);
