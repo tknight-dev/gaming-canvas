@@ -69,7 +69,7 @@ export const GamingCanvasGridRaycast = (
 		gridData: Uint8Array | Uint8ClampedArray | Uint16Array | Uint32Array = grid.data,
 		gridIndex: number,
 		gridSideLength: number = grid.sideLength,
-		gridSize: number = gridSideLength * gridSideLength,
+		gridSize: number = grid.size,
 		i: number = 0,
 		j: number,
 		length: number = 1, // Iterate once by default
