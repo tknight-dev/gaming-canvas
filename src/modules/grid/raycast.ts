@@ -59,7 +59,7 @@ export const GamingCanvasGridRaycast = (
 ): GamingCanvasGridRaycastResult => {
 	let angle: number,
 		blockingMask: boolean = typeof blocking === 'number',
-		cellIncludeBlocked: boolean,
+		cellIncludeBlocked: boolean | undefined,
 		cellIgnoreValue: number | undefined,
 		cells: Set<number> | undefined,
 		distance: number,
