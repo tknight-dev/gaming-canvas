@@ -74,6 +74,7 @@ export class GamingCanvas {
 
 		// Function Forward: Engine Mouse
 		GamingCanvas.mouseLock = GamingCanvasEngineMouse.lock;
+		GamingCanvas.mouseUnlock = GamingCanvasEngineMouse.unlock;
 		GamingCanvas.isMouseLocked = GamingCanvasEngineMouse.isLocked;
 	}
 
@@ -983,10 +984,17 @@ export class GamingCanvas {
 	public static setCallbackIsAudioPermitted(callbackIsPermitted: (state: boolean) => void): void {}
 
 	/**
-	 * gos if the browser is in fullscreen mode or not
+	 * Get notified when the browser changes fullscreen mode
 	 */
 	public static setCallbackFullscreen(callbackFullscreen: (state: boolean) => void): void {
 		GamingCanvas.callbackFullscreen = callbackFullscreen;
+	}
+
+	/**
+	 * Get notified when the browser changes mouse locked mode
+	 */
+	public static setCallbackMouseLocked(callbackMouseLocked: (state: boolean) => void): void {
+		GamingCanvasEngineMouse.callbackLocked = callbackMouseLocked;
 	}
 
 	/**
@@ -1159,6 +1167,8 @@ export class GamingCanvas {
 	public static async mouseLock(_unadjustedMovement?: boolean): Promise<boolean> {
 		return false;
 	}
+
+	public static mouseUnlock(): void {}
 
 	public static isMouseLocked(): boolean {
 		return false;
