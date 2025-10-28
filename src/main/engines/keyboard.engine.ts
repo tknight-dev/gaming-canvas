@@ -34,12 +34,25 @@ export class GamingCanvasEngineKeyboard {
 	public static active: boolean = true;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 
-	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, preventTab: boolean): void {
+	public static initialize(
+		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
+		preventAlt: boolean,
+		preventCntrl: boolean,
+		preventMeta: boolean,
+		preventShift: boolean,
+		preventTab: boolean,
+	): void {
 		GamingCanvasEngineKeyboard.active = true;
 		GamingCanvasEngineKeyboard.queue = queue;
 
 		document.addEventListener('keydown', (event: KeyboardEvent) => {
-			if (event.code === 'Tab') {
+			if (
+				(preventAlt === true && event.altKey === true) ||
+				(preventCntrl === true && event.ctrlKey === true) ||
+				(preventMeta === true && event.metaKey === true) ||
+				(preventShift === true && event.shiftKey === true) ||
+				(preventTab === true && event.code === 'Tab')
+			) {
 				event.preventDefault();
 				event.stopPropagation();
 			}

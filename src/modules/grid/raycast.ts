@@ -22,6 +22,7 @@ export enum GamingCanvasGridRaycastCellSide {
  */
 export interface GamingCanvasGridRaycastOptions {
 	cellEnable?: boolean; // Defaults to true
+	cellIncludeBlocked?: boolean; // Defaults to false
 	cellIgnoreValue?: number;
 	distanceMapEnable?: boolean; // Default to false
 	rayCount?: number;
@@ -58,6 +59,7 @@ export const GamingCanvasGridRaycast = (
 ): GamingCanvasGridRaycastResult => {
 	let angle: number,
 		blockingMask: boolean = typeof blocking === 'number',
+		cellIncludeBlocked: boolean | undefined,
 		cellIgnoreValue: number | undefined,
 		cells: Set<number> | undefined,
 		distance: number,
@@ -95,6 +97,7 @@ export const GamingCanvasGridRaycast = (
 	}
 
 	if (options !== undefined) {
+		// Cells
 		if (options.cellEnable === true) {
 			cells = new Set();
 			cells.add((x | 0) * gridSideLength + (y | 0)); // Add the origin cell
@@ -106,20 +109,22 @@ export const GamingCanvasGridRaycast = (
 				distanceMapCells.set(0, (x | 0) * gridSideLength + (y | 0)); // Add the origin cell
 			}
 		}
+		cellIncludeBlocked = options.cellIncludeBlocked;
 		cellIgnoreValue = options.cellIgnoreValue;
 
-		if (options.rayEnable !== true) {
+		// Rays
+		if (options.rayFOV !== undefined && options.rayCount !== undefined) {
+			length = Math.max(1, options.rayCount) | 0;
+
+			if (length !== 1) {
+				fov = angle + options.rayFOV / 2;
+				fovStep = options.rayFOV / (length - 1);
+			}
+		}
+
+		if (options.rayEnable !== false) {
 			if (options.distanceMapEnable === true && distanceMap === undefined) {
 				distanceMap = new Map();
-			}
-
-			if (options.rayFOV !== undefined && options.rayCount !== undefined) {
-				length = Math.max(1, options.rayCount) | 0;
-
-				if (length !== 1) {
-					fov = angle + options.rayFOV / 2;
-					fovStep = options.rayFOV / (length - 1);
-				}
 			}
 
 			if (options.rayReuse !== undefined) {
@@ -217,6 +222,23 @@ export const GamingCanvasGridRaycast = (
 						distanceMap.set(distance, {
 							rayIndex: rayIndex,
 						});
+					}
+				}
+
+				if (cellIncludeBlocked === true && cells !== undefined) {
+					if (cellIgnoreValue === undefined || gridData[gridIndex] !== cellIgnoreValue) {
+						cells.add(gridIndex);
+
+						// Distance Map
+						if (distanceMapCells !== undefined) {
+							if (distanceMapCells.has(gridIndex)) {
+								if (distance > (distanceMapCells.get(gridIndex) || 0)) {
+									distanceMapCells.set(gridIndex, distance);
+								}
+							} else {
+								distanceMapCells.set(gridIndex, distance);
+							}
+						}
 					}
 				}
 				break;
