@@ -35,7 +35,10 @@ export const GamingCanvasGridCharacterControl = (
 ): boolean => {
 	let blockingIndex: number,
 		blockingMask: boolean = typeof blocking === 'number',
-		camera: GamingCanvasGridICamera = character.camera;
+		camera: GamingCanvasGridICamera = character.camera,
+		r: number,
+		x: number,
+		y: number;
 
 	// Options
 	if (options === undefined) {
@@ -92,6 +95,15 @@ export const GamingCanvasGridCharacterControl = (
 	}
 
 	if (input.x !== 0 || input.y !== 0) {
+		// Speed correction for diagonal movement
+		x = Math.abs(input.x);
+		y = Math.abs(input.y);
+		if (x + y > 1) {
+			r = 1.5 / (x + y);
+			input.x *= r;
+			input.y *= r;
+		}
+
 		// Set: X
 		if (options.style === GamingCanvasGridCharacterControlStyle.STRAFE) {
 			controlEff = (Math.sin(camera.r) * input.x - Math.cos(camera.r) * input.y) * <number>options.factorPosition * timestampDelta;
