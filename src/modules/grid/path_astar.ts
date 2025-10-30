@@ -80,10 +80,11 @@ class GamingCanvasGridBinaryHeap {
 	}
 
 	public pop() {
-		const nodeFirst: GamingCanvasGridPathAStarNode = this.content[0];
+		const nodeFirst: GamingCanvasGridPathAStarNode = this.content[0],
+			nodePop: GamingCanvasGridPathAStarNode = <GamingCanvasGridPathAStarNode>this.content.pop();
 
 		if (this.content.length !== 0) {
-			this.content[0] = <GamingCanvasGridPathAStarNode>this.content.pop();
+			this.content[0] = nodePop;
 			this.bubbleUp(0);
 		}
 
