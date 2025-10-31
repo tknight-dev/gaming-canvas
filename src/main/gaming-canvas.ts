@@ -1117,7 +1117,7 @@ export class GamingCanvas {
 	/**
 	 * @param active means inputs will be put in the queue for processing
 	 */
-	public static setInputEnable(enable: boolean, clearInputQueue?: boolean): void {
+	public static setInputState(enable: boolean, clearInputQueue?: boolean): void {
 		clearInputQueue === true && GamingCanvas.inputQueue.clear();
 
 		GamingCanvasEngineMouse.active = enable;
