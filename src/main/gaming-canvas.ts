@@ -723,7 +723,7 @@ export class GamingCanvas {
 	 * @return null on failure
 	 */
 	public static async screenshot(skipCanvases?: number[]): Promise<Blob | null> {
-		if (GamingCanvas.elementParent !== undefined) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > screenshot: not initialized yet');
 			return null;
 		}
@@ -1012,7 +1012,7 @@ export class GamingCanvas {
 	}
 
 	public static getCurrentOrientation(): GamingCanvasOrientation {
-		if (GamingCanvas.elementParent !== undefined) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > getCurrentOrientation: not initialized yet');
 			return GamingCanvasOrientation.LANDSCAPE;
 		}
@@ -1020,7 +1020,7 @@ export class GamingCanvas {
 	}
 
 	public static setDebug(state: boolean): void {
-		if (GamingCanvas.elementParent !== undefined) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setDebug: not initialized yet');
 			return;
 		}
@@ -1090,7 +1090,7 @@ export class GamingCanvas {
 	}
 
 	public static getInputLimitPerMs(): number {
-		if (GamingCanvas.elementParent !== undefined) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > getInputLimitPerMs: not initialized yet');
 			return 8;
 		}
@@ -1129,7 +1129,7 @@ export class GamingCanvas {
 	}
 
 	public static isFullscreen(): boolean {
-		if (GamingCanvas.elementParent !== undefined) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > isFullscreen: not initialized yet');
 			return false;
 		}
@@ -1140,7 +1140,7 @@ export class GamingCanvas {
 	 * @param element use this to fullscreen something other than the canvas element. Not needed when exiting fullscreen.
 	 */
 	public static async setFullscreen(state: boolean, element?: HTMLElement): Promise<boolean> {
-		if (GamingCanvas.elementParent !== undefined) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setFullscreen: not initialized yet');
 			return true;
 		} else if (GamingCanvas.stateFullscreen === state) {
@@ -1220,7 +1220,7 @@ export class GamingCanvas {
 	 *  - input*
 	 */
 	public static setOptions(options: GamingCanvasOptions): void {
-		if (GamingCanvas.elementParent !== undefined) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setOptions: not initialized yet');
 			return;
 		}
@@ -1245,7 +1245,7 @@ export class GamingCanvas {
 	}
 
 	public static setOrientation(orientation: GamingCanvasOrientation) {
-		if (GamingCanvas.elementParent !== undefined) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > setOrientation: not initialized yet');
 			return;
 		}
@@ -1301,7 +1301,7 @@ export class GamingCanvas {
 	}
 
 	public static getReport(): GamingCanvasReport {
-		if (GamingCanvas.elementParent !== undefined) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > getReport: not initialized yet');
 			return <any>{};
 		}
@@ -1313,7 +1313,7 @@ export class GamingCanvas {
 	}
 
 	public static isVisible(): boolean {
-		if (GamingCanvas.elementParent !== undefined) {
+		if (!GamingCanvas.elementParent) {
 			console.error('GamingCanvas > isVisible: not initialized yet');
 			return true;
 		}
