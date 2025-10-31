@@ -256,6 +256,10 @@ export class GamingCanvasEngineMouse {
 					});
 				}
 			});
+
+			document.addEventListener('pointerlockerror', (event: Event) => {
+				console.error('GamingCanvasEngineMouse: pointer locked failed with', event);
+			});
 		}
 
 		// Wheel
