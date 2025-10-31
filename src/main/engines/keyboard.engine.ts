@@ -46,35 +46,48 @@ export class GamingCanvasEngineKeyboard {
 		GamingCanvasEngineKeyboard.queue = queue;
 
 		document.addEventListener('keydown', (event: KeyboardEvent) => {
-			if (
-				(preventAlt === true && event.altKey === true) ||
-				(preventCntrl === true && event.ctrlKey === true) ||
-				(preventMeta === true && event.metaKey === true) ||
-				(preventShift === true && event.shiftKey === true) ||
-				(preventTab === true && event.code === 'Tab')
-			) {
-				event.preventDefault();
-				event.stopPropagation();
-			}
+			if (GamingCanvasEngineKeyboard.active === true) {
+				if (
+					(preventAlt === true && event.altKey === true) ||
+					(preventCntrl === true && event.ctrlKey === true) ||
+					(preventMeta === true && event.metaKey === true) ||
+					(preventShift === true && event.shiftKey === true) ||
+					(preventTab === true && event.code === 'Tab')
+				) {
+					event.preventDefault();
+					event.stopPropagation();
+				}
 
-			if (GamingCanvasEngineKeyboard.active && !event.repeat) {
-				GamingCanvasEngineKeyboard.queue.push({
-					propriatary: {
-						action: {
-							code: event.code,
-							key: event.key,
-							keyCtrl: event.ctrlKey,
-							keyShift: event.shiftKey,
-							location: event.location,
+				if (event.repeat !== true) {
+					GamingCanvasEngineKeyboard.queue.push({
+						propriatary: {
+							action: {
+								code: event.code,
+								key: event.key,
+								keyCtrl: event.ctrlKey,
+								keyShift: event.shiftKey,
+								location: event.location,
+							},
+							down: true,
 						},
-						down: true,
-					},
-					type: GamingCanvasInputType.KEYBOARD,
-				});
+						type: GamingCanvasInputType.KEYBOARD,
+					});
+				}
 			}
 		});
 		document.addEventListener('keyup', (event: KeyboardEvent) => {
-			if (GamingCanvasEngineKeyboard.active) {
+			if (GamingCanvasEngineKeyboard.active === true) {
+				if (
+					(preventAlt === true && event.altKey === true) ||
+					(preventCntrl === true && event.ctrlKey === true) ||
+					(preventMeta === true && event.metaKey === true) ||
+					(preventShift === true && event.shiftKey === true) ||
+					(preventTab === true && event.code === 'Tab')
+				) {
+					event.preventDefault();
+					event.stopPropagation();
+				}
+
 				GamingCanvasEngineKeyboard.queue.push({
 					propriatary: {
 						action: {
