@@ -78,14 +78,17 @@ export class GamingCanvasEngineMouse {
 		GamingCanvasEngineMouse.el = elInputs;
 		GamingCanvasEngineMouse.queue = queue;
 
-		if (preventContextMenu) {
-			(elInteractive || document.body).addEventListener('contextmenu', (event: MouseEvent) => {
+		// Context Menu
+		const contextmenu = (event: MouseEvent) => {
+			if (GamingCanvasEngineMouse.active === true && preventContextMenu === true) {
 				event.preventDefault();
 				event.stopPropagation();
 				return false;
-			});
-		}
+			}
+		};
+		(elInteractive || document.body).addEventListener('contextmenu', contextmenu);
 
+		// Mouse: Click
 		let clickAction: GamingCanvasInputMouseAction;
 		document.addEventListener('click', (event: MouseEvent) => {
 			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked === true && event.button < 3) {
@@ -126,6 +129,7 @@ export class GamingCanvasEngineMouse {
 			}
 		});
 
+		// Mouse: Down
 		let mousedownAction: GamingCanvasInputMouseAction;
 		document.addEventListener('mousedown', (event: MouseEvent) => {
 			if (GamingCanvasEngineMouse.locked === true) {
@@ -168,6 +172,7 @@ export class GamingCanvasEngineMouse {
 			}
 		});
 
+		// Mouse: Move
 		document.addEventListener('mousemove', (event: MouseEvent) => {
 			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked === true) {
 				GamingCanvasEngineMouse.queue.push({
@@ -181,7 +186,6 @@ export class GamingCanvasEngineMouse {
 				});
 			}
 		});
-
 		(elInteractive || document.body).addEventListener('mousemove', (event: MouseEvent) => {
 			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked !== true) {
 				GamingCanvasEngineMouse.queue.push({
@@ -196,6 +200,7 @@ export class GamingCanvasEngineMouse {
 			}
 		});
 
+		// Mouse: Down
 		let mouseupAction: GamingCanvasInputMouseAction;
 		document.addEventListener('mouseup', (event: MouseEvent) => {
 			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked === true && event.button < 3) {
@@ -238,6 +243,7 @@ export class GamingCanvasEngineMouse {
 			}
 		});
 
+		// Pointer Lock
 		if (GamingCanvasEngineMouse.lockHooked !== true) {
 			GamingCanvasEngineMouse.lockHooked = true;
 
@@ -252,6 +258,7 @@ export class GamingCanvasEngineMouse {
 			});
 		}
 
+		// Wheel
 		document.addEventListener('wheel', (event: any) => {
 			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked === true) {
 				GamingCanvasEngineMouse.queue.push({
@@ -264,7 +271,6 @@ export class GamingCanvasEngineMouse {
 				});
 			}
 		});
-
 		(elInteractive || document.body).addEventListener('wheel', (event: any) => {
 			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked !== true) {
 				GamingCanvasEngineMouse.queue.push({
