@@ -16,22 +16,21 @@ import { GamingCanvasUtilTimers } from '../util.js';
  * @author tknight-dev
  */
 
-// progress: frameStart, [fadeIn, content, fadeout, fadein, content], frameStop
 export interface GamingCanvasTransition {
-	attach?: GamingCanvasTransitionAttach; // Default Canvas, Which section to put the transition frames in
-	debug?: boolean; // default to GamingCanvas value
-	defaultFrameIncoming?: GamingCanvasTransitionFrameEffect; // Skip settings here override skip settings of 'defaultFrameSkip'
-	defaultFrameOutgoing?: GamingCanvasTransitionFrameEffect; // Skip settings here override skip settings of 'defaultFrameSkip'
+	attach?: GamingCanvasTransitionAttach;
+	debug?: boolean;
+	defaultFrameIncoming?: GamingCanvasTransitionFrameEffect;
+	defaultFrameOutgoing?: GamingCanvasTransitionFrameEffect;
 	defaultFrameSkip?: GamingCanvasTransitionFrameSkip;
-	inputPassthrough?: boolean; // Defaults to false which prevents inputs from reaching the queue
-	fps?: number; // Defaults to 60
+	inputPassthrough?: boolean;
+	fps?: number;
 	frames: GamingCanvasTransitionFrameGroup[];
-	frameStart?: GamingCanvasTransitionFrameEffect; // Outgoing only (no background)
-	frameStop?: GamingCanvasTransitionFrameEffect; // Incoming only (no background)
-	loop?: boolean; // Defaults to false
-	zIndexBackground?: number; // defaults to 5 as the first canvas defaults to 10
-	zIndexEffect?: number; // defaults to 9999
-	zIndexFrames?: number; // defaults to zIndexBackground + 2
+	frameStart?: GamingCanvasTransitionFrameEffect;
+	frameStop?: GamingCanvasTransitionFrameEffect;
+	loop?: boolean;
+	zIndexBackground?: number;
+	zIndexEffect?: number;
+	zIndexFrames?: number;
 }
 
 interface GamingCanvasTransitionAnimateProperty {
@@ -59,20 +58,20 @@ const GamingCanvasTransitionAnimateTypes: GamingCanvasTransitionAnimateType[] = 
 ];
 
 export enum GamingCanvasTransitionAttach {
-	CANVAS, // Allows for animations on top of your transition frames
+	CANVAS,
 	OVERLAY,
 }
 
 export interface GamingCanvasTransitionAudioInstance {
 	assetId: number;
-	pan?: number; // pan is -1 left, 0 center, 1 right
-	volume?: number; // volume is between 0 and 1
+	pan?: number;
+	volume?: number;
 }
 
 export interface GamingCanvasTransitionFrame {
-	durationInMs?: number; // default 2500ms, 0 is infinite (only advances on skip)
-	durationInMsMin?: number; // default 1000ms
-	frameType?: GamingCanvasTransitionFrameType; // Automatically set by system
+	durationInMs?: number;
+	durationInMsMin?: number;
+	frameType?: GamingCanvasTransitionFrameType;
 	skip?: GamingCanvasTransitionFrameSkip;
 }
 
@@ -86,45 +85,45 @@ export interface GamingCanvasTransitionFrameContentElements extends GamingCanvas
 }
 
 export interface GamingCanvasTransitionFrameContentElementsImage extends GamingCanvasTransitionFrameContentElementsShared {
-	cssImageFilterBlurInPx?: number; // default is 0px
-	cssImageFilterGrayscalePercentage?: number; // default is 0%
-	cssImageFilterInvertPercentage?: number; // default is 0%
-	cssImageFilterOpacityPercentage?: number; // default is 100%
-	cssImageFilterSaturatePercentage?: number; // default is 100%
-	cssImageFilterSepiaPercentage?: number; // default is 0%
-	cssImageFlipHorizontal?: boolean; // default is "false"
-	cssImageFlipVertical?: boolean; // default is "false"
-	cssImagePosition?: string; // default is "center center"; "50% 20px"
-	cssImageRepeat?: 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat'; // default is no-repeat
-	cssImageSize?: 'cover' | 'contain' | string; // default is "contain"
-	src: string; // formated like `<img src=*src* />`
+	cssImageFilterBlurInPx?: number;
+	cssImageFilterGrayscalePercentage?: number;
+	cssImageFilterInvertPercentage?: number;
+	cssImageFilterOpacityPercentage?: number;
+	cssImageFilterSaturatePercentage?: number;
+	cssImageFilterSepiaPercentage?: number;
+	cssImageFlipHorizontal?: boolean;
+	cssImageFlipVertical?: boolean;
+	cssImagePosition?: string;
+	cssImageRepeat?: 'repeat' | 'repeat-x' | 'repeat-y' | 'no-repeat';
+	cssImageSize?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+	src: string;
 }
 
 export interface GamingCanvasTransitionFrameContentElementsShared {
-	cssAbsoluteBottom?: 0 | string; // default is 0; "50%", "5px"
-	cssAbsoluteLeft?: 0 | string; // default is 0; "50%", "5px"
-	cssAbsoluteRight?: 0 | string; // default is 0; "50%", "5px"
-	cssAbsoluteTop?: 0 | string; // default is 0; "50%", "5px"
-	cssZIndex?: number; // default is 1
+	cssAbsoluteBottom?: 0 | string;
+	cssAbsoluteLeft?: 0 | string;
+	cssAbsoluteRight?: 0 | string;
+	cssAbsoluteTop?: 0 | string;
+	cssZIndex?: number;
 	htmlId?: string;
 }
 
 export interface GamingCanvasTransitionFrameContentElementsText extends GamingCanvasTransitionFrameContentElementsShared {
-	cssCenteringHorizontal?: 'center' | 'space-around' | 'space-between' | 'space-evenly' | 'start' | 'stop'; // Default start (flex-box: justify-content)
-	cssCenteringVertical?: 'center' | 'start' | 'stop'; // Default start (flex-box: align-items)
-	cssFontColor?: string; // default is white
-	cssFontFamily?: string; // default is "Arial, Helvetica, sans-serif"
-	cssFontSize?: string; // default is "1em"
-	cssTextAlign?: 'center' | 'justify' | 'left' | 'right'; // default is "left"
-	effect?: GamingCanvasTransitionFrameContentElementsTextEffect; // Default is none
-	effectTypewriterAudioEffectCarriageReturn?: GamingCanvasTransitionAudioInstance; // This is the same audio defined while loading the assests into the GamingCanvas
-	effectTypewriterAudioEffectKey?: GamingCanvasTransitionAudioInstance; // This is the same audio defined while loading the assests into the GamingCanvas
-	effectTypewriterCarriageReturnPauseInMs?: number; // Default is 200, adds duration to the 'effectTypewriterLetterPerMs' pause
-	effectTypewriterElements?: HTMLSpanElement[]; // Auto-generated
-	effectTypewriterLetterPerMs?: number; // Default is 100
-	effectTypewriterOnComplete?: (frameIndex: number, frameState: GamingCanvasTransitionFrameState, frameTextIndex: number, skipped: boolean) => void; // Ignored on manual skip
-	effectTypewriterOnSkipShowAll?: boolean; // Default is false (print all text to screen on skip)
-	value: string; // supports line breaks like '\n'
+	cssCenteringHorizontal?: 'center' | 'space-around' | 'space-between' | 'space-evenly' | 'start' | 'stop';
+	cssCenteringVertical?: 'center' | 'start' | 'stop';
+	cssFontColor?: string;
+	cssFontFamily?: string;
+	cssFontSize?: string;
+	cssTextAlign?: 'center' | 'justify' | 'left' | 'right';
+	effect?: GamingCanvasTransitionFrameContentElementsTextEffect;
+	effectTypewriterAudioEffectCarriageReturn?: GamingCanvasTransitionAudioInstance;
+	effectTypewriterAudioEffectKey?: GamingCanvasTransitionAudioInstance;
+	effectTypewriterCarriageReturnPauseInMs?: number;
+	effectTypewriterElements?: HTMLSpanElement[];
+	effectTypewriterLetterPerMs?: number;
+	effectOnComplete?: (frameIndex: number, frameState: GamingCanvasTransitionFrameState, frameTextIndex: number, skipped: boolean) => void;
+	effectOnSkipCompleteEffect?: boolean;
+	value: string;
 }
 
 export enum GamingCanvasTransitionFrameContentElementsTextEffect {
@@ -142,29 +141,30 @@ export enum GamingCanvasTransitionFrameContentType {
 }
 
 export interface GamingCanvasTransitionFrameEffect extends GamingCanvasTransitionFrame {
-	cssEffectColor?: string; // default black
+	cssEffectColor?: string;
 	type: GamingCanvasTransitionFrameEffectType;
 }
 
 export enum GamingCanvasTransitionFrameEffectType {
 	FADE,
+	NONE,
 }
 
 export interface GamingCanvasTransitionFrameGroup {
 	content: GamingCanvasTransitionFrameContentElements | GamingCanvasTransitionFrameContentHTML;
-	cssBackgroundColor?: string; // default black
+	cssBackgroundColor?: string;
 	incoming?: GamingCanvasTransitionFrameEffect;
 	outgoing?: GamingCanvasTransitionFrameEffect;
 }
 
 export interface GamingCanvasTransitionFrameSkip {
-	enable?: boolean; // default is false
-	fastForwardFixedDurationInMs?: number; // default is 200ms (transition frame in 200ms at a minimum)
-	fastForwardSpeed?: number; // default is 2 (transition frame twice as fast)
-	inputs?: (GamingCanvasInputGamepadInstance | GamingCanvasInputKeyboardInstance | GamingCanvasInputMouseInstance | GamingCanvasInputTouchInstance)[]; // Undefined means any key is skip
-	toIndex?: number; // default is next frame if current state is OUTGOING
-	toState?: GamingCanvasTransitionFrameState; // default is the next state, if INCOMING > CONTENT > OUTGOING > INCOMING > ...
-	type?: GamingCanvasTransitionFrameSkipType; // default is FAST_FORWARD_SPEED
+	enable?: boolean;
+	fastForwardFixedDurationInMs?: number;
+	fastForwardSpeed?: number;
+	inputs?: (GamingCanvasInputGamepadInstance | GamingCanvasInputKeyboardInstance | GamingCanvasInputMouseInstance | GamingCanvasInputTouchInstance)[];
+	toIndex?: number;
+	toState?: GamingCanvasTransitionFrameState;
+	type?: GamingCanvasTransitionFrameSkipType;
 }
 
 export enum GamingCanvasTransitionFrameSkipType {
@@ -659,7 +659,7 @@ export class GamingCanvasEngineTransition {
 				defaultFrame(frame);
 
 				frame.durationInMsMin === undefined && (frame.durationInMsMin = 1000);
-				frame.frameType === GamingCanvasTransitionFrameType.CONTENT;
+				frame.frameType = GamingCanvasTransitionFrameType.CONTENT;
 
 				// Type specific
 				switch (frame.type) {
@@ -714,7 +714,7 @@ export class GamingCanvasEngineTransition {
 									frameElementText.effectTypewriterCarriageReturnPauseInMs === undefined &&
 										(frameElementText.effectTypewriterCarriageReturnPauseInMs = 200);
 									frameElementText.effectTypewriterLetterPerMs === undefined && (frameElementText.effectTypewriterLetterPerMs = 100);
-									frameElementText.effectTypewriterOnSkipShowAll === undefined && (frameElementText.effectTypewriterOnSkipShowAll = false);
+									frameElementText.effectOnSkipCompleteEffect === undefined && (frameElementText.effectOnSkipCompleteEffect = false);
 								}
 							}
 						}
@@ -733,8 +733,8 @@ export class GamingCanvasEngineTransition {
 
 					frame.durationInMsMin === undefined && (frame.durationInMsMin = 0);
 					frame.cssEffectColor === undefined && (frame.cssEffectColor = '#000000');
-					frame.type === undefined && (frame.type = GamingCanvasTransitionFrameEffectType.FADE);
-					frame.frameType === GamingCanvasTransitionFrameType.EFFECT;
+					frame.type === undefined && (frame.type = GamingCanvasTransitionFrameEffectType.NONE);
+					frame.frameType = GamingCanvasTransitionFrameType.EFFECT;
 				}
 
 				return frame;
@@ -748,7 +748,7 @@ export class GamingCanvasEngineTransition {
 				} else {
 					skip = {
 						enable: false,
-						type: GamingCanvasTransitionFrameSkipType.FAST_FORWARD_SPEED,
+						type: GamingCanvasTransitionFrameSkipType.FAST_FORWARD_FIXED_DURATION,
 					};
 				}
 
@@ -784,17 +784,25 @@ export class GamingCanvasEngineTransition {
 			state.countFrameStates++;
 
 			// Incoming
-			if (frameGroup.incoming === undefined && defaultFrameIncoming !== undefined) {
-				frameGroup.incoming = JSON.parse(JSON.stringify(defaultFrameIncoming));
+			if (frameGroup.incoming === undefined) {
+				if (defaultFrameIncoming !== undefined) {
+					frameGroup.incoming = JSON.parse(JSON.stringify(defaultFrameIncoming));
+				} else {
+					frameGroup.incoming = defaultFrameEffect(<any>{});
+				}
 			} else {
-				frameGroup.incoming = defaultFrameEffect(transition.defaultFrameIncoming);
+				frameGroup.incoming = defaultFrameEffect(frameGroup.incoming);
 			}
 
 			// Outgoing
-			if (frameGroup.outgoing === undefined && defaultFrameOutgoing !== undefined) {
-				frameGroup.outgoing = JSON.parse(JSON.stringify(defaultFrameOutgoing));
+			if (frameGroup.outgoing === undefined) {
+				if (defaultFrameOutgoing !== undefined) {
+					frameGroup.outgoing = JSON.parse(JSON.stringify(defaultFrameOutgoing));
+				} else {
+					frameGroup.outgoing = defaultFrameEffect(<any>{});
+				}
 			} else {
-				frameGroup.outgoing = defaultFrameEffect(transition.defaultFrameOutgoing);
+				frameGroup.outgoing = defaultFrameEffect(frameGroup.outgoing);
 			}
 
 			/**
@@ -907,7 +915,7 @@ export class GamingCanvasEngineTransition {
 						for ([i, frameContentElementsText] of frameContentElements.text.entries()) {
 							if (frameContentElementsText.effectTypewriterElements !== undefined) {
 								// Reveal Text
-								if (frameContentElementsText.effectTypewriterOnSkipShowAll === true) {
+								if (frameContentElementsText.effectOnSkipCompleteEffect === true) {
 									for (htmlElementSpan of frameContentElementsText.effectTypewriterElements) {
 										htmlElementSpan.style.color = <string>frameContentElementsText.cssFontColor;
 									}
@@ -1186,9 +1194,9 @@ export class GamingCanvasEngineTransition {
 													frameContentElementsTextCounts[i] ===
 													(<HTMLSpanElement[]>frameContentElementsText.effectTypewriterElements).length
 												) {
-													if (frameContentElementsText.effectTypewriterOnComplete !== undefined) {
+													if (frameContentElementsText.effectOnComplete !== undefined) {
 														GamingCanvasEngineTransition.loopHTMLContentElementsTextTypewriterCallback(
-															frameContentElementsText.effectTypewriterOnComplete,
+															frameContentElementsText.effectOnComplete,
 															frameActiveIndex,
 															frameActiveState,
 															i,
@@ -1517,7 +1525,7 @@ export class GamingCanvasEngineTransition {
 				case GamingCanvasTransitionFrameState.INCOMING:
 					transitionState.frameActive = frameGroup.incoming;
 
-					if (frameGroup.incoming !== undefined) {
+					if (frameGroup.incoming !== undefined && frameGroup.incoming.type !== GamingCanvasTransitionFrameEffectType.NONE) {
 						frameEffect = frameGroup.incoming;
 
 						// Callback
@@ -1582,8 +1590,10 @@ export class GamingCanvasEngineTransition {
 					}
 					transitionState.frameIndex = ++transitionState.frameIndex;
 
-					if (frameGroup.outgoing !== undefined) {
+					if (frameGroup.outgoing !== undefined && frameGroup.outgoing.type !== GamingCanvasTransitionFrameEffectType.NONE) {
 						frameEffect = frameGroup.outgoing;
+
+						console.log('outgoing:', GamingCanvasTransitionFrameEffectType[frameGroup.outgoing.type]);
 
 						// Callback
 						if (GamingCanvasEngineTransition.callbackTransitionFrame !== undefined) {
