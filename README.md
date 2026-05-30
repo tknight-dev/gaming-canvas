@@ -29,9 +29,10 @@ Supports
 - **Lists**: Provides `List` implementions where `Array` performance faulters
     - Double-Linked-List
     - FIFO Queue (Single-Linked-List without `popEnd()` or `pushStart()`)
-- **Lightweight**: Core library is **~45kb**
+- **Lightweight**: Core library is **44.3kb** and the Grid Module is **17.9kb**
 - **Modules**
     - **Grids**: Includes _Grid_, _Camera_, _Path Finding (A\*)_, _Raycasting_, and _Viewport_ implementations. See [How-To > Module: Grids](https://gaming-canvas.org/docs/category/module-grids) for all the features and details
+        - **Examples**: [Camera Move](https://gaming-canvas.org/examples/camera-move/index.html), this shows how automating in-game cameras can look
 - **Mobile**: Mobile devices are fully supported
 - **Orientation**: Auto rotate for maximum screen usage or lock it to a specific orientation (Portrait/Landscape)
     - [Screen Orientation](https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock) locking isn't supported by all browsers
@@ -40,6 +41,8 @@ Supports
     - Scaling uses the css `transform: scale(x)` function which your browser (CPU) offloads to your GPU (best performance)
     - Use the `aspectRatio` option to lock your display to something like `1 / 1 `, `4 / 3`, and `16 / 9` (the default)
 - **Splitscreen**: A no hassle way to split your screen for 2 players (2 canvases sharing the space of 1 canvas)
+- **Transition**: Built in system allows you develop simple on-game-boot intro transitions and in-game cutscenes with ease!
+    - **Example**: [Transition](https://gaming-canvas.org/examples/transition/index.html), this contains multiple styles of transitions
 - **Vibration**: Set vibration (think mobile device vibration during an incoming phone call) for single use or repeating patterns
     - Not supported by all browsers ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API))
 - **Visibility**: Quickly know if your game needs to be paused (browser minimized or switched to new tab)

@@ -1,9 +1,19 @@
 import { GamingCanvasFIFOQueue } from '../fifo-queue.js';
-import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from '../inputs.js';
+import { GamingCanvasInput, GamingCanvasInputInstance, GamingCanvasInputPosition, GamingCanvasInputType } from '../inputs.js';
 
 /**
  * @author tknight-dev
  */
+
+export interface GamingCanvasInputMouse extends GamingCanvasInput {
+	propriatary: {
+		action: GamingCanvasInputMouseAction;
+		down?: boolean;
+		movementX?: number;
+		movementY?: number;
+		position: GamingCanvasInputPosition;
+	};
+}
 
 export enum GamingCanvasInputMouseAction {
 	LEFT, // GamingCanvasMousedown and GamingCanvasMouseup based triggers
@@ -16,14 +26,9 @@ export enum GamingCanvasInputMouseAction {
 	WHEEL_CLICK, // click based trigger
 }
 
-export interface GamingCanvasInputMouse extends GamingCanvasInput {
-	propriatary: {
-		action: GamingCanvasInputMouseAction;
-		down?: boolean;
-		movementX?: number;
-		movementY?: number;
-		position: GamingCanvasInputPosition;
-	};
+export interface GamingCanvasInputMouseInstance extends GamingCanvasInputInstance {
+	action: GamingCanvasInputMouseAction;
+	down?: boolean;
 }
 
 export class GamingCanvasEngineMouse {
@@ -33,7 +38,9 @@ export class GamingCanvasEngineMouse {
 	private static elInteractive: HTMLElement | undefined;
 	private static locked: boolean;
 	private static lockHooked: boolean;
+	public static lockout: boolean;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
+	private static queueLockout: GamingCanvasFIFOQueue<GamingCanvasInput>;
 
 	/**
 	 * Function forwarding: Reduce garbage collector demand be reducing temporary variables (best performance for repeating functions
@@ -72,15 +79,18 @@ export class GamingCanvasEngineMouse {
 		elInputs: HTMLElement,
 		elInteractive: HTMLElement | undefined,
 		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
+		queueLockout: GamingCanvasFIFOQueue<GamingCanvasInput>,
 		preventContextMenu: boolean,
 	): void {
 		GamingCanvasEngineMouse.active = true;
 		GamingCanvasEngineMouse.el = elInputs;
+		GamingCanvasEngineMouse.lockout = false;
 		GamingCanvasEngineMouse.queue = queue;
+		GamingCanvasEngineMouse.queueLockout = queueLockout;
 
 		// Context Menu
 		const contextmenu = (event: MouseEvent) => {
-			if (GamingCanvasEngineMouse.active === true && preventContextMenu === true) {
+			if ((GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) && preventContextMenu === true) {
 				event.preventDefault();
 				event.stopPropagation();
 				return false;
@@ -91,7 +101,11 @@ export class GamingCanvasEngineMouse {
 		// Mouse: Click
 		let clickAction: GamingCanvasInputMouseAction;
 		document.addEventListener('click', (event: MouseEvent) => {
-			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked === true && event.button < 3) {
+			if (
+				(GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) &&
+				GamingCanvasEngineMouse.locked === true &&
+				event.button < 3
+			) {
 				if (event.button === 0) {
 					clickAction = GamingCanvasInputMouseAction.LEFT_CLICK;
 				} else if (event.button === 1) {
@@ -100,7 +114,7 @@ export class GamingCanvasEngineMouse {
 					clickAction = GamingCanvasInputMouseAction.RIGHT_CLICK;
 				}
 
-				GamingCanvasEngineMouse.queue.push({
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
 					propriatary: {
 						action: clickAction,
 						position: GamingCanvasEngineMouse.calc(event),
@@ -110,7 +124,11 @@ export class GamingCanvasEngineMouse {
 			}
 		});
 		(elInteractive || document.body).addEventListener('click', (event: MouseEvent) => {
-			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked !== true && event.button < 3) {
+			if (
+				(GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) &&
+				GamingCanvasEngineMouse.locked !== true &&
+				event.button < 3
+			) {
 				if (event.button === 0) {
 					clickAction = GamingCanvasInputMouseAction.LEFT_CLICK;
 				} else if (event.button === 1) {
@@ -119,7 +137,7 @@ export class GamingCanvasEngineMouse {
 					clickAction = GamingCanvasInputMouseAction.RIGHT_CLICK;
 				}
 
-				GamingCanvasEngineMouse.queue.push({
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
 					propriatary: {
 						action: clickAction,
 						position: GamingCanvasEngineMouse.calc(event),
@@ -132,7 +150,7 @@ export class GamingCanvasEngineMouse {
 		// Mouse: Down
 		let mousedownAction: GamingCanvasInputMouseAction;
 		document.addEventListener('mousedown', (event: MouseEvent) => {
-			if (GamingCanvasEngineMouse.locked === true) {
+			if ((GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) && GamingCanvasEngineMouse.locked === true) {
 				if (event.button === 0) {
 					mousedownAction = GamingCanvasInputMouseAction.LEFT;
 				} else if (event.button === 1) {
@@ -141,7 +159,7 @@ export class GamingCanvasEngineMouse {
 					mousedownAction = GamingCanvasInputMouseAction.RIGHT;
 				}
 
-				GamingCanvasEngineMouse.queue.push({
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
 					propriatary: {
 						action: mousedownAction,
 						down: true,
@@ -152,7 +170,11 @@ export class GamingCanvasEngineMouse {
 			}
 		});
 		(elInteractive || document.body).addEventListener('mousedown', (event: MouseEvent) => {
-			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked !== true && event.button < 3) {
+			if (
+				(GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) &&
+				GamingCanvasEngineMouse.locked !== true &&
+				event.button < 3
+			) {
 				if (event.button === 0) {
 					mousedownAction = GamingCanvasInputMouseAction.LEFT;
 				} else if (event.button === 1) {
@@ -161,7 +183,7 @@ export class GamingCanvasEngineMouse {
 					mousedownAction = GamingCanvasInputMouseAction.RIGHT;
 				}
 
-				GamingCanvasEngineMouse.queue.push({
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
 					propriatary: {
 						action: mousedownAction,
 						down: true,
@@ -174,8 +196,8 @@ export class GamingCanvasEngineMouse {
 
 		// Mouse: Move
 		document.addEventListener('mousemove', (event: MouseEvent) => {
-			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked === true) {
-				GamingCanvasEngineMouse.queue.push({
+			if ((GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) && GamingCanvasEngineMouse.locked === true) {
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
 					propriatary: {
 						action: GamingCanvasInputMouseAction.MOVE,
 						movementX: event.movementX,
@@ -187,8 +209,8 @@ export class GamingCanvasEngineMouse {
 			}
 		});
 		(elInteractive || document.body).addEventListener('mousemove', (event: MouseEvent) => {
-			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked !== true) {
-				GamingCanvasEngineMouse.queue.push({
+			if ((GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) && GamingCanvasEngineMouse.locked !== true) {
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
 					propriatary: {
 						action: GamingCanvasInputMouseAction.MOVE,
 						movementX: event.movementX,
@@ -203,7 +225,11 @@ export class GamingCanvasEngineMouse {
 		// Mouse: Down
 		let mouseupAction: GamingCanvasInputMouseAction;
 		document.addEventListener('mouseup', (event: MouseEvent) => {
-			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked === true && event.button < 3) {
+			if (
+				(GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) &&
+				GamingCanvasEngineMouse.locked === true &&
+				event.button < 3
+			) {
 				if (event.button === 0) {
 					mouseupAction = GamingCanvasInputMouseAction.LEFT;
 				} else if (event.button === 1) {
@@ -212,7 +238,7 @@ export class GamingCanvasEngineMouse {
 					mouseupAction = GamingCanvasInputMouseAction.RIGHT;
 				}
 
-				GamingCanvasEngineMouse.queue.push({
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
 					propriatary: {
 						action: mouseupAction,
 						down: false,
@@ -223,7 +249,11 @@ export class GamingCanvasEngineMouse {
 			}
 		});
 		(elInteractive || document.body).addEventListener('mouseup', (event: MouseEvent) => {
-			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked !== true && event.button < 3) {
+			if (
+				(GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) &&
+				GamingCanvasEngineMouse.locked !== true &&
+				event.button < 3
+			) {
 				if (event.button === 0) {
 					mouseupAction = GamingCanvasInputMouseAction.LEFT;
 				} else if (event.button === 1) {
@@ -232,7 +262,7 @@ export class GamingCanvasEngineMouse {
 					mouseupAction = GamingCanvasInputMouseAction.RIGHT;
 				}
 
-				GamingCanvasEngineMouse.queue.push({
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
 					propriatary: {
 						action: mouseupAction,
 						down: false,
@@ -264,7 +294,7 @@ export class GamingCanvasEngineMouse {
 
 		// Wheel
 		document.addEventListener('wheel', (event: any) => {
-			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked === true) {
+			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked === true && GamingCanvasEngineMouse.lockout !== true) {
 				GamingCanvasEngineMouse.queue.push({
 					propriatary: {
 						action: GamingCanvasInputMouseAction.SCROLL,
@@ -276,7 +306,7 @@ export class GamingCanvasEngineMouse {
 			}
 		});
 		(elInteractive || document.body).addEventListener('wheel', (event: any) => {
-			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked !== true) {
+			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked !== true && GamingCanvasEngineMouse.lockout !== true) {
 				GamingCanvasEngineMouse.queue.push({
 					propriatary: {
 						action: GamingCanvasInputMouseAction.SCROLL,

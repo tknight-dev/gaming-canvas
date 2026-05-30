@@ -1,5 +1,5 @@
 import { GamingCanvasFIFOQueue } from '../fifo-queue.js';
-import { GamingCanvasInput, GamingCanvasInputType } from '../inputs.js';
+import { GamingCanvasInput, GamingCanvasInputInstance, GamingCanvasInputType } from '../inputs.js';
 
 /**
  * Triggers are axes in Firefox and buttons in Chrome
@@ -44,6 +44,10 @@ export enum GamingCanvasInputGamepadControllerVendor {
 	SONY = '054C',
 }
 
+export interface GamingCanvasInputGamepadInstance extends GamingCanvasInputInstance {
+	buttonKey: number;
+}
+
 export interface GamingCanvasInputGamepadState {
 	connected: boolean;
 	idDevice: string;
@@ -55,15 +59,23 @@ export class GamingCanvasEngineGamepad {
 	public static active: boolean = true;
 	private static axesByIndex: { [key: number]: number[] } = {};
 	private static buttonsByIndex: { [key: number]: boolean[] } = {};
+	public static lockout: boolean;
 	private static gamepadByIndex: { [key: number]: Gamepad } = {};
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
+	private static queueLockout: GamingCanvasFIFOQueue<GamingCanvasInput>;
 	private static quit: boolean;
 	private static scannerRequest: number;
 	private static statesByIndex: { [key: number]: GamingCanvasInputGamepadState } = {};
 
-	public static initialize(queue: GamingCanvasFIFOQueue<GamingCanvasInput>, deadbandStick: number): void {
+	public static initialize(
+		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
+		queueLockout: GamingCanvasFIFOQueue<GamingCanvasInput>,
+		deadbandStick: number,
+	): void {
 		GamingCanvasEngineGamepad.active = true;
+		GamingCanvasEngineGamepad.lockout = false;
 		GamingCanvasEngineGamepad.queue = queue;
+		GamingCanvasEngineGamepad.queueLockout = queueLockout;
 		GamingCanvasEngineGamepad.quit = false;
 
 		/*
@@ -98,8 +110,8 @@ export class GamingCanvasEngineGamepad {
 			/*
 			 * Queue
 			 */
-			if (GamingCanvasEngineGamepad.active) {
-				GamingCanvasEngineGamepad.queue.push({
+			if (GamingCanvasEngineGamepad.active === true || GamingCanvasEngineGamepad.lockout === true) {
+				(GamingCanvasEngineGamepad.lockout === true ? GamingCanvasEngineGamepad.queueLockout : GamingCanvasEngineGamepad.queue).push({
 					propriatary: {
 						connected: connected,
 						index: index,

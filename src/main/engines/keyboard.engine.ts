@@ -1,11 +1,18 @@
 import { GamingCanvasFIFOQueue } from '../fifo-queue.js';
-import { GamingCanvasInput, GamingCanvasInputType } from '../inputs.js';
+import { GamingCanvasInput, GamingCanvasInputInstance, GamingCanvasInputType } from '../inputs.js';
 
 /**
  * Repeating keys (key held down) are filtered out
  *
  * @author tknight-dev
  */
+
+export interface GamingCanvasInputKeyboard extends GamingCanvasInput {
+	propriatary: {
+		action: GamingCanvasInputKeyboardAction;
+		down: boolean;
+	};
+}
 
 // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
 export interface GamingCanvasInputKeyboardAction {
@@ -23,35 +30,39 @@ export enum GamingCanvasInputKeyboardActionLocation {
 	STANDARD = 0,
 }
 
-export interface GamingCanvasInputKeyboard extends GamingCanvasInput {
-	propriatary: {
-		action: GamingCanvasInputKeyboardAction;
-		down: boolean;
-	};
+export interface GamingCanvasInputKeyboardInstance extends GamingCanvasInputInstance {
+	code: string;
 }
 
 export class GamingCanvasEngineKeyboard {
 	public static active: boolean = true;
+	public static lockout: boolean;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
+	private static queueLockout: GamingCanvasFIFOQueue<GamingCanvasInput>;
 
 	public static initialize(
 		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
+		queueLockout: GamingCanvasFIFOQueue<GamingCanvasInput>,
 		preventAlt: boolean,
 		preventCntrl: boolean,
 		preventMeta: boolean,
 		preventShift: boolean,
+		preventSpaceBarScroll: boolean,
 		preventTab: boolean,
 	): void {
 		GamingCanvasEngineKeyboard.active = true;
+		GamingCanvasEngineKeyboard.lockout = false;
 		GamingCanvasEngineKeyboard.queue = queue;
+		GamingCanvasEngineKeyboard.queueLockout = queueLockout;
 
 		document.addEventListener('keydown', (event: KeyboardEvent) => {
-			if (GamingCanvasEngineKeyboard.active === true) {
+			if (GamingCanvasEngineKeyboard.active === true || GamingCanvasEngineKeyboard.lockout === true) {
 				if (
 					(preventAlt === true && event.altKey === true) ||
 					(preventCntrl === true && event.ctrlKey === true) ||
 					(preventMeta === true && event.metaKey === true) ||
 					(preventShift === true && event.shiftKey === true) ||
+					(preventSpaceBarScroll === true && event.code === 'Space') ||
 					(preventTab === true && event.code === 'Tab')
 				) {
 					event.preventDefault();
@@ -59,7 +70,7 @@ export class GamingCanvasEngineKeyboard {
 				}
 
 				if (event.repeat !== true) {
-					GamingCanvasEngineKeyboard.queue.push({
+					(GamingCanvasEngineKeyboard.lockout === true ? GamingCanvasEngineKeyboard.queueLockout : GamingCanvasEngineKeyboard.queue).push({
 						propriatary: {
 							action: {
 								code: event.code,
@@ -76,19 +87,20 @@ export class GamingCanvasEngineKeyboard {
 			}
 		});
 		document.addEventListener('keyup', (event: KeyboardEvent) => {
-			if (GamingCanvasEngineKeyboard.active === true) {
+			if (GamingCanvasEngineKeyboard.active === true || GamingCanvasEngineKeyboard.lockout === true) {
 				if (
 					(preventAlt === true && event.altKey === true) ||
 					(preventCntrl === true && event.ctrlKey === true) ||
 					(preventMeta === true && event.metaKey === true) ||
 					(preventShift === true && event.shiftKey === true) ||
+					(preventSpaceBarScroll === true && event.code === 'Space') ||
 					(preventTab === true && event.code === 'Tab')
 				) {
 					event.preventDefault();
 					event.stopPropagation();
 				}
 
-				GamingCanvasEngineKeyboard.queue.push({
+				(GamingCanvasEngineKeyboard.lockout === true ? GamingCanvasEngineKeyboard.queueLockout : GamingCanvasEngineKeyboard.queue).push({
 					propriatary: {
 						action: {
 							code: event.code,

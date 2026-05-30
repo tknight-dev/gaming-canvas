@@ -93,36 +93,40 @@ export class GamingCanvasUtilTimers {
 	private added: Map<number, number>;
 	private counter: number = -1;
 	private callbacks: Map<number, (durationInMs: number, id: number) => void>;
-	private timesInMS: Map<number, number>;
+	private timesInMSRemaining: Map<number, number>; // track the current duration of each callback instance
+	private timesInMSRequested: Map<number, number>; // track the request duration of each callback instance
 	private timestampThen: number;
 
-	constructor(timestampNow: number = performance.now() | 0) {
+	constructor(timestampNow: number = performance.now()) {
 		this.added = new Map();
 		this.callbacks = new Map();
-		this.timesInMS = new Map();
+		this.timesInMSRemaining = new Map();
+		this.timesInMSRequested = new Map();
 		this.timestampThen = timestampNow;
 	}
 
 	/**
+	 * Auto incrementing ids roll over to 0 when the maximum numerical value is used by the system
+	 *
 	 * @param callback this function is called with the overall duration of the timeout (original duration + clock updates [pauses])
+	 * @param id any value less than 0 is safe. Any positive value may get overridden by the auto incrementer
 	 * @return id
 	 */
 	public add(callback: (durationInMs: number, id: number) => void, durationInMS: number, id?: number): number {
 		if (id === undefined) {
+			// Auto ID incrementor
 			id = ++this.counter;
-		} else {
-			this.timesInMS.delete(id);
-			this.callbacks.delete(id);
-			this.added.delete(id);
+
+			if (id < 0) {
+				id = 0;
+				this.counter = -1;
+			}
 		}
 
-		this.added.set(id, performance.now() | 0);
+		this.added.set(id, performance.now());
 		this.callbacks.set(id, callback);
-		this.timesInMS.set(id, durationInMS);
-
-		if (id === -1) {
-			this.counter = 0;
-		}
+		this.timesInMSRemaining.set(id, durationInMS);
+		this.timesInMSRequested.set(id, durationInMS);
 
 		return id;
 	}
@@ -143,55 +147,63 @@ export class GamingCanvasUtilTimers {
 
 	public clear(id: number = -1) {
 		if (id !== -1) {
-			this.timesInMS.delete(id);
+			this.timesInMSRemaining.delete(id);
+			this.timesInMSRequested.delete(id);
 			this.callbacks.delete(id);
 			this.added.delete(id);
 		}
 	}
 
 	public clearAll() {
-		this.timesInMS.clear();
-		this.callbacks.clear();
 		this.added.clear();
+		this.callbacks.clear();
+		this.timesInMSRemaining.clear();
+		this.timesInMSRequested.clear();
 	}
 
 	/**
 	 * Update the interal clock without modifying the durations of the internal timer instances (effectively pauses the timers)
 	 */
-	public clockUpdate(timestampNow: number = performance.now() | 0): void {
+	public clockUpdate(timestampNow: number = performance.now()): void {
 		this.timestampThen = timestampNow;
+	}
+
+	public reset() {
+		this.clearAll();
 	}
 
 	/**
 	 * Check for completed timer instances
 	 */
-	public tick(timestampNow: number = performance.now() | 0): void {
-		if (this.timesInMS.size === 0) {
+	public tick(timestampNow: number = performance.now()): void {
+		if (this.timesInMSRemaining.size === 0) {
 			this.timestampThen = timestampNow;
 			return;
 		}
 
 		const delta: number = timestampNow - this.timestampThen;
-		if (delta === 0) {
+		if (delta <= 0) {
 			return;
 		}
 		this.timestampThen = timestampNow;
 
 		// Process
-		let callbacks: Map<number, (durationInMs: number, id: number) => void> = this.callbacks,
+		let added: Map<number, number> = this.added,
+			callbacks: Map<number, (durationInMs: number, id: number) => void> = this.callbacks,
 			durationInMs: number,
 			id: number,
-			timesInMS: Map<number, number> = this.timesInMS;
+			timesInMSRemaining: Map<number, number> = this.timesInMSRemaining;
 
-		for ([id, durationInMs] of timesInMS.entries()) {
+		for ([id, durationInMs] of timesInMSRemaining.entries()) {
 			durationInMs -= delta;
 
 			if (durationInMs <= 0) {
-				this.callback(callbacks, timestampNow - <number>this.added.get(id), id);
-				this.added.delete(id);
-				timesInMS.delete(id);
+				this.callback(callbacks, timestampNow - <number>added.get(id), id);
+				added.delete(id);
+				this.timesInMSRequested.delete(id);
+				timesInMSRemaining.delete(id);
 			} else {
-				timesInMS.set(id, durationInMs);
+				timesInMSRemaining.set(id, durationInMs);
 			}
 		}
 	}
@@ -200,7 +212,29 @@ export class GamingCanvasUtilTimers {
 		return this.timestampThen;
 	}
 
+	/**
+	 * Remaining time in miliseconds before the callback is triggered
+	 */
 	public getTimeRemaining(id: number): number | undefined {
-		return this.timesInMS.get(id);
+		return this.timesInMSRemaining.get(id);
+	}
+
+	/**
+	 * @return true if timer instance updated
+	 */
+	public setTimeRemaining(id: number, durationInMs: number): boolean {
+		if (this.timesInMSRemaining.has(id) === true) {
+			this.timesInMSRemaining.set(id, durationInMs);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * The originally requested duration of a timer instance
+	 */
+	public getTimeRequested(id: number): number | undefined {
+		return this.timesInMSRequested.get(id);
 	}
 }

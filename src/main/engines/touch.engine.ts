@@ -1,14 +1,9 @@
 import { GamingCanvasFIFOQueue } from '../fifo-queue.js';
-import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from '../inputs.js';
+import { GamingCanvasInput, GamingCanvasInputInstance, GamingCanvasInputPosition, GamingCanvasInputType } from '../inputs.js';
 
 /**
  * @author tknight-dev
  */
-
-export enum GamingCanvasInputTouchAction {
-	ACTIVE, // A finger is touching the screen
-	MOVE,
-}
 
 export interface GamingCanvasInputTouch extends GamingCanvasInput {
 	propriatary: {
@@ -18,10 +13,22 @@ export interface GamingCanvasInputTouch extends GamingCanvasInput {
 	};
 }
 
+export enum GamingCanvasInputTouchAction {
+	ACTIVE, // A finger is touching the screen
+	MOVE,
+}
+
+export interface GamingCanvasInputTouchInstance extends GamingCanvasInputInstance {
+	action: GamingCanvasInputTouchAction;
+	down?: boolean;
+}
+
 export class GamingCanvasEngineTouch {
 	public static active: boolean = true;
 	private static el: HTMLElement;
+	public static lockout: boolean;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
+	private static queueLockout: GamingCanvasFIFOQueue<GamingCanvasInput>;
 	private static timeout: ReturnType<typeof setTimeout>;
 	private static timestamp: number = -2025;
 
@@ -80,18 +87,21 @@ export class GamingCanvasEngineTouch {
 		elInteractive: HTMLElement | undefined,
 		inputLimitPerMs: number,
 		queue: GamingCanvasFIFOQueue<GamingCanvasInput>,
+		queueLockout: GamingCanvasFIFOQueue<GamingCanvasInput>,
 	): void {
 		GamingCanvasEngineTouch.active = true;
 		GamingCanvasEngineTouch.el = elInputs;
+		GamingCanvasEngineTouch.lockout = false;
 		GamingCanvasEngineTouch.queue = queue;
+		GamingCanvasEngineTouch.queueLockout = queueLockout;
 
 		const touchActive = (down: boolean, event: TouchEvent, positions: GamingCanvasInputPosition[]): boolean => {
 			event.preventDefault();
 			event.stopPropagation();
 
-			if (GamingCanvasEngineTouch.active) {
+			if (GamingCanvasEngineTouch.active === true || GamingCanvasEngineTouch.lockout === true) {
 				clearTimeout(GamingCanvasEngineTouch.timeout);
-				GamingCanvasEngineTouch.queue.push({
+				(GamingCanvasEngineTouch.lockout === true ? GamingCanvasEngineTouch.queueLockout : GamingCanvasEngineTouch.queue).push({
 					propriatary: {
 						action: GamingCanvasInputTouchAction.ACTIVE,
 						down: down,
@@ -117,12 +127,12 @@ export class GamingCanvasEngineTouch {
 			event.preventDefault();
 			event.stopPropagation();
 
-			if (GamingCanvasEngineTouch.active) {
+			if (GamingCanvasEngineTouch.active === true || GamingCanvasEngineTouch.lockout === true) {
 				((touchmoveNow = performance.now()), (touchmoveDiff = touchmoveNow - GamingCanvasEngineTouch.timestamp));
 
 				if (touchmoveDiff > inputLimitPerMs) {
 					clearTimeout(GamingCanvasEngineTouch.timeout);
-					GamingCanvasEngineTouch.queue.push({
+					(GamingCanvasEngineTouch.lockout === true ? GamingCanvasEngineTouch.queueLockout : GamingCanvasEngineTouch.queue).push({
 						propriatary: {
 							action: GamingCanvasInputTouchAction.MOVE,
 							positions: GamingCanvasEngineTouch.calc(event),
@@ -134,7 +144,7 @@ export class GamingCanvasEngineTouch {
 				} else {
 					clearTimeout(GamingCanvasEngineTouch.timeout);
 					GamingCanvasEngineTouch.timeout = setTimeout(() => {
-						GamingCanvasEngineTouch.queue.push({
+						(GamingCanvasEngineTouch.lockout === true ? GamingCanvasEngineTouch.queueLockout : GamingCanvasEngineTouch.queue).push({
 							propriatary: {
 								action: GamingCanvasInputTouchAction.MOVE,
 								positions: GamingCanvasEngineTouch.calc(event),
