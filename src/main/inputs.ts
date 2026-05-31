@@ -7,6 +7,10 @@ export interface GamingCanvasInput {
 	type: GamingCanvasInputType;
 }
 
+export interface GamingCanvasInputInstance {
+	type: GamingCanvasInputType;
+}
+
 export interface GamingCanvasInputPosition extends GamingCanvasInputPositionBasic {
 	out: boolean;
 	xRelative: number;

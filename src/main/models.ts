@@ -28,6 +28,7 @@ export class GamingCanvasOptions {
 	inputKeyboardPreventCntrl?: boolean;
 	inputKeyboardPreventMeta?: boolean;
 	inputKeyboardPreventShift?: boolean;
+	inputKeyboardPreventSpaceBarScroll?: boolean;
 	inputKeyboardPreventTab?: boolean;
 	inputMouseEnable?: boolean;
 	inputMousePreventContextMenu?: boolean;
@@ -38,7 +39,7 @@ export class GamingCanvasOptions {
 	orientationCanvasPortaitRotateLeft?: boolean;
 	renderStyle?: GamingCanvasRenderStyle;
 	resolutionScaleToFit?: boolean;
-	resolutionWidthPx?: null | number;
+	resolutionWidthPx?: number;
 }
 
 export enum GamingCanvasOrientation {

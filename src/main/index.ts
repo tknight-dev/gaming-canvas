@@ -1,10 +1,36 @@
 export { GamingCanvasAudioType } from './engines/audio.engine.js';
 export * from './const.js';
 export * from './double-linked-list.js';
-export { GamingCanvasInputGamepad, GamingCanvasInputGamepadControllerButtons, GamingCanvasInputGamepadState } from './engines/gamepad.engine.js';
-export { GamingCanvasInputKeyboardAction, GamingCanvasInputKeyboard } from './engines/keyboard.engine.js';
-export { GamingCanvasInputMouseAction, GamingCanvasInputMouse } from './engines/mouse.engine.js';
-export { GamingCanvasInputTouchAction, GamingCanvasInputTouch } from './engines/touch.engine.js';
+export {
+	GamingCanvasInputGamepad,
+	GamingCanvasInputGamepadControllerButtons,
+	GamingCanvasInputGamepadInstance,
+	GamingCanvasInputGamepadState,
+} from './engines/gamepad.engine.js';
+export { GamingCanvasInputKeyboard, GamingCanvasInputKeyboardAction, GamingCanvasInputKeyboardInstance } from './engines/keyboard.engine.js';
+export { GamingCanvasInputMouse, GamingCanvasInputMouseAction, GamingCanvasInputMouseInstance } from './engines/mouse.engine.js';
+export { GamingCanvasInputTouch, GamingCanvasInputTouchAction, GamingCanvasInputTouchInstance } from './engines/touch.engine.js';
+export {
+	GamingCanvasTransition,
+	GamingCanvasTransitionAttach,
+	GamingCanvasTransitionAudioInstance,
+	GamingCanvasTransitionFrame,
+	GamingCanvasTransitionFrameContent,
+	GamingCanvasTransitionFrameContentElements,
+	GamingCanvasTransitionFrameContentElementsImage,
+	GamingCanvasTransitionFrameContentElementsShared,
+	GamingCanvasTransitionFrameContentElementsText,
+	GamingCanvasTransitionFrameContentElementsTextEffect,
+	GamingCanvasTransitionFrameContentHTML,
+	GamingCanvasTransitionFrameContentType,
+	GamingCanvasTransitionFrameEffect,
+	GamingCanvasTransitionFrameEffectType,
+	GamingCanvasTransitionFrameGroup,
+	GamingCanvasTransitionFrameSkip,
+	GamingCanvasTransitionFrameSkipType,
+	GamingCanvasTransitionFrameState,
+	GamingCanvasTransitionFrameType,
+} from './engines/transition.engine.js';
 export * from './fifo-queue.js';
 export * from './inputs.js';
 export * from './gaming-canvas.js';

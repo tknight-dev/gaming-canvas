@@ -57,7 +57,7 @@ export class GamingCanvasFIFOQueue<T> {
 	public pop(): T | undefined {
 		let start: GamingCanvasFIFOQueueNode<T> | undefined = this.start;
 
-		if (start) {
+		if (start !== undefined) {
 			if (this._length === 1) {
 				this.end = undefined;
 				this.start = undefined;
@@ -77,7 +77,7 @@ export class GamingCanvasFIFOQueue<T> {
 	 */
 	public push(data: T): void {
 		if (this.limit !== -1 && this._length >= this.limit) {
-			if (!this.overflow) {
+			if (this.overflow !== true) {
 				// Only use a one-time alarm
 				console.error(`GamingCanvas > GamingCanvasFIFOQueue: input overflow [limit=${this.limit}]`);
 				this.overflow = true;
@@ -88,7 +88,7 @@ export class GamingCanvasFIFOQueue<T> {
 				next: undefined,
 			};
 
-			if (this.end) {
+			if (this.end !== undefined) {
 				this.end.next = node;
 				this.end = node;
 			} else {
@@ -97,7 +97,7 @@ export class GamingCanvasFIFOQueue<T> {
 			}
 
 			// Reset overflow one-time alarm
-			if (this.overflow) {
+			if (this.overflow === true) {
 				this.overflow = false;
 			}
 
@@ -110,7 +110,7 @@ export class GamingCanvasFIFOQueue<T> {
 			i: number = 0,
 			node: GamingCanvasFIFOQueueNode<T> | undefined = this.start;
 
-		while (node) {
+		while (node !== undefined) {
 			array[i++] = node.data;
 			node = node.next;
 		}
@@ -124,7 +124,8 @@ export class GamingCanvasFIFOQueue<T> {
 
 	public forEach(callback: (value: T) => void): void {
 		let node: GamingCanvasFIFOQueueNode<T> | undefined = this.start;
-		while (node) {
+
+		while (node !== undefined) {
 			callback(node.data);
 			node = node.next;
 		}

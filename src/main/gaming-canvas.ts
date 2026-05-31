@@ -6,6 +6,14 @@ import { GamingCanvasEngineGamepad, GamingCanvasInputGamepadState } from './engi
 import { GamingCanvasEngineKeyboard } from './engines/keyboard.engine.js';
 import { GamingCanvasEngineMouse } from './engines/mouse.engine.js';
 import { GamingCanvasEngineTouch } from './engines/touch.engine.js';
+import {
+	GamingCanvasEngineTransition,
+	GamingCanvasTransition,
+	GamingCanvasTransitionFrame,
+	GamingCanvasTransitionFrameContentElements,
+	GamingCanvasTransitionFrameContentHTML,
+	GamingCanvasTransitionFrameState,
+} from './engines/transition.engine.js';
 
 /**
  * Canvas:
@@ -34,6 +42,7 @@ export class GamingCanvas {
 	private static elementRotator1: HTMLDivElement;
 	private static elementRotator2: HTMLDivElement;
 	private static inputQueue: GamingCanvasFIFOQueue<GamingCanvasInput> = new GamingCanvasFIFOQueue<GamingCanvasInput>();
+	private static inputQueueLockout: GamingCanvasFIFOQueue<GamingCanvasInput> = new GamingCanvasFIFOQueue<GamingCanvasInput>();
 	private static options: GamingCanvasOptions;
 	private static regExpScale: RegExp = /(?<=scale\()(.*?)(?=\))/;
 	private static stateFullscreen: boolean;
@@ -76,6 +85,18 @@ export class GamingCanvas {
 		GamingCanvas.mouseLock = GamingCanvasEngineMouse.lock;
 		GamingCanvas.mouseUnlock = GamingCanvasEngineMouse.unlock;
 		GamingCanvas.isMouseLocked = GamingCanvasEngineMouse.isLocked;
+
+		// Function Forward: Engine Transition
+		GamingCanvas.transitionControlPause = GamingCanvasEngineTransition.controlPause;
+		GamingCanvas.transitionControlPlay = GamingCanvasEngineTransition.controlPlay;
+		GamingCanvas.transitionControlSkip = GamingCanvasEngineTransition.controlSkip;
+		GamingCanvas.transitionControlStop = GamingCanvasEngineTransition.controlStop;
+		GamingCanvas.isTransitioning = GamingCanvasEngineTransition.isActive;
+		GamingCanvas.setTransitionCallbackFPS = GamingCanvasEngineTransition.setCallbackTransitionFPS;
+		GamingCanvas.setTransitionCallbackFrame = GamingCanvasEngineTransition.setCallbackTransitionFrame;
+		GamingCanvas.setTransitionCallbackSkipAvailable = GamingCanvasEngineTransition.setTransitionCallbackSkipAvailable;
+		GamingCanvas.setTransitionCallbackSkipped = GamingCanvasEngineTransition.setTransitionCallbackSkipped;
+		GamingCanvas.setTransitionCallbackState = GamingCanvasEngineTransition.setTransitionCallbackState;
 	}
 
 	/**
@@ -144,7 +165,7 @@ export class GamingCanvas {
 			widthResolution = (options.resolutionWidthPx || widthContainer) | 0;
 
 			// Correction
-			if (!options.resolutionWidthPx && GamingCanvas.stateOrientation !== GamingCanvasOrientation.LANDSCAPE) {
+			if (options.resolutionWidthPx === undefined && GamingCanvas.stateOrientation !== GamingCanvasOrientation.LANDSCAPE) {
 				heightContainer = GamingCanvas.elementRotator2.clientWidth | 0;
 				heightResolution = heightContainer;
 
@@ -158,7 +179,7 @@ export class GamingCanvas {
 			report.canvasWidth = widthResolution;
 
 			// Determine scaler
-			if (options.resolutionScaleToFit === true && options.resolutionWidthPx !== null) {
+			if (options.resolutionScaleToFit === true && options.resolutionWidthPx !== undefined) {
 				if (GamingCanvas.stateOrientation === GamingCanvasOrientation.LANDSCAPE) {
 					scaler = (devicePixelRatioEff * widthContainer) / widthResolution;
 				} else {
@@ -515,14 +536,17 @@ export class GamingCanvas {
 			<number>options.audioBufferCount,
 			GamingCanvasEngineAudio.isContext() ? undefined : new AudioContext(),
 		);
-		options.inputGamepadEnable && GamingCanvasEngineGamepad.initialize(GamingCanvas.inputQueue, <number>options.inputGamepadDeadbandStick);
+		options.inputGamepadEnable &&
+			GamingCanvasEngineGamepad.initialize(GamingCanvas.inputQueue, GamingCanvas.inputQueueLockout, <number>options.inputGamepadDeadbandStick);
 		options.inputKeyboardEnable &&
 			GamingCanvasEngineKeyboard.initialize(
 				GamingCanvas.inputQueue,
+				GamingCanvas.inputQueueLockout,
 				<boolean>options.inputKeyboardPreventAlt,
 				<boolean>options.inputKeyboardPreventCntrl,
 				<boolean>options.inputKeyboardPreventMeta,
 				<boolean>options.inputKeyboardPreventShift,
+				<boolean>options.inputKeyboardPreventSpaceBarScroll,
 				<boolean>options.inputKeyboardPreventTab,
 			);
 		options.inputMouseEnable &&
@@ -530,6 +554,7 @@ export class GamingCanvas {
 				GamingCanvas.elementContainerCanvasInputs,
 				<HTMLElement>options.elementInteractive,
 				GamingCanvas.inputQueue,
+				GamingCanvas.inputQueueLockout,
 				<boolean>options.inputMousePreventContextMenu,
 			);
 		options.inputTouchEnable &&
@@ -538,7 +563,29 @@ export class GamingCanvas {
 				<HTMLElement>options.elementInteractive,
 				<number>options.inputLimitPerMs,
 				GamingCanvas.inputQueue,
+				GamingCanvas.inputQueueLockout,
 			);
+		GamingCanvasEngineTransition.setCallbackAudioEffect((assetId: number, pan?: number, volume?: number) => {
+			GamingCanvas.audioControlPlay(assetId, GamingCanvasAudioType.EFFECT, false, pan, 0, volume);
+		});
+		GamingCanvasEngineTransition.setCallbackLockout((state: boolean) => {
+			GamingCanvas.inputQueue.clear();
+			GamingCanvas.inputQueueLockout.clear();
+
+			GamingCanvasEngineGamepad.lockout = state;
+			GamingCanvasEngineKeyboard.lockout = state;
+			GamingCanvasEngineMouse.lockout = state;
+			GamingCanvasEngineTouch.lockout = state;
+
+			GamingCanvas.inputQueue.clear();
+			GamingCanvas.inputQueueLockout.clear();
+		});
+		GamingCanvasEngineTransition.initialize(
+			GamingCanvas.elementContainerCanvas,
+			GamingCanvas.elementContainerOverlayWrapper,
+			GamingCanvas.inputQueue,
+			GamingCanvas.inputQueueLockout,
+		);
 
 		// Done
 		return GamingCanvas.elementCanvases;
@@ -1103,6 +1150,7 @@ export class GamingCanvas {
 	 */
 	public static clearInputQueue(): void {
 		GamingCanvas.inputQueue.clear();
+		GamingCanvas.inputQueueLockout.clear();
 	}
 
 	/**
@@ -1118,14 +1166,20 @@ export class GamingCanvas {
 	 * @param active means inputs will be put in the queue for processing
 	 */
 	public static setInputState(enable: boolean, clearInputQueue?: boolean): void {
-		clearInputQueue === true && GamingCanvas.inputQueue.clear();
+		if (clearInputQueue === true) {
+			GamingCanvas.inputQueue.clear();
+			GamingCanvas.inputQueueLockout.clear();
+		}
 
-		GamingCanvasEngineMouse.active = enable;
+		GamingCanvasEngineGamepad.active = enable;
 		GamingCanvasEngineKeyboard.active = enable;
 		GamingCanvasEngineMouse.active = enable;
 		GamingCanvasEngineTouch.active = enable;
 
-		clearInputQueue === true && GamingCanvas.inputQueue.clear();
+		if (clearInputQueue === true) {
+			GamingCanvas.inputQueue.clear();
+			GamingCanvas.inputQueueLockout.clear();
+		}
 	}
 
 	public static isFullscreen(): boolean {
@@ -1202,7 +1256,7 @@ export class GamingCanvas {
 			options.orientationCanvasPortaitRotateLeft === undefined ? false : options.orientationCanvasPortaitRotateLeft === true;
 		options.renderStyle = options.renderStyle === undefined ? GamingCanvasRenderStyle.ANTIALIAS : options.renderStyle;
 		options.resolutionScaleToFit = options.resolutionScaleToFit === undefined ? true : options.resolutionScaleToFit === true;
-		options.resolutionWidthPx = options.resolutionWidthPx === undefined ? null : Number(options.resolutionWidthPx) | 0 || null;
+		options.resolutionWidthPx !== undefined && (options.resolutionWidthPx = Number(options.resolutionWidthPx) | 0);
 
 		return options;
 	}
@@ -1307,6 +1361,85 @@ export class GamingCanvas {
 		}
 		return JSON.parse(JSON.stringify(GamingCanvas.stateReport));
 	}
+
+	/**
+	 * Transition through multiple frames. Great for cut scenes and intro
+	 *
+	 * @param transition contains all the frames for a transition sequence
+	 * @return is true on success
+	 */
+	public static transition(transition: GamingCanvasTransition): boolean {
+		return GamingCanvasEngineTransition.apply(transition, GamingCanvas.options.debug);
+	}
+
+	/**
+	 * Manually pause the transition. Typically used with `setCallbackVisibility()` to pause while not visible
+	 */
+	public static transitionControlPause(): boolean {
+		return false;
+	}
+
+	/**
+	 * Manually play the transition. Typically used with `setCallbackVisibility()` to play when visible again
+	 */
+	public static transitionControlPlay(): boolean {
+		return false;
+	}
+
+	/**
+	 * Manually skip to the next frame
+	 */
+	public static transitionControlSkip(): boolean {
+		return false;
+	}
+
+	/**
+	 * Manually stop the transition
+	 */
+	public static transitionControlStop(): boolean {
+		return false;
+	}
+
+	public static isTransitioning(): boolean {
+		return false;
+	}
+
+	/**
+	 * Get a callback every second with the FPS of the animation system
+	 */
+	public static setTransitionCallbackFPS(callback: (fps: number) => void): void {}
+
+	/**
+	 * Get a callback when a frame is activated and the input, if available, that was used to get to it
+	 */
+	public static setTransitionCallbackFrame(
+		callback: (
+			frameActive: GamingCanvasTransitionFrameContentElements | GamingCanvasTransitionFrameContentHTML,
+			frameActiveIndex: number,
+			frameActiveState: GamingCanvasTransitionFrameState,
+			framePreviousDurationInMs: number,
+			framePreviousSkipInput?: GamingCanvasInput,
+		) => void,
+	): void {}
+
+	/**
+	 * Get a callback when the transition is starting or has completed
+	 *
+	 * This callback will delay on-true by the minimum duration of that frame
+	 * EG
+	 * 	A skippable frame with a duration of 5000ms and a minimum duration of 1000ms will only trigger the callback, when a skip is available, after that initial 1000ms
+	 */
+	public static setTransitionCallbackSkipAvailable(callback: (available: boolean) => void): void {}
+
+	/**
+	 * Get a callback when a frame is skipped
+	 */
+	public static setTransitionCallbackSkipped(callback: () => void): void {}
+
+	/**
+	 * Get a callback when the transition is starting or has completed
+	 */
+	public static setTransitionCallbackState(callback: (active: boolean) => void): void {}
 
 	public static isVibrateSupported(): boolean {
 		return 'vibrate' in navigator;
