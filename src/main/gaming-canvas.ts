@@ -493,7 +493,6 @@ export class GamingCanvas {
 				GamingCanvas.elementContainerCanvas.appendChild(canvas);
 			}
 		}
-		options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
 
 		// Element: Canvas Injectables
 		if (options.elementInjectAsCanvas && Array.isArray(options.elementInjectAsCanvas)) {
@@ -519,6 +518,9 @@ export class GamingCanvas {
 		GamingCanvas.elementContainerOverlayWrapper.style.position = 'relative';
 		GamingCanvas.elementContainerOverlayWrapper.style.width = '100%';
 		GamingCanvas.elementContainerOverlay.appendChild(GamingCanvas.elementContainerOverlayWrapper);
+
+		// Input: Overlay Selection
+		options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
 
 		// Element: Overlay Injectables
 		if (options.elementInjectAsOverlay && Array.isArray(options.elementInjectAsOverlay)) {
