@@ -7,12 +7,6 @@ import { GamingCanvasInputTouchInstance } from './touch.engine.js';
 import { GamingCanvasUtilTimers } from '../util.js';
 
 /**
- * Version updates
- * 	GamingCanvasTransition
- *  inputKeyboardPreventSpaceBarScroll
- * 	UtilTimer > Added: getTimeRequested
- * 	UtilTimer > Added: setTimeRemaining
- *
  * @author tknight-dev
  */
 
