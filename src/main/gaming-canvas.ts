@@ -10,6 +10,8 @@ import {
 	GamingCanvasEngineTransition,
 	GamingCanvasTransition,
 	GamingCanvasTransitionFrame,
+	GamingCanvasTransitionFrameContentElements,
+	GamingCanvasTransitionFrameContentHTML,
 	GamingCanvasTransitionFrameState,
 } from './engines/transition.engine.js';
 
@@ -1412,7 +1414,7 @@ export class GamingCanvas {
 	 */
 	public static setTransitionCallbackFrame(
 		callback: (
-			frameActive: GamingCanvasTransitionFrame,
+			frameActive: GamingCanvasTransitionFrameContentElements | GamingCanvasTransitionFrameContentHTML,
 			frameActiveIndex: number,
 			frameActiveState: GamingCanvasTransitionFrameState,
 			framePreviousDurationInMs: number,

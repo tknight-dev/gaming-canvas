@@ -208,7 +208,7 @@ export class GamingCanvasEngineTransition {
 	private static callbackTransitionSkipped: () => void;
 	private static callbackTransitionState: (active: boolean) => void;
 	private static callbackTransitionFrame: (
-		frameActive: GamingCanvasTransitionFrame,
+		frameActive: GamingCanvasTransitionFrameContentElements | GamingCanvasTransitionFrameContentHTML,
 		frameActiveIndex: number,
 		frameActiveState: GamingCanvasTransitionFrameState,
 		framePreviousDurationInMs: number,
@@ -1593,8 +1593,6 @@ export class GamingCanvasEngineTransition {
 					if (frameGroup.outgoing !== undefined && frameGroup.outgoing.type !== GamingCanvasTransitionFrameEffectType.NONE) {
 						frameEffect = frameGroup.outgoing;
 
-						console.log('outgoing:', GamingCanvasTransitionFrameEffectType[frameGroup.outgoing.type]);
-
 						// Callback
 						if (GamingCanvasEngineTransition.callbackTransitionFrame !== undefined) {
 							setTimeout(
@@ -1835,7 +1833,7 @@ export class GamingCanvasEngineTransition {
 	// Triggered on-frame
 	public static setCallbackTransitionFrame(
 		callback: (
-			frameActive: GamingCanvasTransitionFrame,
+			frameActive: GamingCanvasTransitionFrameContentElements | GamingCanvasTransitionFrameContentHTML,
 			frameActiveIndex: number,
 			frameActiveState: GamingCanvasTransitionFrameState,
 			framePreviousDurationInMs: number,
