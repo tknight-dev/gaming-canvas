@@ -42,6 +42,16 @@ export interface GamingCanvasGridRaycastResult {
 	rays?: Float64Array;
 }
 
+export enum GamingCanvasGridRaycastResultRayOffset {
+	CELL_INDEX = 4,
+	CELL_RELATIVE = 5,
+	CELL_SIDE = 6,
+	DISTANCE = 2,
+	RANGE = 3,
+	X = 0,
+	Y = 1,
+}
+
 export interface GamingCanvasGridRaycastResultDistanceMapInstance {
 	gridIndex?: number; // GridIndex
 	rayIndex?: number; // RayIndex
@@ -196,24 +206,24 @@ export const GamingCanvasGridRaycast = (
 			) {
 				if (rays !== undefined) {
 					rays[rayIndex] = x + xAngle * distance; // x
-					rays[rayIndex + 1] = y + yAngle * distance; // y
-					rays[rayIndex + 2] = distance; // Distance
-					rays[rayIndex + 3] = distance * fisheyeCorrection; // Range
-					rays[rayIndex + 4] = gridIndex; // cellIndex
-					rays[rayIndex + 5] = (rays[rayIndex] + rays[rayIndex + 1]) % 1; // cellRelative
+					rays[rayIndex + GamingCanvasGridRaycastResultRayOffset.Y] = y + yAngle * distance; // y
+					rays[rayIndex + GamingCanvasGridRaycastResultRayOffset.DISTANCE] = distance; // Distance
+					rays[rayIndex + GamingCanvasGridRaycastResultRayOffset.RANGE] = distance * fisheyeCorrection; // Range
+					rays[rayIndex + GamingCanvasGridRaycastResultRayOffset.CELL_INDEX] = gridIndex; // cellIndex
+					rays[rayIndex + GamingCanvasGridRaycastResultRayOffset.CELL_RELATIVE] = (rays[rayIndex] + rays[rayIndex + 1]) % 1; // cellRelative
 
 					// cellSide
 					if (rays[rayIndex] % 1 < 0.0001 || rays[rayIndex] % 1 > 0.9999) {
 						if (rays[rayIndex] < x) {
-							rays[rayIndex + 6] = GamingCanvasGridRaycastCellSide.EAST;
+							rays[rayIndex + GamingCanvasGridRaycastResultRayOffset.CELL_SIDE] = GamingCanvasGridRaycastCellSide.EAST;
 						} else {
-							rays[rayIndex + 6] = GamingCanvasGridRaycastCellSide.WEST;
+							rays[rayIndex + GamingCanvasGridRaycastResultRayOffset.CELL_SIDE] = GamingCanvasGridRaycastCellSide.WEST;
 						}
 					} else {
-						if (rays[rayIndex + 1] < y) {
-							rays[rayIndex + 6] = GamingCanvasGridRaycastCellSide.SOUTH;
+						if (rays[rayIndex + GamingCanvasGridRaycastResultRayOffset.Y] < y) {
+							rays[rayIndex + GamingCanvasGridRaycastResultRayOffset.CELL_SIDE] = GamingCanvasGridRaycastCellSide.SOUTH;
 						} else {
-							rays[rayIndex + 6] = GamingCanvasGridRaycastCellSide.NORTH;
+							rays[rayIndex + GamingCanvasGridRaycastResultRayOffset.CELL_SIDE] = GamingCanvasGridRaycastCellSide.NORTH;
 						}
 					}
 
