@@ -34,7 +34,7 @@ export class GamingCanvasStat {
 	private data: number[];
 	private index: number;
 	private size: number;
-	private timer: number;
+	private timer!: number;
 
 	/**
 	 * Samples determines how many values can be stored at one time: the more samples, the more cpu/memory, and the more accurate the measurement

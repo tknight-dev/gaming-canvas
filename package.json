@@ -5,7 +5,7 @@
         "esbuild": "^0.25.5",
         "prettier": "^3.0.0",
         "rimraf": "^6.0.0",
-        "typescript": "^5.0.0"
+        "typescript": "^6.0.0"
     },
     "description": "A better/faster way to start writing games",
     "exports": {
