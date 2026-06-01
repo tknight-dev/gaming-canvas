@@ -12,7 +12,7 @@ export class GamingCanvasFIFOQueue<T> {
 	private start?: GamingCanvasFIFOQueueNode<T>;
 	private _length: number = 0;
 	private limit: number = -1;
-	private overflow: boolean;
+	private overflow!: boolean;
 
 	public constructor(array?: T[]) {
 		if (array !== undefined && Array.isArray(array)) {
@@ -24,7 +24,7 @@ export class GamingCanvasFIFOQueue<T> {
 					next: undefined,
 				};
 
-				if (this.end) {
+				if (this.end !== undefined) {
 					this.end.next = node;
 					this.end = node;
 				} else {
@@ -33,7 +33,7 @@ export class GamingCanvasFIFOQueue<T> {
 				}
 
 				// Reset overflow one-time alarm
-				if (this.overflow) {
+				if (this.overflow === true) {
 					this.overflow = false;
 				}
 

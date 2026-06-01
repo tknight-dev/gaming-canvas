@@ -1,11 +1,11 @@
-import { GamingCanvasFIFOQueue } from './fifo-queue.js';
-import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from './inputs.js';
-import { GamingCanvasOptions, GamingCanvasOrientation, GamingCanvasReport, GamingCanvasRenderStyle, GamingCanvasOptionsDetectDeviceType } from './models.js';
 import { GamingCanvasAudioType, GamingCanvasEngineAudio } from './engines/audio.engine.js';
 import { GamingCanvasEngineGamepad, GamingCanvasInputGamepadState } from './engines/gamepad.engine.js';
 import { GamingCanvasEngineKeyboard } from './engines/keyboard.engine.js';
 import { GamingCanvasEngineMouse } from './engines/mouse.engine.js';
 import { GamingCanvasEngineTouch } from './engines/touch.engine.js';
+import { GamingCanvasFIFOQueue } from './fifo-queue.js';
+import { GamingCanvasInput, GamingCanvasInputPosition, GamingCanvasInputType } from './inputs.js';
+import { GamingCanvasOptions, GamingCanvasOrientation, GamingCanvasReport, GamingCanvasRenderStyle, GamingCanvasOptionsDetectDeviceType } from './models.js';
 import {
 	GamingCanvasEngineTransition,
 	GamingCanvasTransition,
@@ -519,7 +519,7 @@ export class GamingCanvas {
 		GamingCanvas.elementContainerOverlayWrapper.style.width = '100%';
 		GamingCanvas.elementContainerOverlay.appendChild(GamingCanvas.elementContainerOverlayWrapper);
 
-		// Input: Overlay Selection
+		// Input: Overlay
 		options.elementInteractive = options.elementInteractive === undefined ? GamingCanvas.elementContainerOverlayWrapper : options.elementInteractive;
 
 		// Element: Overlay Injectables

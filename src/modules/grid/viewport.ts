@@ -11,20 +11,20 @@ import { GamingCanvasInputPosition, GamingCanvasInputPositionBasic, GamingCanvas
  */
 
 export class GamingCanvasGridViewport {
-	public cellSizePx: number; // float
+	public cellSizePx!: number; // float
 	public gridSideLength: number; // int
-	public height: number; // float
-	public heightPx: number; // int
-	public heightStart: number; // float
-	public heightStartPx: number; // float
-	public heightStop: number; // float
-	public heightStopPx: number; // float
-	public width: number; // float
-	public widthPx: number; // int
-	public widthStart: number; // float
-	public widthStartPx: number; // float
-	public widthStop: number; // float
-	public widthStopPx: number; // float
+	public height!: number; // float
+	public heightPx!: number; // int
+	public heightStart!: number; // float
+	public heightStartPx!: number; // float
+	public heightStop!: number; // float
+	public heightStopPx!: number; // float
+	public width!: number; // float
+	public widthPx!: number; // int
+	public widthStart!: number; // float
+	public widthStartPx!: number; // float
+	public widthStop!: number; // float
+	public widthStopPx!: number; // float
 
 	public constructor(sideLength: number) {
 		this.gridSideLength = sideLength;
