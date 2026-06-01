@@ -47,6 +47,8 @@ export enum GamingCanvasAudioType {
 	VOICEOVER,
 }
 
+export const GamingCanvasAudioAssetPermissionCheck: string = 'data:audio/mp3;base64,//MUxAAB4AWIoAgAATgAH4CA8PD1TEFN//MUxAMAAAGUAAAAAEUzLjEwMFVVVVVV';
+
 // Allows for blocking
 const bufferCallbackPromise = async (instance: number, callback: (bufferId: number) => void): Promise<void> => {
 	return new Promise((resolve: any) => {
@@ -152,7 +154,7 @@ export class GamingCanvasEngineAudio {
 				for (faderId of fadersActive) {
 					fader = faders[faderId];
 
-					if (!fader.active || fader.pause) {
+					if (fader.active !== true || fader.pause === true) {
 						continue;
 					}
 					buffer = buffers[faderId];
@@ -229,7 +231,7 @@ export class GamingCanvasEngineAudio {
 		const buffer: Buffer = <Buffer>GamingCanvasEngineAudio.buffersByInstanceId.get(instance);
 
 		if (buffer !== undefined) {
-			if (!buffer.audio.ended) {
+			if (buffer.audio.ended !== true) {
 				let panCurrent: number = buffer.panner.pan.value;
 				pan = Math.max(-1, Math.min(1, pan));
 
@@ -278,7 +280,7 @@ export class GamingCanvasEngineAudio {
 		const buffer: Buffer = <Buffer>GamingCanvasEngineAudio.buffersByInstanceId.get(instance);
 
 		if (buffer !== undefined) {
-			if (!buffer.audio.ended) {
+			if (buffer.audio.ended !== true) {
 				state === true ? buffer.audio.pause() : buffer.audio.play();
 				GamingCanvasEngineAudio.faders[buffer.id].pause = state;
 			}
@@ -294,7 +296,7 @@ export class GamingCanvasEngineAudio {
 		let buffer: Buffer;
 
 		for (buffer of GamingCanvasEngineAudio.buffersByInstanceId.values()) {
-			if (!buffer.audio.ended) {
+			if (buffer.audio.ended !== true) {
 				state === true ? buffer.audio.pause() : buffer.audio.play();
 				GamingCanvasEngineAudio.faders[buffer.id].pause = state;
 			}
@@ -344,6 +346,10 @@ export class GamingCanvasEngineAudio {
 
 		let audio: HTMLAudioElement, volumeGlobal: number, volumeEff: number;
 
+		// Context
+		GamingCanvasEngineAudio.context.resume();
+
+		// Volume
 		switch (type) {
 			case GamingCanvasAudioType.AMBIENCE:
 				volumeGlobal = GamingCanvasEngineAudio.volumeAmbienceEff;
@@ -413,7 +419,7 @@ export class GamingCanvasEngineAudio {
 
 		if (buffer !== undefined) {
 			// callbacks triggered by 'audio.onended' event
-			if (!buffer.audio.ended) {
+			if (buffer.audio.ended !== true) {
 				// Buffer
 				buffer.audio.loop = false;
 				buffer.audio.currentTime = buffer.audio.duration;
@@ -434,7 +440,7 @@ export class GamingCanvasEngineAudio {
 
 		for (buffer of GamingCanvasEngineAudio.buffersByInstanceId.values()) {
 			// callbacks triggered by 'audio.onended' event
-			if (!buffer.audio.ended) {
+			if (buffer.audio.ended !== true) {
 				if (type === GamingCanvasAudioType.ALL || buffer.type === type) {
 					// Buffer
 					buffer.audio.loop = false;
@@ -459,7 +465,7 @@ export class GamingCanvasEngineAudio {
 		const buffer: Buffer = <Buffer>GamingCanvasEngineAudio.buffersByInstanceId.get(instance);
 
 		if (buffer !== undefined) {
-			if (!buffer.audio.ended) {
+			if (buffer.audio.ended !== true) {
 				let volumeCurrent: number = buffer.audio.volume,
 					volumeEff: number;
 
@@ -538,10 +544,10 @@ export class GamingCanvasEngineAudio {
 	}
 
 	public static initialize(enable: boolean, bufferCount: number, audioContext?: AudioContext): void {
-		if (audioContext) {
+		if (audioContext !== undefined) {
 			GamingCanvasEngineAudio.context = audioContext;
 		}
-		if (!enable) {
+		if (enable !== true) {
 			GamingCanvasEngineAudio.enabled = false;
 			cancelAnimationFrame(GamingCanvasEngineAudio.request);
 			return;
@@ -564,10 +570,7 @@ export class GamingCanvasEngineAudio {
 		if (GamingCanvasEngineAudio.permissionSample === undefined) {
 			GamingCanvasEngineAudio.permissionSample = new Audio();
 			GamingCanvasEngineAudio.permissionSample.setAttribute('preload', 'auto');
-			GamingCanvasEngineAudio.permissionSample.setAttribute(
-				'src',
-				'data:audio/mp3;base64,//MUxAAB4AWIoAgAATgAH4CA8PD1TEFN//MUxAMAAAGUAAAAAEUzLjEwMFVVVVVV',
-			);
+			GamingCanvasEngineAudio.permissionSample.setAttribute('src', GamingCanvasAudioAssetPermissionCheck);
 			GamingCanvasEngineAudio.permissionSample.volume = 0.01;
 		}
 
