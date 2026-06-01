@@ -347,7 +347,9 @@ export class GamingCanvasEngineAudio {
 		let audio: HTMLAudioElement, volumeGlobal: number, volumeEff: number;
 
 		// Context
-		GamingCanvasEngineAudio.context.resume();
+		if (GamingCanvasEngineAudio.context.state === 'interrupted' || GamingCanvasEngineAudio.context.state === 'suspended') {
+			GamingCanvasEngineAudio.context.resume();
+		}
 
 		// Volume
 		switch (type) {
