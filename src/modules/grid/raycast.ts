@@ -47,6 +47,7 @@ export enum GamingCanvasGridRaycastResultRayOffset {
 	CELL_RELATIVE = 5,
 	CELL_SIDE = 6,
 	DISTANCE = 2,
+	INCREMENT = 7,
 	RANGE = 3,
 	X = 0,
 	Y = 1,
@@ -138,16 +139,16 @@ export const GamingCanvasGridRaycast = (
 			}
 
 			if (options.rayReuse !== undefined) {
-				if (options.rayReuse.length === length * 7) {
+				if (options.rayReuse.length === length * GamingCanvasGridRaycastResultRayOffset.INCREMENT) {
 					rays = options.rayReuse;
 				} else {
 					console.error(
-						`GamingCanvas > GamingCanvasGridRaycast: re-use array length (${options.rayReuse.length}) does not match required length ${length * 7}`,
+						`GamingCanvas > GamingCanvasGridRaycast: re-use array length (${options.rayReuse.length}) does not match required length ${length * GamingCanvasGridRaycastResultRayOffset.INCREMENT}`,
 					);
-					rays = new Float64Array(length * 7);
+					rays = new Float64Array(length * GamingCanvasGridRaycastResultRayOffset.INCREMENT);
 				}
 			} else {
-				rays = new Float64Array(length * 7);
+				rays = new Float64Array(length * GamingCanvasGridRaycastResultRayOffset.INCREMENT);
 			}
 		}
 
@@ -155,10 +156,10 @@ export const GamingCanvasGridRaycast = (
 			return {};
 		}
 	} else {
-		rays = new Float64Array(length * 7);
+		rays = new Float64Array(length * GamingCanvasGridRaycastResultRayOffset.INCREMENT);
 	}
 
-	for (; i < length; i++, fov -= fovStep, rayIndex += 7) {
+	for (; i < length; i++, fov -= fovStep, rayIndex += GamingCanvasGridRaycastResultRayOffset.INCREMENT) {
 		// Initial angle
 		fisheyeCorrection = Math.cos(angle - fov);
 		xAngle = Math.sin(fov);
