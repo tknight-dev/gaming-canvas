@@ -1,4 +1,4 @@
-export { GamingCanvasAudioType } from './engines/audio.engine.js';
+export { GamingCanvasAudioAssetPermissionCheck, GamingCanvasAudioType } from './engines/audio.engine.js';
 export * from './const.js';
 export * from './double-linked-list.js';
 export {
