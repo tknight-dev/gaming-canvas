@@ -1,4 +1,17 @@
 export { GamingCanvasAudioAssetPermissionCheck, GamingCanvasAudioType } from './engines/audio.engine.js';
+export {
+	GamingCanvasCredits,
+	GamingCanvasCreditsAsset,
+	GamingCanvasCreditsAttach,
+	GamingCanvasCreditsContentCollection,
+	GamingCanvasCreditsContentCollectionSort,
+	GamingCanvasCreditsContentSpacer,
+	GamingCanvasCreditsContentText,
+	GamingCanvasCreditsContentTextType,
+	GamingCanvasCreditsContentType,
+	GamingCanvasCreditsInputAction,
+	GamingCanvasCreditsPerson,
+} from './engines/credits.engine.js';
 export * from './const.js';
 export * from './double-linked-list.js';
 export {
