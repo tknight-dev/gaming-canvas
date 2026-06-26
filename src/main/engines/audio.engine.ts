@@ -291,14 +291,21 @@ export class GamingCanvasEngineAudio {
 	 * Suspend playing the audio without ending it, or resume audio where you suspended it
 	 *
 	 * @param state true = pause, false = unpause
+	 * @param type specify a specific type to pause (default is all types)
+	 * @param exclude prevents changes to audio instances of these types
 	 */
-	public static controlPauseAll(state: boolean): void {
-		let buffer: Buffer;
+	public static controlPauseAll(state: boolean, type: GamingCanvasAudioType = GamingCanvasAudioType.ALL, exclude: GamingCanvasAudioType[] = []): void {
+		let buffer: Buffer,
+			excludes: Set<GamingCanvasAudioType> = new Set<GamingCanvasAudioType>(exclude);
 
 		for (buffer of GamingCanvasEngineAudio.buffersByInstanceId.values()) {
 			if (buffer.audio.ended !== true) {
-				state === true ? buffer.audio.pause() : buffer.audio.play();
-				GamingCanvasEngineAudio.faders[buffer.id].pause = state;
+				if (buffer.type === undefined || excludes.has(buffer.type) !== true) {
+					if (type === GamingCanvasAudioType.ALL || buffer.type === type) {
+						state === true ? buffer.audio.pause() : buffer.audio.play();
+						GamingCanvasEngineAudio.faders[buffer.id].pause = state;
+					}
+				}
 			}
 		}
 	}
@@ -344,11 +351,14 @@ export class GamingCanvasEngineAudio {
 			return null;
 		}
 
-		let audio: HTMLAudioElement, volumeGlobal: number, volumeEff: number;
+		let audio: HTMLAudioElement,
+			context: AudioContext = GamingCanvasEngineAudio.context,
+			volumeGlobal: number,
+			volumeEff: number;
 
 		// Context
-		if (GamingCanvasEngineAudio.context.state === 'interrupted' || GamingCanvasEngineAudio.context.state === 'suspended') {
-			GamingCanvasEngineAudio.context.resume();
+		if (context.state === 'interrupted' || context.state === 'suspended') {
+			context.resume();
 		}
 
 		// Volume
@@ -436,20 +446,24 @@ export class GamingCanvasEngineAudio {
 	 * Stop the audio and return the buffer to the availability FIFO queue
 	 *
 	 * @param type specify a specific type to stop (default is all types)
+	 * @param exclude prevents changes to audio instances of these types
 	 */
-	public static controlStopAll(type: GamingCanvasAudioType = GamingCanvasAudioType.ALL): void {
-		let buffer: Buffer;
+	public static controlStopAll(type: GamingCanvasAudioType = GamingCanvasAudioType.ALL, exclude: GamingCanvasAudioType[] = []): void {
+		let buffer: Buffer,
+			excludes: Set<GamingCanvasAudioType> = new Set<GamingCanvasAudioType>(exclude);
 
 		for (buffer of GamingCanvasEngineAudio.buffersByInstanceId.values()) {
 			// callbacks triggered by 'audio.onended' event
 			if (buffer.audio.ended !== true) {
-				if (type === GamingCanvasAudioType.ALL || buffer.type === type) {
-					// Buffer
-					buffer.audio.loop = false;
-					buffer.audio.currentTime = buffer.audio.duration || 0;
+				if (buffer.type === undefined || excludes.has(buffer.type) !== true) {
+					if (type === GamingCanvasAudioType.ALL || buffer.type === type) {
+						// Buffer
+						buffer.audio.loop = false;
+						buffer.audio.currentTime = buffer.audio.duration || 0;
 
-					// Fader
-					GamingCanvasEngineAudio.fadersActive.delete(buffer.id);
+						// Fader
+						GamingCanvasEngineAudio.fadersActive.delete(buffer.id);
+					}
 				}
 			}
 		}
@@ -543,6 +557,24 @@ export class GamingCanvasEngineAudio {
 
 	public static isContext(): boolean {
 		return GamingCanvasEngineAudio.context !== undefined;
+	}
+
+	public static getContextState(): string {
+		return GamingCanvasEngineAudio.context.state;
+	}
+
+	/**
+	 * @return true if context resumed
+	 */
+	public static setContextStateResume(): boolean {
+		let context: AudioContext = GamingCanvasEngineAudio.context;
+
+		if (context.state === 'interrupted' || context.state === 'suspended') {
+			context.resume();
+			return true;
+		}
+
+		return false;
 	}
 
 	public static initialize(enable: boolean, bufferCount: number, audioContext?: AudioContext): void {
@@ -817,6 +849,10 @@ export class GamingCanvasEngineAudio {
 		} catch (error) {
 			console.error(volume, GamingCanvasEngineAudio.volumeAll, error);
 		}
+	}
+
+	public static getBufferCount(): number {
+		return (GamingCanvasEngineAudio.buffers || []).length;
 	}
 
 	public static setCallbackIsPermitted(callbackIsPermitted: (state: boolean) => void): void {
