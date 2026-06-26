@@ -8,8 +8,8 @@ interface GamingCanvasFIFOQueueNode<T> {
 }
 
 export class GamingCanvasFIFOQueue<T> {
-	private end?: GamingCanvasFIFOQueueNode<T>;
-	private start?: GamingCanvasFIFOQueueNode<T>;
+	private _end?: GamingCanvasFIFOQueueNode<T>;
+	private _start?: GamingCanvasFIFOQueueNode<T>;
 	private _length: number = 0;
 	private limit: number = -1;
 	private overflow!: boolean;
@@ -24,12 +24,12 @@ export class GamingCanvasFIFOQueue<T> {
 					next: undefined,
 				};
 
-				if (this.end !== undefined) {
-					this.end.next = node;
-					this.end = node;
+				if (this._end !== undefined) {
+					this._end.next = node;
+					this._end = node;
 				} else {
-					this.end = node;
-					this.start = node;
+					this._end = node;
+					this._start = node;
 				}
 
 				// Reset overflow one-time alarm
@@ -46,23 +46,23 @@ export class GamingCanvasFIFOQueue<T> {
 	 * Remove all nodes
 	 */
 	public clear(): void {
-		this.end = undefined;
+		this._end = undefined;
 		this._length = 0;
-		this.start = undefined;
+		this._start = undefined;
 	}
 
 	/**
 	 * Removes and returns the first queue item
 	 */
 	public pop(): T | undefined {
-		let start: GamingCanvasFIFOQueueNode<T> | undefined = this.start;
+		let start: GamingCanvasFIFOQueueNode<T> | undefined = this._start;
 
 		if (start !== undefined) {
 			if (this._length === 1) {
-				this.end = undefined;
-				this.start = undefined;
+				this._end = undefined;
+				this._start = undefined;
 			} else {
-				this.start = start.next;
+				this._start = start.next;
 			}
 
 			this._length--;
@@ -88,12 +88,12 @@ export class GamingCanvasFIFOQueue<T> {
 				next: undefined,
 			};
 
-			if (this.end !== undefined) {
-				this.end.next = node;
-				this.end = node;
+			if (this._end !== undefined) {
+				this._end.next = node;
+				this._end = node;
 			} else {
-				this.end = node;
-				this.start = node;
+				this._end = node;
+				this._start = node;
 			}
 
 			// Reset overflow one-time alarm
@@ -108,7 +108,7 @@ export class GamingCanvasFIFOQueue<T> {
 	public toArray(): T[] {
 		let array: T[] = new Array(this._length),
 			i: number = 0,
-			node: GamingCanvasFIFOQueueNode<T> | undefined = this.start;
+			node: GamingCanvasFIFOQueueNode<T> | undefined = this._start;
 
 		while (node !== undefined) {
 			array[i++] = node.data;
@@ -118,12 +118,20 @@ export class GamingCanvasFIFOQueue<T> {
 		return array;
 	}
 
+	public get end(): GamingCanvasFIFOQueueNode<T> | undefined {
+		return this._end;
+	}
+
 	public get length(): number {
 		return this._length;
 	}
 
+	public get start(): GamingCanvasFIFOQueueNode<T> | undefined {
+		return this._start;
+	}
+
 	public forEach(callback: (value: T) => void): void {
-		let node: GamingCanvasFIFOQueueNode<T> | undefined = this.start;
+		let node: GamingCanvasFIFOQueueNode<T> | undefined = this._start;
 
 		while (node !== undefined) {
 			callback(node.data);
