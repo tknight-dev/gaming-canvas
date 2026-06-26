@@ -221,7 +221,7 @@ export class GamingCanvasGridEditor {
 		}
 
 		// New Timeline
-		if (history.length !== 0 && this.historyEventCurrent !== history.getEnd()) {
+		if (history.length !== 0 && this.historyEventCurrent !== history.end) {
 			let node: GamingCanvasDoubleLinkedListNode<GamingCanvasGridEditHistoryEvent> | undefined;
 
 			// Remove events from a previous timeline
@@ -241,7 +241,7 @@ export class GamingCanvasGridEditor {
 		// Final
 		this.empty = false;
 		history.pushEnd(event);
-		this.historyEventCurrent = history.getEnd();
+		this.historyEventCurrent = history.end;
 	}
 
 	public historyClear(): void {
