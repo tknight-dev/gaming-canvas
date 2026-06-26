@@ -1,4 +1,5 @@
 import { GamingCanvasAudioType, GamingCanvasEngineAudio } from './engines/audio.engine.js';
+import { GamingCanvasCredits, GamingCanvasCreditsAsset, GamingCanvasCreditsPerson, GamingCanvasEngineCredits } from './engines/credits.engine.js';
 import { GamingCanvasEngineGamepad, GamingCanvasInputGamepadState } from './engines/gamepad.engine.js';
 import { GamingCanvasEngineKeyboard } from './engines/keyboard.engine.js';
 import { GamingCanvasEngineMouse } from './engines/mouse.engine.js';
@@ -9,7 +10,6 @@ import { GamingCanvasOptions, GamingCanvasOrientation, GamingCanvasReport, Gamin
 import {
 	GamingCanvasEngineTransition,
 	GamingCanvasTransition,
-	GamingCanvasTransitionFrame,
 	GamingCanvasTransitionFrameContentElements,
 	GamingCanvasTransitionFrameContentHTML,
 	GamingCanvasTransitionFrameState,
@@ -64,6 +64,7 @@ export class GamingCanvas {
 		GamingCanvas.relativizeInputToCanvas__funcForward();
 
 		// Function Forward: Engine Audio
+		GamingCanvas.audioBufferCount = GamingCanvasEngineAudio.getBufferCount;
 		GamingCanvas.audioControlPan = GamingCanvasEngineAudio.controlPan;
 		GamingCanvas.audioControlPause = GamingCanvasEngineAudio.controlPause;
 		GamingCanvas.audioControlPauseAll = GamingCanvasEngineAudio.controlPauseAll;
@@ -73,10 +74,26 @@ export class GamingCanvas {
 		GamingCanvas.audioControlVolume = GamingCanvasEngineAudio.controlVolume;
 		GamingCanvas.audioLoad = GamingCanvasEngineAudio.load;
 		GamingCanvas.audioMute = GamingCanvasEngineAudio.mute;
-		GamingCanvas.isAudioMuted = GamingCanvasEngineAudio.isMuted;
-		GamingCanvas.isAudioPermitted = GamingCanvasEngineAudio.isPermitted;
 		GamingCanvas.audioVolumeGlobal = GamingCanvasEngineAudio.volumeGlobal;
+		GamingCanvas.isAudioMuted = GamingCanvasEngineAudio.isMuted;
+		GamingCanvas.audioIsAudioPermitted = GamingCanvasEngineAudio.isPermitted;
+		GamingCanvas.audioGetContextState = GamingCanvasEngineAudio.getContextState;
+		GamingCanvas.audioSetContextStateResume = GamingCanvasEngineAudio.setContextStateResume;
 		GamingCanvas.setCallbackIsAudioPermitted = GamingCanvasEngineAudio.setCallbackIsPermitted;
+
+		// Function Forward: Engine Credits
+		GamingCanvas.creditsApply = GamingCanvasEngineCredits.apply;
+		GamingCanvas.creditsControlEnd = GamingCanvasEngineCredits.controlEnd;
+		GamingCanvas.creditsControlPause = GamingCanvasEngineCredits.controlPause;
+		GamingCanvas.creditsControlPlay = GamingCanvasEngineCredits.controlPlay;
+		GamingCanvas.creditsControlStop = GamingCanvasEngineCredits.controlStop;
+		GamingCanvas.creditsIsActive = GamingCanvasEngineCredits.isActive;
+		GamingCanvas.creditsRegisterAsset = GamingCanvasEngineCredits.registerAsset;
+		GamingCanvas.creditsRegisterPerson = GamingCanvasEngineCredits.registerPerson;
+		GamingCanvas.setCreditsCallbackEnd = GamingCanvasEngineCredits.setCallbackEnd;
+		GamingCanvas.setCreditsCallbackFPS = GamingCanvasEngineCredits.setCallbackFPS;
+		GamingCanvas.setCreditsCallbackPause = GamingCanvasEngineCredits.setCallbackPause;
+		GamingCanvas.setCreditsCallbackState = GamingCanvasEngineCredits.setCallbackState;
 
 		// Function Forward: Engine Gamepad
 		GamingCanvas.getGamepads = GamingCanvasEngineGamepad.getGamepads;
@@ -92,11 +109,11 @@ export class GamingCanvas {
 		GamingCanvas.transitionControlSkip = GamingCanvasEngineTransition.controlSkip;
 		GamingCanvas.transitionControlStop = GamingCanvasEngineTransition.controlStop;
 		GamingCanvas.isTransitioning = GamingCanvasEngineTransition.isActive;
-		GamingCanvas.setTransitionCallbackFPS = GamingCanvasEngineTransition.setCallbackTransitionFPS;
-		GamingCanvas.setTransitionCallbackFrame = GamingCanvasEngineTransition.setCallbackTransitionFrame;
-		GamingCanvas.setTransitionCallbackSkipAvailable = GamingCanvasEngineTransition.setTransitionCallbackSkipAvailable;
-		GamingCanvas.setTransitionCallbackSkipped = GamingCanvasEngineTransition.setTransitionCallbackSkipped;
-		GamingCanvas.setTransitionCallbackState = GamingCanvasEngineTransition.setTransitionCallbackState;
+		GamingCanvas.setTransitionCallbackFPS = GamingCanvasEngineTransition.setCallbackFPS;
+		GamingCanvas.setTransitionCallbackFrame = GamingCanvasEngineTransition.setCallbackFrame;
+		GamingCanvas.setTransitionCallbackSkipAvailable = GamingCanvasEngineTransition.setCallbackSkipAvailable;
+		GamingCanvas.setTransitionCallbackSkipped = GamingCanvasEngineTransition.setCallbackSkipped;
+		GamingCanvas.setTransitionCallbackState = GamingCanvasEngineTransition.setCallbackState;
 	}
 
 	/**
@@ -567,6 +584,28 @@ export class GamingCanvas {
 				GamingCanvas.inputQueue,
 				GamingCanvas.inputQueueLockout,
 			);
+
+		// Credits
+		GamingCanvasEngineCredits.setCallbackLockout((state: boolean) => {
+			GamingCanvas.inputQueue.clear();
+			GamingCanvas.inputQueueLockout.clear();
+
+			GamingCanvasEngineGamepad.lockout = state;
+			GamingCanvasEngineKeyboard.lockout = state;
+			GamingCanvasEngineMouse.lockout = state;
+			GamingCanvasEngineTouch.lockout = state;
+
+			GamingCanvas.inputQueue.clear();
+			GamingCanvas.inputQueueLockout.clear();
+		});
+		GamingCanvasEngineCredits.initialize(
+			GamingCanvas.elementContainerCanvas,
+			GamingCanvas.elementContainerOverlayWrapper,
+			GamingCanvas.inputQueue,
+			GamingCanvas.inputQueueLockout,
+		);
+
+		// Transition
 		GamingCanvasEngineTransition.setCallbackAudioEffect((assetId: number, pan?: number, volume?: number) => {
 			GamingCanvas.audioControlPlay(assetId, GamingCanvasAudioType.EFFECT, false, pan, 0, volume);
 		});
@@ -927,6 +966,13 @@ export class GamingCanvas {
 	}
 
 	/**
+	 * The number of buffers available
+	 */
+	public static audioBufferCount(): number {
+		return 0;
+	}
+
+	/**
 	 * Set the specific audio instance's volume
 	 *
 	 * @param instance is the number returned by the controlPlay() function
@@ -948,8 +994,14 @@ export class GamingCanvas {
 	 * Suspend playing the audio without ending it, or resume audio where you suspended it
 	 *
 	 * @param state true = pause, false = unpause
+	 * @param type specify a specific type to pause (default is all types)
+	 * @param exclude prevents changes to audio instances of these types
 	 */
-	public static audioControlPauseAll(_state: boolean): void {}
+	public static audioControlPauseAll(
+		_state: boolean,
+		_type: GamingCanvasAudioType = GamingCanvasAudioType.ALL,
+		_exclude: GamingCanvasAudioType[] = [],
+	): void {}
 
 	/**
 	 * If an audio buffer is available, via the availibility FIFO queue, then the asset will be loaded into the buffer and played from that source
@@ -984,8 +1036,9 @@ export class GamingCanvas {
 	 * Stop the audio and return the buffer to the availability FIFO queue
 	 *
 	 * @param type specify a specific type to stop (default is all types)
+	 * @param exclude prevents changes to audio instances of these types
 	 */
-	public static audioControlStopAll(type: GamingCanvasAudioType = GamingCanvasAudioType.ALL): void {}
+	public static audioControlStopAll(_type: GamingCanvasAudioType = GamingCanvasAudioType.ALL, _exclude: GamingCanvasAudioType[] = []): void {}
 
 	/**
 	 * Set the specific audio instance's volume
@@ -1011,7 +1064,18 @@ export class GamingCanvas {
 	 */
 	public static audioMute(_enable: boolean): void {}
 
-	public static isAudioPermitted(): boolean {
+	public static audioIsAudioPermitted(): boolean {
+		return false;
+	}
+
+	public static audioGetContextState(): string {
+		return '';
+	}
+
+	/**
+	 * @return true if context resumed
+	 */
+	public static audioSetContextStateResume(): boolean {
 		return false;
 	}
 
@@ -1031,6 +1095,79 @@ export class GamingCanvas {
 	 * Get notified when the browser toggles the permission to play audio
 	 */
 	public static setCallbackIsAudioPermitted(callbackIsPermitted: (state: boolean) => void): void {}
+
+	/**
+	 * Start displaying the credits
+	 */
+	public static creditsApply(_credits: GamingCanvasCredits, _debug?: boolean): boolean {
+		return false;
+	}
+
+	/**
+	 * Gracefully exist the credits (fadeout)
+	 */
+	public static creditsControlEnd(): boolean {
+		return false;
+	}
+
+	/**
+	 * Manually pause the credits. Typically used with `setCallbackVisibility()` to pause while not visible
+	 */
+	public static creditsControlPause(): boolean {
+		return false;
+	}
+
+	/**
+	 * Manually play the credits. Typically used with `setCallbackVisibility()` to play when visible again
+	 */
+	public static creditsControlPlay(): boolean {
+		return false;
+	}
+
+	public static creditsControlStop(): boolean {
+		return false;
+	}
+
+	/**
+	 * Is currently running
+	 */
+	public static creditsIsActive(): boolean {
+		return false;
+	}
+
+	/**
+	 * Registers multiple or a single asset for inclusion in the credits
+	 */
+	public static creditsRegisterAsset(personName: string, asset: GamingCanvasCreditsAsset | GamingCanvasCreditsAsset[]): boolean {
+		return false;
+	}
+
+	/**
+	 * Registers multiple or a single author for inclusion in the credits
+	 */
+	public static creditsRegisterPerson(person: GamingCanvasCreditsPerson | GamingCanvasCreditsPerson[]): boolean {
+		return false;
+	}
+
+	/**
+	 * Get a callback when the credits end (fade-out)
+	 */
+	public static setCreditsCallbackEnd(_callback: () => void): void {}
+
+	/**
+	 * Get a callback every second with the FPS of the animation system
+	 */
+	public static setCreditsCallbackFPS(_callback: (fps: number) => void): void {}
+
+	/**
+	 * Get notified on pause changes
+	 */
+	public static setCreditsCallbackPause(_callback: (state: boolean) => void): void {}
+
+	/**
+	 * Get notified on state changes
+	 */
+	public static setCreditsCallbackState(_callback: (state: boolean) => void): void {}
 
 	/**
 	 * Get notified when the browser changes fullscreen mode
@@ -1231,7 +1368,7 @@ export class GamingCanvas {
 
 	private static formatOptions(options: GamingCanvasOptions): GamingCanvasOptions {
 		options.aspectRatio = options.aspectRatio === undefined ? 16 / 9 : Number(options.aspectRatio) || 16 / 9;
-		options.audioBufferCount = options.audioBufferCount === undefined ? 20 : Math.max(5, Math.min(50, Number(options.audioBufferCount)));
+		options.audioBufferCount = options.audioBufferCount === undefined ? 30 : Math.max(5, Math.min(100, Number(options.audioBufferCount)));
 		options.audioEnable = options.audioEnable === undefined ? false : options.audioEnable === true;
 		options.callbackReportLimitPerMs = Math.max(0, Number(options.callbackReportLimitPerMs) || 8);
 		options.canvasCount = options.canvasCount === undefined ? 1 : Math.max(1, Number(options.canvasCount) || 0);

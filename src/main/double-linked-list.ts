@@ -11,8 +11,8 @@ export interface GamingCanvasDoubleLinkedListNode<T> {
 }
 
 export class GamingCanvasDoubleLinkedList<T> {
-	private end: GamingCanvasDoubleLinkedListNode<T> | undefined = undefined;
-	private start: GamingCanvasDoubleLinkedListNode<T> | undefined = undefined;
+	private _end: GamingCanvasDoubleLinkedListNode<T> | undefined = undefined;
+	private _start: GamingCanvasDoubleLinkedListNode<T> | undefined = undefined;
 	private _length: number = 0;
 
 	public constructor(array?: T[]) {
@@ -23,15 +23,15 @@ export class GamingCanvasDoubleLinkedList<T> {
 				node = {
 					data: data,
 					next: undefined,
-					previous: this._length !== 0 ? this.end : undefined,
+					previous: this._length !== 0 ? this._end : undefined,
 				};
 
-				if (this.end !== undefined) {
-					this.end.next = node;
-					this.end = node;
+				if (this._end !== undefined) {
+					this._end.next = node;
+					this._end = node;
 				} else {
-					this.end = node;
-					this.start = node;
+					this._end = node;
+					this._start = node;
 				}
 
 				this._length++;
@@ -43,28 +43,20 @@ export class GamingCanvasDoubleLinkedList<T> {
 	 * Remove all nodes
 	 */
 	public clear(): void {
-		this.end = undefined;
+		this._end = undefined;
 		this._length = 0;
-		this.start = undefined;
-	}
-
-	public getEnd(): GamingCanvasDoubleLinkedListNode<T> | undefined {
-		return this.end;
-	}
-
-	public getStart(): GamingCanvasDoubleLinkedListNode<T> | undefined {
-		return this.start;
+		this._start = undefined;
 	}
 
 	public popEnd(): T | undefined {
-		let end: GamingCanvasDoubleLinkedListNode<T> | undefined = this.end;
+		let end: GamingCanvasDoubleLinkedListNode<T> | undefined = this._end;
 
 		if (end !== undefined) {
 			if (this._length === 1) {
-				this.end = undefined;
-				this.start = undefined;
+				this._end = undefined;
+				this._start = undefined;
 			} else {
-				this.end = end.previous;
+				this._end = end.previous;
 			}
 
 			this._length--;
@@ -75,14 +67,14 @@ export class GamingCanvasDoubleLinkedList<T> {
 	}
 
 	public popStart(): T | undefined {
-		let start: GamingCanvasDoubleLinkedListNode<T> | undefined = this.start;
+		let start: GamingCanvasDoubleLinkedListNode<T> | undefined = this._start;
 
 		if (start !== undefined) {
 			if (this._length === 1) {
-				this.end = undefined;
-				this.start = undefined;
+				this._end = undefined;
+				this._start = undefined;
 			} else {
-				this.start = start.next;
+				this._start = start.next;
 			}
 
 			this._length--;
@@ -96,15 +88,15 @@ export class GamingCanvasDoubleLinkedList<T> {
 		let node: GamingCanvasDoubleLinkedListNode<T> = {
 			data: data,
 			next: undefined,
-			previous: this._length ? this.end : undefined,
+			previous: this._length ? this._end : undefined,
 		};
 
-		if (this.end !== undefined) {
-			this.end.next = node;
-			this.end = node;
+		if (this._end !== undefined) {
+			this._end.next = node;
+			this._end = node;
 		} else {
-			this.end = node;
-			this.start = node;
+			this._end = node;
+			this._start = node;
 		}
 
 		this._length++;
@@ -115,16 +107,16 @@ export class GamingCanvasDoubleLinkedList<T> {
 	public pushStart(data: T): GamingCanvasDoubleLinkedListNode<T> {
 		let node: GamingCanvasDoubleLinkedListNode<T> = {
 			data: data,
-			next: this._length ? this.start : undefined,
+			next: this._length ? this._start : undefined,
 			previous: undefined,
 		};
 
-		if (this.start !== undefined) {
-			this.start.previous = node;
-			this.start = node;
+		if (this._start !== undefined) {
+			this._start.previous = node;
+			this._start = node;
 		} else {
-			this.end = node;
-			this.start = node;
+			this._end = node;
+			this._start = node;
 		}
 
 		this._length++;
@@ -136,11 +128,11 @@ export class GamingCanvasDoubleLinkedList<T> {
 	 * Caution: removing a node that doesn't actually exist in this list will cause the length of this list to be incorrect
 	 */
 	public remove(node: GamingCanvasDoubleLinkedListNode<T>): GamingCanvasDoubleLinkedListNode<T> {
-		if (this.end === node) {
-			this.end = node.previous;
+		if (this._end === node) {
+			this._end = node.previous;
 		}
-		if (this.start === node) {
-			this.start = node.next;
+		if (this._start === node) {
+			this._start = node.next;
 		}
 		if (node.next !== undefined) {
 			node.next.previous = node.previous;
@@ -157,7 +149,7 @@ export class GamingCanvasDoubleLinkedList<T> {
 	public toArray(): T[] {
 		let array: T[] = new Array(this._length),
 			i: number = 0,
-			node: GamingCanvasDoubleLinkedListNode<T> | undefined = this.start;
+			node: GamingCanvasDoubleLinkedListNode<T> | undefined = this._start;
 
 		while (node) {
 			array[i++] = node.data;
@@ -175,12 +167,20 @@ export class GamingCanvasDoubleLinkedList<T> {
 		return this.toArray().toString();
 	}
 
+	public get end(): GamingCanvasDoubleLinkedListNode<T> | undefined {
+		return this._end;
+	}
+
 	public get length(): number {
 		return this._length;
 	}
 
+	public get start(): GamingCanvasDoubleLinkedListNode<T> | undefined {
+		return this._start;
+	}
+
 	public forEach(callback: (value: T) => void): void {
-		let node: GamingCanvasDoubleLinkedListNode<T> | undefined = this.start;
+		let node: GamingCanvasDoubleLinkedListNode<T> | undefined = this._start;
 		while (node) {
 			callback(node.data);
 			node = node.next;
@@ -190,7 +190,7 @@ export class GamingCanvasDoubleLinkedList<T> {
 	[Symbol.iterator] = () => {
 		let i: number = 0,
 			length: number = this.length,
-			node: GamingCanvasDoubleLinkedListNode<T> | undefined = this.start;
+			node: GamingCanvasDoubleLinkedListNode<T> | undefined = this._start;
 
 		return {
 			next() {
