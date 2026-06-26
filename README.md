@@ -17,6 +17,8 @@ Supports
     - Update the pan and volume of the effect or music depending on your game's environment!
     - Use faders to automatically evolve your pan and volume values to your desired settings over a duration of milliseconds
         - Use fader callback chaining to perfectly time more complicated pan and volume changes over a series of actions
+- **Credits**: Built in credits display, with asset/author tracking system, checks off a gaming must from your to-do list. It's important to make sure you're crediting 3rd parties for their work according to their licenses
+    - **Example**: [Credits](https://gaming-canvas.org/examples/credits/index.html)
 - **DPI**: Supports high/low DPI screens ([devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio))
 - **Fullscreen**: Quickly fullscreen your game
 - **Inputs**: Gives you access to **Gamepad**, **Keyboard**, **Mouse**, and **Touch** via a serialized (FIFO) input queues
@@ -29,7 +31,6 @@ Supports
 - **Lists**: Provides `List` implementions where `Array` performance faulters
     - Double-Linked-List
     - FIFO Queue (Single-Linked-List without `popEnd()` or `pushStart()`)
-- **Lightweight**: Core library is **44.3kb** and the Grid Module is **17.9kb**
 - **Modules**
     - **Grids**: Includes _Grid_, _Camera_, _Path Finding (A\*)_, _Raycasting_, and _Viewport_ implementations. See [How-To > Module: Grids](https://gaming-canvas.org/docs/category/module-grids) for all the features and details
         - **Examples**: [Camera Move](https://gaming-canvas.org/examples/camera-move/index.html), this shows how automating in-game cameras can look
@@ -40,6 +41,7 @@ Supports
     - Dimensions are always rounded down to the nearest pixel to improve performance
     - Scaling uses the css `transform: scale(x)` function which your browser (CPU) offloads to your GPU (best performance)
     - Use the `aspectRatio` option to lock your display to something like `1 / 1 `, `4 / 3`, and `16 / 9` (the default)
+- **Size**: Core library is **55.2kb** and the Grid Module is **17.9kb**
 - **Splitscreen**: A no hassle way to split your screen for 2 players (2 canvases sharing the space of 1 canvas)
 - **Transition**: Built in system allows you develop simple on-game-boot intro transitions and in-game cutscenes with ease!
     - **Example**: [Transition](https://gaming-canvas.org/examples/transition/index.html), this contains multiple styles of transitions
