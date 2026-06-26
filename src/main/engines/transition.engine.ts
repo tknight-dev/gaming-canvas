@@ -197,18 +197,18 @@ interface GamingCanvasTransitionState {
 export class GamingCanvasEngineTransition {
 	private static active: boolean;
 	private static callbackAudioEffect: (assetId: number, pan?: number, volume?: number) => void;
-	private static callbackLockout: (state: boolean) => void;
-	private static callbackTransitionSkipAvailable: (available: boolean) => void;
-	private static callbackTransitionSkipped: () => void;
-	private static callbackTransitionState: (active: boolean) => void;
-	private static callbackTransitionFrame: (
+	private static callbackFrame: (
 		frameActive: GamingCanvasTransitionFrameContentElements | GamingCanvasTransitionFrameContentHTML,
 		frameActiveIndex: number,
 		frameActiveState: GamingCanvasTransitionFrameState,
 		framePreviousDurationInMs: number,
 		framePreviousSkipInput?: GamingCanvasInput,
 	) => void;
-	private static callbackTransitionFPS: (fps: number) => void;
+	private static callbackFPS: (fps: number) => void;
+	private static callbackLockout: (state: boolean) => void;
+	private static callbackSkipAvailable: (available: boolean) => void;
+	private static callbackSkipped: () => void;
+	private static callbackState: (active: boolean) => void;
 	private static domBackground: HTMLElement;
 	private static domEffect: HTMLElement;
 	private static domFrameContainer: HTMLElement;
@@ -298,7 +298,7 @@ export class GamingCanvasEngineTransition {
 		 * Validation
 		 */
 		if (transition.frames === undefined || transition.frames.length === 0) {
-			console.error('GamingCanvas > GamingCanvasEngineTransition > apply: frames cannot be null or undefined');
+			console.error('GamingCanvas > GamingCanvasEngineTransition > apply: frames cannot be empty');
 			GamingCanvasEngineTransition.active = false;
 			return false;
 		}
@@ -392,7 +392,7 @@ export class GamingCanvasEngineTransition {
 				case GamingCanvasTransitionFrameContentType.ELEMENTS:
 					// Elements
 					htmlElement = document.createElement('div');
-					htmlElement.id = 'gaming-canvas-transition-frame-' + count;
+					htmlElement.id = 'gaming-canvas-transition-frame frame-' + count;
 					break;
 				case GamingCanvasTransitionFrameContentType.HTML:
 					htmlElement = (<GamingCanvasTransitionFrameContentHTML>frameGroup.content).html;
@@ -980,8 +980,8 @@ export class GamingCanvasEngineTransition {
 
 		// Done
 		setTimeout(() => {
-			if (GamingCanvasEngineTransition.callbackTransitionSkipped !== undefined) {
-				GamingCanvasEngineTransition.callbackTransitionSkipped();
+			if (GamingCanvasEngineTransition.callbackSkipped !== undefined) {
+				GamingCanvasEngineTransition.callbackSkipped();
 			}
 		});
 
@@ -1023,9 +1023,9 @@ export class GamingCanvasEngineTransition {
 		GamingCanvasEngineTransition.nextSkipState(false);
 
 		// Callback to notify client of stop
-		if (GamingCanvasEngineTransition.callbackTransitionState !== undefined) {
+		if (GamingCanvasEngineTransition.callbackState !== undefined) {
 			setTimeout(() => {
-				GamingCanvasEngineTransition.callbackTransitionState(false);
+				GamingCanvasEngineTransition.callbackState(false);
 			});
 		}
 
@@ -1074,8 +1074,8 @@ export class GamingCanvasEngineTransition {
 
 		const fpsCallback = (fps: number) => {
 			setTimeout(() => {
-				if (GamingCanvasEngineTransition.callbackTransitionFPS !== undefined) {
-					GamingCanvasEngineTransition.callbackTransitionFPS(fps);
+				if (GamingCanvasEngineTransition.callbackFPS !== undefined) {
+					GamingCanvasEngineTransition.callbackFPS(fps);
 				}
 			});
 		};
@@ -1417,7 +1417,7 @@ export class GamingCanvasEngineTransition {
 
 			// Callback to notify client of start
 			setTimeout(() => {
-				GamingCanvasEngineTransition.callbackTransitionState(true);
+				GamingCanvasEngineTransition.callbackState(true);
 			});
 
 			// Timestamp
@@ -1474,10 +1474,10 @@ export class GamingCanvasEngineTransition {
 					frameContent = frameGroup.content;
 
 					// Callback
-					if (GamingCanvasEngineTransition.callbackTransitionFrame !== undefined) {
+					if (GamingCanvasEngineTransition.callbackFrame !== undefined) {
 						setTimeout(
 							(framePreviousDurationInMs: number) => {
-								GamingCanvasEngineTransition.callbackTransitionFrame(
+								GamingCanvasEngineTransition.callbackFrame(
 									<any>transitionState.frameActive,
 									transitionState.frameIndex,
 									GamingCanvasTransitionFrameState.CONTENT,
@@ -1523,10 +1523,10 @@ export class GamingCanvasEngineTransition {
 						frameEffect = frameGroup.incoming;
 
 						// Callback
-						if (GamingCanvasEngineTransition.callbackTransitionFrame !== undefined) {
+						if (GamingCanvasEngineTransition.callbackFrame !== undefined) {
 							setTimeout(
 								(framePreviousDurationInMs: number) => {
-									GamingCanvasEngineTransition.callbackTransitionFrame(
+									GamingCanvasEngineTransition.callbackFrame(
 										<any>transitionState.frameActive,
 										transitionState.frameIndex,
 										GamingCanvasTransitionFrameState.INCOMING,
@@ -1588,10 +1588,10 @@ export class GamingCanvasEngineTransition {
 						frameEffect = frameGroup.outgoing;
 
 						// Callback
-						if (GamingCanvasEngineTransition.callbackTransitionFrame !== undefined) {
+						if (GamingCanvasEngineTransition.callbackFrame !== undefined) {
 							setTimeout(
 								(framePreviousDurationInMs: number) => {
-									GamingCanvasEngineTransition.callbackTransitionFrame(
+									GamingCanvasEngineTransition.callbackFrame(
 										<any>transitionState.frameActive,
 										transitionState.frameIndex - 1,
 										GamingCanvasTransitionFrameState.OUTGOING,
@@ -1802,15 +1802,14 @@ export class GamingCanvasEngineTransition {
 			GamingCanvasEngineTransition.transitionState.frameActive.durationInMsMin !== 0
 		) {
 			GamingCanvasEngineTransition.nextSkipStateTimeout = setTimeout(() => {
-				GamingCanvasEngineTransition.callbackTransitionSkipAvailable !== undefined &&
-					GamingCanvasEngineTransition.callbackTransitionSkipAvailable(true);
+				GamingCanvasEngineTransition.callbackSkipAvailable !== undefined && GamingCanvasEngineTransition.callbackSkipAvailable(true);
 				GamingCanvasEngineTransition.transitionState.skipable = true;
 				GamingCanvasEngineTransition.nextSkipStateTimeoutActive = false;
 			}, GamingCanvasEngineTransition.transitionState.frameActive.durationInMsMin);
 			GamingCanvasEngineTransition.nextSkipStateTimeoutActive = true;
 		} else {
 			GamingCanvasEngineTransition.transitionState.skipable = state;
-			GamingCanvasEngineTransition.callbackTransitionSkipAvailable !== undefined && GamingCanvasEngineTransition.callbackTransitionSkipAvailable(state);
+			GamingCanvasEngineTransition.callbackSkipAvailable !== undefined && GamingCanvasEngineTransition.callbackSkipAvailable(state);
 		}
 	}
 
@@ -1824,8 +1823,12 @@ export class GamingCanvasEngineTransition {
 		GamingCanvasEngineTransition.callbackLockout = callback;
 	}
 
+	public static setCallbackFPS(callback: (fps: number) => void): void {
+		GamingCanvasEngineTransition.callbackFPS = callback;
+	}
+
 	// Triggered on-frame
-	public static setCallbackTransitionFrame(
+	public static setCallbackFrame(
 		callback: (
 			frameActive: GamingCanvasTransitionFrameContentElements | GamingCanvasTransitionFrameContentHTML,
 			frameActiveIndex: number,
@@ -1834,23 +1837,19 @@ export class GamingCanvasEngineTransition {
 			framePreviousSkipInput?: GamingCanvasInput,
 		) => void,
 	): void {
-		GamingCanvasEngineTransition.callbackTransitionFrame = callback;
+		GamingCanvasEngineTransition.callbackFrame = callback;
 	}
 
-	public static setCallbackTransitionFPS(callback: (fps: number) => void): void {
-		GamingCanvasEngineTransition.callbackTransitionFPS = callback;
+	public static setCallbackSkipAvailable(callback: (available: boolean) => void): void {
+		GamingCanvasEngineTransition.callbackSkipAvailable = callback;
 	}
 
-	public static setTransitionCallbackSkipAvailable(callback: (available: boolean) => void): void {
-		GamingCanvasEngineTransition.callbackTransitionSkipAvailable = callback;
+	public static setCallbackSkipped(callback: () => void): void {
+		GamingCanvasEngineTransition.callbackSkipped = callback;
 	}
 
-	public static setTransitionCallbackSkipped(callback: () => void): void {
-		GamingCanvasEngineTransition.callbackTransitionSkipped = callback;
-	}
-
-	public static setTransitionCallbackState(callback: (active: boolean) => void): void {
-		GamingCanvasEngineTransition.callbackTransitionState = callback;
+	public static setCallbackState(callback: (active: boolean) => void): void {
+		GamingCanvasEngineTransition.callbackState = callback;
 	}
 
 	public static isActive(): boolean {
