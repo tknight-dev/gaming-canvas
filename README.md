@@ -41,7 +41,7 @@ Supports
     - Dimensions are always rounded down to the nearest pixel to improve performance
     - Scaling uses the css `transform: scale(x)` function which your browser (CPU) offloads to your GPU (best performance)
     - Use the `aspectRatio` option to lock your display to something like `1 / 1 `, `4 / 3`, and `16 / 9` (the default)
-- **Size**: Core library is **55.2kb** and the Grid Module is **17.9kb**
+- **Size**: Core library is **87.8kb** and the Grid Module is **25.9kb** before [Tree Shaking](https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking)
 - **Splitscreen**: A no hassle way to split your screen for 2 players (2 canvases sharing the space of 1 canvas)
 - **Transition**: Built in system allows you develop simple on-game-boot intro transitions and in-game cutscenes with ease!
     - **Example**: [Transition](https://gaming-canvas.org/examples/transition/index.html), this contains multiple styles of transitions
