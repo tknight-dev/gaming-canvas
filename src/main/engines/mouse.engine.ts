@@ -100,6 +100,29 @@ export class GamingCanvasEngineMouse {
 
 		// Mouse: Click
 		let clickAction: GamingCanvasInputMouseAction;
+		document.addEventListener('click', (event: MouseEvent) => {
+			if (
+				(GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) &&
+				GamingCanvasEngineMouse.locked === true &&
+				event.button < 3
+			) {
+				if (event.button === 0) {
+					clickAction = GamingCanvasInputMouseAction.LEFT_CLICK;
+				} else if (event.button === 1) {
+					clickAction = GamingCanvasInputMouseAction.WHEEL_CLICK;
+				} else {
+					clickAction = GamingCanvasInputMouseAction.RIGHT_CLICK;
+				}
+
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
+					propriatary: {
+						action: clickAction,
+						position: GamingCanvasEngineMouse.calc(event),
+					},
+					type: GamingCanvasInputType.MOUSE,
+				});
+			}
+		});
 		(elInteractive || document.body).addEventListener('click', (event: MouseEvent) => {
 			if (
 				(GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) &&
@@ -126,6 +149,26 @@ export class GamingCanvasEngineMouse {
 
 		// Mouse: Down
 		let mousedownAction: GamingCanvasInputMouseAction;
+		document.addEventListener('mousedown', (event: MouseEvent) => {
+			if ((GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) && GamingCanvasEngineMouse.locked === true) {
+				if (event.button === 0) {
+					mousedownAction = GamingCanvasInputMouseAction.LEFT;
+				} else if (event.button === 1) {
+					mousedownAction = GamingCanvasInputMouseAction.WHEEL;
+				} else {
+					mousedownAction = GamingCanvasInputMouseAction.RIGHT;
+				}
+
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
+					propriatary: {
+						action: mousedownAction,
+						down: true,
+						position: GamingCanvasEngineMouse.calc(event),
+					},
+					type: GamingCanvasInputType.MOUSE,
+				});
+			}
+		});
 		(elInteractive || document.body).addEventListener('mousedown', (event: MouseEvent) => {
 			if (
 				(GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) &&
@@ -152,6 +195,19 @@ export class GamingCanvasEngineMouse {
 		});
 
 		// Mouse: Move
+		document.addEventListener('mousemove', (event: MouseEvent) => {
+			if ((GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) && GamingCanvasEngineMouse.locked === true) {
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
+					propriatary: {
+						action: GamingCanvasInputMouseAction.MOVE,
+						movementX: event.movementX,
+						movementY: event.movementY,
+						position: GamingCanvasEngineMouse.calc(event),
+					},
+					type: GamingCanvasInputType.MOUSE,
+				});
+			}
+		});
 		(elInteractive || document.body).addEventListener('mousemove', (event: MouseEvent) => {
 			if ((GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) && GamingCanvasEngineMouse.locked !== true) {
 				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
@@ -168,6 +224,30 @@ export class GamingCanvasEngineMouse {
 
 		// Mouse: Down
 		let mouseupAction: GamingCanvasInputMouseAction;
+		document.addEventListener('mouseup', (event: MouseEvent) => {
+			if (
+				(GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) &&
+				GamingCanvasEngineMouse.locked === true &&
+				event.button < 3
+			) {
+				if (event.button === 0) {
+					mouseupAction = GamingCanvasInputMouseAction.LEFT;
+				} else if (event.button === 1) {
+					mouseupAction = GamingCanvasInputMouseAction.WHEEL;
+				} else {
+					mouseupAction = GamingCanvasInputMouseAction.RIGHT;
+				}
+
+				(GamingCanvasEngineMouse.lockout === true ? GamingCanvasEngineMouse.queueLockout : GamingCanvasEngineMouse.queue).push({
+					propriatary: {
+						action: mouseupAction,
+						down: false,
+						position: GamingCanvasEngineMouse.calc(event),
+					},
+					type: GamingCanvasInputType.MOUSE,
+				});
+			}
+		});
 		(elInteractive || document.body).addEventListener('mouseup', (event: MouseEvent) => {
 			if (
 				(GamingCanvasEngineMouse.active === true || GamingCanvasEngineMouse.lockout === true) &&
@@ -213,6 +293,18 @@ export class GamingCanvasEngineMouse {
 		}
 
 		// Wheel
+		document.addEventListener('wheel', (event: any) => {
+			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked === true && GamingCanvasEngineMouse.lockout !== true) {
+				GamingCanvasEngineMouse.queue.push({
+					propriatary: {
+						action: GamingCanvasInputMouseAction.SCROLL,
+						down: event.deltaY > 0,
+						position: GamingCanvasEngineMouse.calc(event),
+					},
+					type: GamingCanvasInputType.MOUSE,
+				});
+			}
+		});
 		(elInteractive || document.body).addEventListener('wheel', (event: any) => {
 			if (GamingCanvasEngineMouse.active === true && GamingCanvasEngineMouse.locked !== true && GamingCanvasEngineMouse.lockout !== true) {
 				GamingCanvasEngineMouse.queue.push({
@@ -233,7 +325,7 @@ export class GamingCanvasEngineMouse {
 	public static async lock(unadjustedMovement?: boolean): Promise<boolean> {
 		try {
 			await (GamingCanvasEngineMouse.elInteractive || document.body).requestPointerLock({
-				unadjustedMovement: unadjustedMovement,
+				unadjustedMovement: unadjustedMovement === true,
 			});
 			return true;
 		} catch (error) {

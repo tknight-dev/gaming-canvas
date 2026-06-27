@@ -20,7 +20,7 @@ export interface GamingCanvasCredits {
 	cssDefaultPaddingRight?: string;
 	cssDefaultPaddingTop?: string;
 	debug?: boolean;
-	durationInMs: number; // min is 500ms
+	durationInMs: number;
 	fadeInDurationInMs?: number;
 	fadeOutDurationInMs?: number;
 	fps?: number;
@@ -32,10 +32,10 @@ export interface GamingCanvasCredits {
 	>;
 	inputPassthrough?: boolean;
 	scrollDirectionReverse?: boolean;
+	scrollEndOnLastElement?: boolean;
+	scrollEndPauseDurationInMs?: number;
 	scrollOrderReverse?: boolean;
 	scrollStartPauseDurationInMs?: number;
-	scrollStopOnLastElement?: boolean; // default is true
-	scrollStopPauseDurationInMs?: number;
 	zIndexBackground?: number;
 	zIndexContent?: number;
 }
@@ -57,11 +57,11 @@ interface GamingCanvasCreditsContent {
 }
 
 export interface GamingCanvasCreditsContentCollection extends GamingCanvasCreditsContent {
-	columns?: number; // Default to 2 (max 3, min 1)
-	exposeWebsiteLink?: boolean; // Default to true
-	id: number; // Assigned by user
-	rowFillPreference?: 'center' | 'left' | 'right'; // Defaults to left
-	sortPersons?: GamingCanvasCreditsContentCollectionSort; // Defaults to ASCENDING
+	columns?: number;
+	exposeWebsiteLink?: boolean;
+	id: number;
+	rowFillPreference?: 'center' | 'left' | 'right';
+	sortPersons?: GamingCanvasCreditsContentCollectionSort;
 }
 
 export enum GamingCanvasCreditsContentCollectionSort {
@@ -78,12 +78,12 @@ export interface GamingCanvasCreditsContentText extends GamingCanvasCreditsConte
 	cssFontFamily?: string;
 	cssFontSize?: string;
 	cssFontWeight?: string;
-	cssJustifyContent?: 'center' | 'flex-start' | 'flex-end'; // Defaults to center
-	cssPaddingBottom?: string; // 50%, 12px, defaults to 0
-	cssPaddingLeft?: string; // 50%, 12px, defaults to 0
-	cssPaddingRight?: string; // 50%, 12px, defaults to 0
-	cssPaddingTop?: string; // 50%, 12px, defaults to 0
-	type?: GamingCanvasCreditsContentTextType; // Defaults to BODY
+	cssJustifyContent?: 'center' | 'flex-start' | 'flex-end';
+	cssPaddingBottom?: string;
+	cssPaddingLeft?: string;
+	cssPaddingRight?: string;
+	cssPaddingTop?: string;
+	type?: GamingCanvasCreditsContentTextType;
 	value: string;
 }
 
@@ -108,16 +108,17 @@ export enum GamingCanvasCreditsInputAction {
 }
 
 export interface GamingCanvasCreditsPerson {
-	collectionIds: number[]; // Assigned by user
+	collectionIds: number[];
 	description?: string;
+	id?: string;
 	name: string;
-	title?: string; // Art Lead, Audio Engineer, Senior Developer
-	url?: string; // www.3rd-party-artist-here.com
+	title?: string;
+	url?: string;
 }
 
 export class GamingCanvasEngineCredits {
 	private static active: boolean;
-	private static assets: { [key: string]: { [key: string]: GamingCanvasCreditsAsset } } = {}; // <person name, <url, asset>>
+	private static assets: { [key: number]: { [key: string]: GamingCanvasCreditsAsset } } = {}; // <person name, <url, asset>>
 	private static callbackFPS: (fps: number) => void;
 	private static callbackLockout: (state: boolean) => void;
 	private static callbackEnd: () => void;
@@ -136,7 +137,8 @@ export class GamingCanvasEngineCredits {
 	private static elementContainerOverlayWrapper: HTMLElement;
 	private static queue: GamingCanvasFIFOQueue<GamingCanvasInput>;
 	private static queueLockout: GamingCanvasFIFOQueue<GamingCanvasInput>;
-	private static people: { [key: string]: GamingCanvasCreditsPerson } = {}; // key is person name
+	private static people: { [key: number]: GamingCanvasCreditsPerson } = {}; // key is person name
+	private static peopleIncrement: number = 0;
 	private static timeout: ReturnType<typeof setTimeout>;
 
 	public static initialize(
@@ -172,7 +174,6 @@ export class GamingCanvasEngineCredits {
 			people: { [key: string]: GamingCanvasCreditsPerson } = GamingCanvasEngineCredits.people,
 			peopleByCollectionId: { [key: number]: GamingCanvasCreditsPerson[] } = {},
 			person: GamingCanvasCreditsPerson,
-			personFormatName: (name: string) => string = GamingCanvasEngineCredits.registerPersonFormatName,
 			persons: GamingCanvasCreditsPerson[];
 
 		if (GamingCanvasEngineCredits.active === true) {
@@ -309,14 +310,14 @@ export class GamingCanvasEngineCredits {
 						// Cells
 						for (j = 0; j < Math.min(<number>contentCollection.columns, persons.length - i); j++) {
 							htmlElementTd = document.createElement('td');
-							htmlElementTd.id = personFormatName(persons[i + j].name);
+							htmlElementTd.id = String(persons[i + j].id);
 							htmlElementTd.innerText = persons[i + j].name;
 							htmlElementTd.style.textAlign = 'center';
 							htmlElementTr.appendChild(htmlElementTd);
 
 							if (contentCollection.exposeWebsiteLink === true) {
 								htmlElementTd = document.createElement('td');
-								htmlElementTd.id = personFormatName(persons[i + j].name) + '-www';
+								htmlElementTd.id = String(persons[i + j].id) + '-www';
 								htmlElementTd.innerText = <string>persons[i + j].url;
 								htmlElementTd.style.fontSize = '67.5%';
 								htmlElementTd.style.textAlign = 'center';
@@ -450,10 +451,10 @@ export class GamingCanvasEngineCredits {
 		credits.fps === undefined && (credits.fps = 120);
 		credits.inputPassthrough === undefined && (credits.inputPassthrough = false);
 		credits.scrollDirectionReverse === undefined && (credits.scrollDirectionReverse = false);
+		credits.scrollEndOnLastElement === undefined && (credits.scrollEndOnLastElement = true);
+		credits.scrollEndPauseDurationInMs = Math.max(credits.scrollEndPauseDurationInMs === undefined ? 1000 : credits.scrollEndPauseDurationInMs, 100);
 		credits.scrollOrderReverse === undefined && (credits.scrollOrderReverse = false);
 		credits.scrollStartPauseDurationInMs = Math.max(credits.scrollStartPauseDurationInMs === undefined ? 500 : credits.scrollStartPauseDurationInMs, 100);
-		credits.scrollStopOnLastElement === undefined && (credits.scrollStopOnLastElement = true);
-		credits.scrollStopPauseDurationInMs = Math.max(credits.scrollStopPauseDurationInMs === undefined ? 1000 : credits.scrollStopPauseDurationInMs, 100);
 		credits.zIndexBackground === undefined && (credits.zIndexBackground = 5);
 		credits.zIndexContent === undefined && (credits.zIndexContent = credits.zIndexBackground + 2);
 
@@ -514,7 +515,7 @@ export class GamingCanvasEngineCredits {
 			GamingCanvasEngineCredits.timeout = setTimeout(() => {
 				GamingCanvasEngineCredits.controlStop();
 			}, fadeOutDurationInMs);
-		}, GamingCanvasEngineCredits.credits.scrollStopPauseDurationInMs); // Make sure the css is set before triggering
+		}, GamingCanvasEngineCredits.credits.scrollEndPauseDurationInMs); // Make sure the css is set before triggering
 
 		return true;
 	}
@@ -637,7 +638,7 @@ export class GamingCanvasEngineCredits {
 			queue: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvasEngineCredits.queue,
 			queueLockout: GamingCanvasFIFOQueue<GamingCanvasInput> = GamingCanvasEngineCredits.queueLockout,
 			scrollDirectionReverse: boolean = <boolean>GamingCanvasEngineCredits.credits.scrollDirectionReverse,
-			scrollStopOnLastElement: boolean = <boolean>GamingCanvasEngineCredits.credits.scrollStopOnLastElement,
+			scrollEndOnLastElement: boolean = <boolean>GamingCanvasEngineCredits.credits.scrollEndOnLastElement,
 			timestampDelta: number,
 			timestampThen: number = performance.now(),
 			translate: number;
@@ -683,10 +684,10 @@ export class GamingCanvasEngineCredits {
 
 				// Calc: Dynamic Offset
 				durationCompeletePercentage = Math.min(1, durationInMsActual / durationInMsTarget);
-				if (scrollStopOnLastElement === true) {
+				if (scrollEndOnLastElement === true) {
 					translate = (domContentWrapperHeight + domContentHeight / 2) * durationCompeletePercentage;
 				} else {
-					translate = (domContentWrapperHeight + domContentHeight) * durationCompeletePercentage;
+					translate = (domContentWrapperHeight + domContentHeight + elementLastHeight) * durationCompeletePercentage;
 				}
 
 				// Calc: Static Offset
@@ -797,47 +798,53 @@ export class GamingCanvasEngineCredits {
 		GamingCanvasEngineCredits.creditsAnimateRequest = requestAnimationFrame(go);
 	}
 
-	public static registerAsset(personName: string, asset: GamingCanvasCreditsAsset | GamingCanvasCreditsAsset[]): boolean {
-		let assets: { [key: string]: { [key: string]: GamingCanvasCreditsAsset } } = GamingCanvasEngineCredits.assets,
-			personNameEff: string = GamingCanvasEngineCredits.registerPersonFormatName(personName);
+	/**
+	 * @param personId is the numeric ID returned by `registerPerson()`
+	 */
+	public static registerAsset(personId: number, asset: GamingCanvasCreditsAsset | GamingCanvasCreditsAsset[]): boolean {
+		let assets: { [key: number]: { [key: string]: GamingCanvasCreditsAsset } } = GamingCanvasEngineCredits.assets;
 
 		// Validation
-		if (GamingCanvasEngineCredits.people[personNameEff] === undefined) {
-			console.error('GamingCanvas > GamingCanvasEngineCredits > registerAsset: unknown person "' + personName + '"');
+		if (GamingCanvasEngineCredits.people[personId] === undefined) {
+			console.error('GamingCanvas > GamingCanvasEngineCredits > registerAsset: unknown person id=' + personId);
 			return false;
 		}
 
 		// Apply
-		if (assets[personNameEff] === undefined) {
-			assets[personNameEff] = {};
+		if (assets[personId] === undefined) {
+			assets[personId] = {};
 		}
 		if (Array.isArray(asset) === true) {
 			for (let i = 0; i < asset.length; i++) {
-				assets[personNameEff][asset[i].url] = asset[i];
+				assets[personId][asset[i].url] = asset[i];
 			}
 		} else {
-			assets[personNameEff][asset.url] = asset;
+			assets[personId][asset.url] = asset;
 		}
 
 		return true;
 	}
 
-	private static registerPersonFormatName(personName: string): string {
-		return personName.trim().toLowerCase();
-	}
+	/**
+	 * @return is number[] representing the numerical ID of that registered person
+	 */
+	public static registerPerson(person: GamingCanvasCreditsPerson | GamingCanvasCreditsPerson[]): number[] {
+		let id: number,
+			ids: number[] = [];
 
-	public static registerPerson(person: GamingCanvasCreditsPerson | GamingCanvasCreditsPerson[]): boolean {
 		if (Array.isArray(person) === true) {
-			let registerPersonFormatName: (person: string) => string = GamingCanvasEngineCredits.registerPersonFormatName;
-
 			for (let i = 0; i < person.length; i++) {
-				GamingCanvasEngineCredits.people[registerPersonFormatName(person[i].name)] = person[i];
+				id = GamingCanvasEngineCredits.peopleIncrement++;
+				ids.push(id);
+				GamingCanvasEngineCredits.people[id] = person[i];
 			}
 		} else {
-			GamingCanvasEngineCredits.people[GamingCanvasEngineCredits.registerPersonFormatName(person.name)] = person;
+			id = GamingCanvasEngineCredits.peopleIncrement++;
+			ids.push(id);
+			GamingCanvasEngineCredits.people[id] = person;
 		}
 
-		return true;
+		return ids;
 	}
 
 	private static start(): void {

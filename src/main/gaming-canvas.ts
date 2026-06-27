@@ -1137,16 +1137,20 @@ export class GamingCanvas {
 
 	/**
 	 * Registers multiple or a single asset for inclusion in the credits
+	 *
+	 * @param personId is the numeric ID returned by `registerPerson()`
 	 */
-	public static creditsRegisterAsset(personName: string, asset: GamingCanvasCreditsAsset | GamingCanvasCreditsAsset[]): boolean {
+	public static creditsRegisterAsset(personId: number, asset: GamingCanvasCreditsAsset | GamingCanvasCreditsAsset[]): boolean {
 		return false;
 	}
 
 	/**
 	 * Registers multiple or a single author for inclusion in the credits
+	 *
+	 * @return is number[] representing the numerical ID of that registered person
 	 */
-	public static creditsRegisterPerson(person: GamingCanvasCreditsPerson | GamingCanvasCreditsPerson[]): boolean {
-		return false;
+	public static creditsRegisterPerson(person: GamingCanvasCreditsPerson | GamingCanvasCreditsPerson[]): number[] {
+		return [];
 	}
 
 	/**
