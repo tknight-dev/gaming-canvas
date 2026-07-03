@@ -1464,34 +1464,48 @@ export class GamingCanvas {
 	 * @param noTimeouts skips the re-apply after specific intervals
 	 */
 	public static renderStyle(
-		context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-		resolutionScaleType?: GamingCanvasRenderStyle,
+		context: CanvasRenderingContext2D | CanvasRenderingContext2D[] | OffscreenCanvasRenderingContext2D | OffscreenCanvasRenderingContext2D[],
+		renderStyle?: GamingCanvasRenderStyle,
 		noTimeouts?: boolean,
 	): void {
-		if (resolutionScaleType === undefined) {
-			resolutionScaleType = GamingCanvas.options.renderStyle;
+		// Validation
+		if (renderStyle === undefined) {
+			renderStyle = GamingCanvas.options.renderStyle;
 
-			if (resolutionScaleType === undefined) {
+			if (renderStyle === undefined) {
 				console.error('GamingCanvas: failed to apply scale type as none was provided (applied within WebWorker?)');
 				return;
 			}
 		}
+		let contextIsArray: boolean = Array.isArray(context),
+			imageSmoothingEnabled: boolean;
 
-		switch (resolutionScaleType) {
+		// Config
+		switch (renderStyle) {
 			case GamingCanvasRenderStyle.ANTIALIAS:
-				context.imageSmoothingEnabled = true;
+				imageSmoothingEnabled = true;
 				break;
 			case GamingCanvasRenderStyle.PIXELATED:
-				context.imageSmoothingEnabled = false;
+				imageSmoothingEnabled = false;
 				break;
 		}
 
+		// Apply
+		if (contextIsArray === true) {
+			for (let i = 0; i < (<CanvasRenderingContext2D[]>context).length; i++) {
+				(<CanvasRenderingContext2D[]>context)[i].imageSmoothingEnabled = imageSmoothingEnabled;
+			}
+		} else {
+			(<CanvasRenderingContext2D>context).imageSmoothingEnabled = imageSmoothingEnabled;
+		}
+
+		// Apply again with delay
 		if (noTimeouts !== true) {
 			setTimeout(() => {
-				GamingCanvas.renderStyle(context, resolutionScaleType, true);
+				GamingCanvas.renderStyle(context, renderStyle, true);
 
 				setTimeout(() => {
-					GamingCanvas.renderStyle(context, resolutionScaleType, true);
+					GamingCanvas.renderStyle(context, renderStyle, true);
 				}, 500);
 			}, 100);
 		}
