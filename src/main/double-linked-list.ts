@@ -104,12 +104,52 @@ export class GamingCanvasDoubleLinkedList<T> {
 		return node;
 	}
 
+	/**
+	 * Save memory/performance and transfer a Node in from another DoubleLinkedList. Previous and Next Node variables will be converted to this DoubleLinkedList instance
+	 */
+	public pushEndNode(node: GamingCanvasDoubleLinkedListNode<T>): GamingCanvasDoubleLinkedListNode<T> {
+		node.next = undefined;
+		node.previous = this._length ? this._end : undefined;
+
+		if (this._end !== undefined) {
+			this._end.next = node;
+			this._end = node;
+		} else {
+			this._end = node;
+			this._start = node;
+		}
+
+		this._length++;
+
+		return node;
+	}
+
 	public pushStart(data: T): GamingCanvasDoubleLinkedListNode<T> {
 		let node: GamingCanvasDoubleLinkedListNode<T> = {
 			data: data,
 			next: this._length ? this._start : undefined,
 			previous: undefined,
 		};
+
+		if (this._start !== undefined) {
+			this._start.previous = node;
+			this._start = node;
+		} else {
+			this._end = node;
+			this._start = node;
+		}
+
+		this._length++;
+
+		return node;
+	}
+
+	/**
+	 * Save memory/performance and transfer a Node in from another DoubleLinkedList. Previous and Next Node variables will be converted to this DoubleLinkedList instance
+	 */
+	public pushStartNode(node: GamingCanvasDoubleLinkedListNode<T>): GamingCanvasDoubleLinkedListNode<T> {
+		node.next = this._length ? this._start : undefined;
+		node.previous = undefined;
 
 		if (this._start !== undefined) {
 			this._start.previous = node;
