@@ -1219,18 +1219,18 @@ export class GamingCanvas {
 
 			GamingCanvas.elementRotator2.style.backgroundColor = 'rgba(192,192,192,0.5)';
 
-			for (const canvas of GamingCanvas.elementCanvases) {
-				canvas.style.backgroundColor = 'rgba(255,0,255,0.5)';
-				canvas.style.boxShadow = 'inset -8px 8px 4px 4px rgb(0,255,0)';
+			if (GamingCanvas.elementCanvases.length !== 0) {
+				GamingCanvas.elementCanvases[0].style.backgroundColor = 'rgba(255,0,255,0.5)';
+				GamingCanvas.elementCanvases[0].style.boxShadow = 'inset -8px 8px 4px 4px rgb(0,255,0)';
 			}
 		} else {
 			GamingCanvas.elementRotator1.style.background = 'unset';
 
 			GamingCanvas.elementRotator2.style.backgroundColor = 'transparent';
 
-			for (const canvas of GamingCanvas.elementCanvases) {
-				canvas.style.backgroundColor = 'transparent';
-				canvas.style.boxShadow = 'none';
+			if (GamingCanvas.elementCanvases.length !== 0) {
+				GamingCanvas.elementCanvases[0].style.backgroundColor = 'transparent';
+				GamingCanvas.elementCanvases[0].style.boxShadow = 'none';
 			}
 		}
 	}
