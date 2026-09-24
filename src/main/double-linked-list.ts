@@ -66,6 +66,24 @@ export class GamingCanvasDoubleLinkedList<T> {
 		return undefined;
 	}
 
+	public popEndNode(): GamingCanvasDoubleLinkedListNode<T> | undefined {
+		let end: GamingCanvasDoubleLinkedListNode<T> | undefined = this._end;
+
+		if (end !== undefined) {
+			if (this._length === 1) {
+				this._end = undefined;
+				this._start = undefined;
+			} else {
+				this._end = end.previous;
+			}
+
+			this._length--;
+			return end;
+		}
+
+		return undefined;
+	}
+
 	public popStart(): T | undefined {
 		let start: GamingCanvasDoubleLinkedListNode<T> | undefined = this._start;
 
@@ -79,6 +97,24 @@ export class GamingCanvasDoubleLinkedList<T> {
 
 			this._length--;
 			return start.data;
+		}
+
+		return undefined;
+	}
+
+	public popStartNode(): GamingCanvasDoubleLinkedListNode<T> | undefined {
+		let start: GamingCanvasDoubleLinkedListNode<T> | undefined = this._start;
+
+		if (start !== undefined) {
+			if (this._length === 1) {
+				this._end = undefined;
+				this._start = undefined;
+			} else {
+				this._start = start.next;
+			}
+
+			this._length--;
+			return start;
 		}
 
 		return undefined;
