@@ -6,8 +6,8 @@
 
 export interface GamingCanvasDoubleLinkedListNode<T> {
 	data: T;
-	next: GamingCanvasDoubleLinkedListNode<T> | undefined;
-	previous: GamingCanvasDoubleLinkedListNode<T> | undefined;
+	next?: GamingCanvasDoubleLinkedListNode<T>;
+	previous?: GamingCanvasDoubleLinkedListNode<T>;
 }
 
 export class GamingCanvasDoubleLinkedList<T> {
